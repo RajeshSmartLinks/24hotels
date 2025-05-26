@@ -1,0 +1,117 @@
+<SOAP:Envelope
+	xmlns:SOAP="http://schemas.xmlsoap.org/soap/envelope/">
+	<SOAP:Body>
+		<air:AirPriceRsp TraceId="4565" TransactionId="0D3001F40A0D6A9369FC2E3B996D6864" ResponseTime="1892"
+			xmlns:air="http://www.travelport.com/schema/air_v52_0"
+			xmlns:common_v52_0="http://www.travelport.com/schema/common_v52_0">
+			<common_v52_0:ResponseMessage Code="710401" Type="Warning" ProviderCode="1G">Taxes returned at the FareInfo level are for informational purposes only, and may differ from those returned at the Itinerary/Passenger Type levels.</common_v52_0:ResponseMessage>
+			<common_v52_0:ResponseMessage Code="4033" Type="Warning" ProviderCode="1G">Requested PermittedCabins are ignored during pricing in requested ClassOfService.</common_v52_0:ResponseMessage>
+			<common_v52_0:ResponseMessage Code="0" Type="Warning" ProviderCode="1G">CHECK CONTINUITY SEGMENT 02</common_v52_0:ResponseMessage>
+			<common_v52_0:ResponseMessage Code="4772" Type="Warning" ProviderCode="1G">Schedule Change Occurred and the air segment(s) DepartureTime and/or ArrivalTime have been updated</common_v52_0:ResponseMessage>
+			<air:AirItinerary>
+				<air:AirSegment Key="rwus+zTqWDKAgd/RCAAAAA==" Group="0" Carrier="KU" FlightNumber="303" ProviderCode="1G" Origin="KWI" Destination="BOM" DepartureTime="2024-02-14T00:05:00.000+03:00" ArrivalTime="2024-02-14T06:15:00.000+05:30" FlightTime="220" TravelTime="220" Distance="1714" ClassOfService="T" Equipment="32N" ChangeOfPlane="false" OptionalServicesIndicator="false" AvailabilitySource="S" ParticipantLevel="Secure Sell" LinkAvailability="true" PolledAvailabilityOption="O and D cache or polled status used with different local status" AvailabilityDisplayType="Fare Specific Fare Quote Unbooked">
+					<air:CodeshareInfo OperatingCarrier="KU">KUWAIT AIRWAYS</air:CodeshareInfo>
+					<air:FlightDetails Key="rwus+zTqWDKAhd/RCAAAAA==" Origin="KWI" Destination="BOM" DepartureTime="2024-02-14T00:05:00.000+03:00" ArrivalTime="2024-02-14T06:15:00.000+05:30" FlightTime="220" TravelTime="220" Distance="1714"/>
+					<air:Connection/>
+				</air:AirSegment>
+				<air:AirSegment Key="rwus+zTqWDKAid/RCAAAAA==" Group="0" Carrier="AI" FlightNumber="681" ProviderCode="1G" Origin="BOM" Destination="COK" DepartureTime="2024-02-14T17:10:00.000+05:30" ArrivalTime="2024-02-14T19:25:00.000+05:30" FlightTime="135" TravelTime="135" Distance="672" ClassOfService="W" ChangeOfPlane="false" OptionalServicesIndicator="false" AvailabilitySource="A" PolledAvailabilityOption="O and D cache or polled status used with different local status" AvailabilityDisplayType="Fare Specific Fare Quote Unbooked">
+					<air:CodeshareInfo OperatingCarrier="AI">Air India</air:CodeshareInfo>
+					<air:FlightDetails Key="rwus+zTqWDKAjd/RCAAAAA==" Origin="BOM" Destination="COK" DepartureTime="2024-02-14T17:10:00.000+05:30" ArrivalTime="2024-02-14T19:25:00.000+05:30" FlightTime="135" TravelTime="135" Distance="672"/>
+				</air:AirSegment>
+			</air:AirItinerary>
+			<air:AirPriceResult>
+				<air:AirPricingSolution Key="rwus+zTqWDKAkd/RCAAAAA==" TotalPrice="KWD105.190" BasePrice="KWD78.000" ApproximateTotalPrice="KWD105.194" ApproximateBasePrice="KWD78.000" Taxes="KWD27.194" Fees="KWD0.000" ApproximateTaxes="KWD27.194" QuoteDate="2024-01-15">
+					<air:AirSegmentRef Key="rwus+zTqWDKAgd/RCAAAAA=="/>
+					<air:AirSegmentRef Key="rwus+zTqWDKAid/RCAAAAA=="/>
+					<air:AirPricingInfo Key="rwus+zTqWDKAmd/RCAAAAA==" TotalPrice="KWD105.190" BasePrice="KWD78.000" ApproximateTotalPrice="KWD105.190" ApproximateBasePrice="KWD78.000" ApproximateTaxes="KWD27.194" Taxes="KWD27.194" LatestTicketingTime="2024-02-14T23:59:00.000+03:00" PricingMethod="Guaranteed" IncludesVAT="false" ETicketability="Yes" PlatingCarrier="KU" ProviderCode="1G">
+						<air:FareInfo Key="rwus+zTqWDKAtd/RCAAAAA==" FareBasis="TOWKW" PassengerTypeCode="ADT" Origin="KWI" Destination="COK" EffectiveDate="2024-01-15T15:54:00.000+03:00" DepartureDate="2024-02-14" Amount="KWD78.000" NegotiatedFare="false" NotValidBefore="2024-02-14" NotValidAfter="2024-02-14" TaxAmount="KWD27.190">
+							<common_v52_0:Endorsement Value="VALID ON KU ONLY/"/>
+							<common_v52_0:Endorsement Value="NON END"/>
+							<air:FareRuleKey FareInfoRef="rwus+zTqWDKAtd/RCAAAAA==" ProviderCode="1G">6UUVoSldxwiHmbX1xBQ38cbKj3F8T9EyxsqPcXxP0TLGyo9xfE/RMsuWFfXVd1OAly5qxZ3qLwOXLmrFneovA5cuasWd6i8Dly5qxZ3qLwOXLmrFneovA/1o7RJJQL0ZxWa1uaqI55k3aSkvhp2ybV7VmVZh8H78j6CGkHSvgmPAyGqh8JIaqO24wE2VuzOigb6sFHf30+WDH8JHmlOnbTvQIlbeGa6Ahf6E18cRejF6+WRr8tqYPFc/aw3fnCsKT6ojaYrqaFZW8vSBNa8ZUmwC02UUzMsn3fXUjk6ZIl2eBRpqhRhD5AoRAF/6EiUsv4Xvb2u1Qx+/he9va7VDH7+F729rtUMfv4Xvb2u1Qx+/he9va7VDH7sg4meosrEV9lLQme8mJp+OnxkQ2WPPHvaVUAnec78/Lu9E0JZUp7V5DXcvzLMd52Hc7ETDA+A7wETg03S00ac=</air:FareRuleKey>
+							<air:Brand Key="rwus+zTqWDKAtd/RCAAAAA==" BrandFound="false" UpSellBrandFound="false"/>
+						</air:FareInfo>
+						<air:BookingInfo BookingCode="T" CabinClass="Economy" FareInfoRef="rwus+zTqWDKAtd/RCAAAAA==" SegmentRef="rwus+zTqWDKAgd/RCAAAAA==" HostTokenRef="rwus+zTqWDKAld/RCAAAAA=="/>
+						<air:BookingInfo BookingCode="W" CabinClass="Economy" FareInfoRef="rwus+zTqWDKAtd/RCAAAAA==" SegmentRef="rwus+zTqWDKAid/RCAAAAA==" HostTokenRef="rwus+zTqWDKAld/RCAAAAA=="/>
+						<air:TaxInfo Category="GZ" Amount="KWD1.000" Key="rwus+zTqWDKAnd/RCAAAAA=="/>
+						<air:TaxInfo Category="KW" Amount="KWD2.000" Key="rwus+zTqWDKAod/RCAAAAA=="/>
+						<air:TaxInfo Category="N4" Amount="KWD3.000" Key="rwus+zTqWDKApd/RCAAAAA=="/>
+						<air:TaxInfo Category="YX" Amount="KWD0.250" Key="rwus+zTqWDKAqd/RCAAAAA=="/>
+						<air:TaxInfo Category="YQ" Amount="KWD18.244" Key="rwus+zTqWDKArd/RCAAAAA=="/>
+						<air:TaxInfo Category="YR" Amount="KWD2.700" Key="rwus+zTqWDKAsd/RCAAAAA=="/>
+						<air:FareCalc>KWI KU X/BOM AI COK 248.87TOWKW NUC248.87END ROE0.309998</air:FareCalc>
+						<air:PassengerType Code="ADT"/>
+						<air:ChangePenalty PenaltyApplies="Anytime">
+							<air:Amount>KWD20.00</air:Amount>
+						</air:ChangePenalty>
+						<air:CancelPenalty PenaltyApplies="Anytime">
+							<air:Percentage>100.00</air:Percentage>
+						</air:CancelPenalty>
+						<air:BaggageAllowances>
+							<air:BaggageAllowanceInfo TravelerType="ADT" Origin="KWI" Destination="COK" Carrier="KU">
+								<air:URLInfo>
+									<air:URL>VIEWTRIP.TRAVELPORT.COM/BAGGAGEPOLICY/KU</air:URL>
+								</air:URLInfo>
+								<air:TextInfo>
+									<air:Text>1P</air:Text>
+									<air:Text>BAGGAGE DISCOUNTS MAY APPLY BASED ON FREQUENT FLYER STATUS/ ONLINE CHECKIN/FORM OF PAYMENT/MILITARY/ETC.</air:Text>
+								</air:TextInfo>
+								<air:BagDetails ApplicableBags="1stChecked" BasePrice="KWD0.000" ApproximateBasePrice="KWD0.000" TotalPrice="KWD0.000" ApproximateTotalPrice="KWD0.000">
+									<air:BaggageRestriction>
+										<air:TextInfo>
+											<air:Text>UPTO70LB/32KG AND UPTO62LI/158LCM</air:Text>
+										</air:TextInfo>
+									</air:BaggageRestriction>
+								</air:BagDetails>
+								<air:BagDetails ApplicableBags="2ndChecked">
+									<air:BaggageRestriction>
+										<air:TextInfo>
+											<air:Text>BAGGAGE CHARGES DATA NOT AVAILABLE</air:Text>
+										</air:TextInfo>
+									</air:BaggageRestriction>
+								</air:BagDetails>
+							</air:BaggageAllowanceInfo>
+							<air:CarryOnAllowanceInfo Origin="KWI" Destination="BOM" Carrier="KU">
+								<air:TextInfo>
+									<air:Text>1P</air:Text>
+								</air:TextInfo>
+								<air:CarryOnDetails ApplicableCarryOnBags="1" BasePrice="KWD0.000" ApproximateBasePrice="KWD0.000" TotalPrice="KWD0.000" ApproximateTotalPrice="KWD0.000">
+									<air:BaggageRestriction>
+										<air:TextInfo>
+											<air:Text>UPTO15LB/7KG AND UPTO45LI/115LCM</air:Text>
+										</air:TextInfo>
+									</air:BaggageRestriction>
+								</air:CarryOnDetails>
+							</air:CarryOnAllowanceInfo>
+							<air:CarryOnAllowanceInfo Origin="BOM" Destination="COK" Carrier="AI">
+								<air:TextInfo>
+									<air:Text>8K</air:Text>
+								</air:TextInfo>
+								<air:CarryOnDetails ApplicableCarryOnBags="1">
+									<air:BaggageRestriction>
+										<air:TextInfo>
+											<air:Text>CHGS MAY APPLY IF BAGS EXCEED TTL WT ALLOWANCE</air:Text>
+										</air:TextInfo>
+									</air:BaggageRestriction>
+								</air:CarryOnDetails>
+								<air:CarryOnDetails ApplicableCarryOnBags="2">
+									<air:BaggageRestriction>
+										<air:TextInfo>
+											<air:Text>CHGS MAY APPLY IF BAGS EXCEED TTL WT ALLOWANCE</air:Text>
+										</air:TextInfo>
+									</air:BaggageRestriction>
+								</air:CarryOnDetails>
+							</air:CarryOnAllowanceInfo>
+						</air:BaggageAllowances>
+					</air:AirPricingInfo>
+					<air:FareNote Key="rwus+zTqWDKAyd/RCAAAAA==">LAST DATE TO PURCHASE TICKET: 14FEB24</air:FareNote>
+					<air:FareNote Key="rwus+zTqWDKAzd/RCAAAAA==">TICKETING AGENCY 6O70</air:FareNote>
+					<air:FareNote Key="rwus+zTqWDKA0d/RCAAAAA==">DEFAULT PLATING CARRIER KU</air:FareNote>
+					<air:FareNote Key="rwus+zTqWDKA1d/RCAAAAA==">FARE HAS A PLATING CARRIER RESTRICTION</air:FareNote>
+					<air:FareNote Key="rwus+zTqWDKA2d/RCAAAAA==">E-TKT REQUIRED</air:FareNote>
+					<air:FareNote Key="rwus+zTqWDKA3d/RCAAAAA==">TICKETING FEES MAY APPLY</air:FareNote>
+					<common_v52_0:HostToken Key="rwus+zTqWDKAld/RCAAAAA==">GFB10101ADT00  01TOWKW                                 0200010002#GFB200010101NADTV3033KW01004000219920191C#GFMCER 033NKW01 KU ADTTOWKW</common_v52_0:HostToken>
+				</air:AirPricingSolution>
+			</air:AirPriceResult>
+		</air:AirPriceRsp>
+	</SOAP:Body>
+</SOAP:Envelope>

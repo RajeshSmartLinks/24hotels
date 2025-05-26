@@ -1,0 +1,16 @@
+Air jazeera
+workflow
+search
+    Check Token if not Generating Token (Token)
+    Availability (Availability)
+    converting CurrencyConverter (CurrencyConverter)
+    for every Availability calling (BookingQuote)
+        baggage static data (24flights - getProductClassInfo)
+
+Details
+    BookingQuote
+
+preview
+    TripSell
+    Passengers
+    BookingQuote    

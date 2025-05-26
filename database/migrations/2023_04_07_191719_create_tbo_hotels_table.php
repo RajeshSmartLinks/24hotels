@@ -1,0 +1,52 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateTboHotelsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('tbo_hotels', function (Blueprint $table) {
+            $table->id();
+            $table->string('hotel_code')->nullable();
+            $table->string('hotel_name')->nullable();
+            $table->string('hotel_rating')->nullable();
+            $table->text('address')->nullable();
+            $table->text('attractions')->nullable();
+            $table->string('country_name')->nullable();
+            $table->string('country_code')->nullable();
+            $table->text('description')->nullable();
+            $table->string('fax_number')->nullable();
+            $table->text('hotel_facilities')->nullable();
+            $table->string('map')->nullable();
+            $table->string('phone_number')->nullable();
+            $table->string('pin_code')->nullable();
+            $table->string('hotel_website_url')->nullable();
+            $table->string('city_name')->nullable();
+            $table->string('city_code')->nullable();
+            $table->longText('images')->nullable();
+            $table->string('check_in')->nullable();
+            $table->string('check_out')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    //need to add index on hotelcode,cityCode
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('tbo_hotels');
+    }
+}
