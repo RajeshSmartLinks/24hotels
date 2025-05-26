@@ -12,3 +12,5 @@ yarn-error.log
 uploads/
 /public/pdf
 /public/uploads
+.env
+/public/flights24-token.json
