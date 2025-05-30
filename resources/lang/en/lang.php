@@ -346,6 +346,11 @@
         'booking_history' => 'Booking History',
         'flight_booking_history' => 'Flight Booking History',
         'hotel_booking_history' => 'Hotel Booking History',
-        'amount' => 'Amount'
+        'amount' => 'Amount',
+        'select_residency' => 'Select Residency',
+        'number_of_nights'=> 'Number Of Nights',
+        'exclusive' => 'Exclusive',
+        'preferred' => 'Preferred',
+        'phone_number' => 'Phone Number',
    ];
 ?>

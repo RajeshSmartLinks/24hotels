@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\FrontEnd\Hotel;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 use App\Models\TboHotel;
+use App\Models\WebbedsCity;
+use App\Models\WebbedsHotel;
+use Illuminate\Http\Request;
 use App\Models\TboHotelsCity;
 use App\Models\TboHotelsCode;
+use Illuminate\Support\Carbon;
 use App\Models\TboHotelsCountry;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\FrontEnd\Hotel\Xml\SearchController;
 
 class StaticController extends Controller
 {
@@ -385,5 +390,108 @@ class StaticController extends Controller
        
         
 
+    }
+
+    public function WebBedsHoteldata(){
+
+        header( 'Cache-Control: max-age=0,no-store');
+        $hotelUrl = env('WEBBEDS_URL') ;
+        $cityDetails = WebbedsCity::where(['is_hotel_data_dumped' => 'no' , 'fetch_cycle' => null])->limit(1)->get();
+        $searchController = new SearchController();
+
+        if(!empty($cityDetails)){
+            
+            foreach ($cityDetails as $key => $city) {
+                WebbedsCity::where('code', $city->code)->update(['cycle_update_on' => now()]);
+                $data['cityCode'] = $city->code;
+                $data['from'] = Carbon::today()->format('Y-m-d');
+                $data['to'] = Carbon::tomorrow()->format('Y-m-d');
+                $HotelsInfo = $searchController->saticDatafetch($data);
+                
+                if($HotelsInfo['success'])
+                {
+                    if(isset($HotelsInfo['hotels']['hotel'])){
+                        foreach($HotelsInfo['hotels']['hotel'] as $hotelInfo)
+                        {
+                            $this->storeHotel($hotelInfo);
+                        }
+                    }
+                    WebbedsCity::where('code', $city->code)->update(['is_hotel_data_dumped' => 'yes' , 'last_dump_on' => now() ,'last_dump_staus' => 'success']);
+                    Log::info("dumping successfull for city code ".$city->name);
+                    echo "dumping successfull for city code ".$city->name;
+                }else{
+                    WebbedsCity::where('code', $city->code)->update(['is_hotel_data_dumped' => 'no' , 'last_dump_on' => now() ,'last_dump_staus' => 'failure']);
+                    Log::error("dumping failed for city code ".$city->name);
+                    echo "dumping failed for city code ".$city->name;
+                }
+            }
+        }
+    }
+
+    public function storeHotel($hotelInfo){
+
+        $hotelcheck = WebbedsHotel::where('hotel_code', $hotelInfo['@attributes']['hotelid'])->first();
+        if(empty($hotelcheck)){
+            $rating = 0;
+            if($hotelInfo['rating'] == 560){
+                $rating = 2;
+            }elseif($hotelInfo['rating'] == 561){
+                $rating = 3;                        
+            }elseif($hotelInfo['rating'] == 562){
+                $rating = 4;                        
+            }elseif($hotelInfo['rating'] == 563){
+                $rating = 5;                        
+            }else{
+                $rating = 1;
+            }
+
+            $images = [];
+
+            if(isset($hotelInfo['images']['hotelImages']['image'])){
+                foreach($hotelInfo['images']['hotelImages']['image'] as $image){
+                    $images[] = $image['url'];
+                }
+            }
+
+            $ammenities = [];
+
+
+            if(isset($hotelInfo['amenitie']['language'])){
+                foreach($hotelInfo['amenitie']['language']['amenitieItem'] as $facility){
+                    $ammenities[] = $facility['@content'];
+                }
+            }
+            $map = null;
+            if(isset($hotelInfo['geoPoint']['lat']) && isset($hotelInfo['geoPoint']['lng']) && $hotelInfo['geoPoint']['lat'] != '' && $hotelInfo['geoPoint']['lng'] != ''){
+                $map = $hotelInfo['geoPoint']['lat'].'|'.$hotelInfo['geoPoint']['lng'];
+            }
+
+            $hoteldetails = [
+                'hotel_code' => $hotelInfo['@attributes']['hotelid'] ?? null,
+                'preferred' => $hotelInfo['@attributes']['preferred'] ?? null,
+                'exclusive' => $hotelInfo['@attributes']['exclusive'] ?? null,
+                'hotel_name' => $hotelInfo['hotelName'] ?? null,
+                'hotel_rating' => $rating ?? null,
+                'address' => $hotelInfo['address'] ?? null,
+                'country_name' => $hotelInfo['countryName'] ?? null,
+                'country_code' => $hotelInfo['countryCode'] ?? null,
+                'description' => $hotelInfo['description1']['language']['@content'] ??null,
+                'map' => $map,
+                'phone_number' => $hotelInfo['hotelPhone'],
+                'pin_code' => $hotelInfo['zipCode']??null,
+                'city_name' => $hotelInfo['cityName']??null,
+                'city_code' => $hotelInfo['cityCode']??null,
+                'images' => implode(',', $images) ?? null,
+                'check_in' => $hotelInfo['hotelCheckIn']??null,
+                'check_out' => $hotelInfo['hotelCheckOut']??null ,
+                'thumbnail' => $hotelInfo['images']['hotelImages']['thumb'] ?? null,
+                'hotel_facilities' => implode(',', $ammenities) ?? null,
+                'lastUpdated' => $hotelInfo['lastUpdated'] ?? null
+            ];
+
+            WebbedsHotel::insert($hoteldetails);
+        }
+
+        
     }
 }

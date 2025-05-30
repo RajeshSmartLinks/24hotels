@@ -254,8 +254,9 @@
             <!-- Hotel Search -->
             <div class="bg-white shadow-md tab-pane fade rounded p-4" id="second" role="tabpanel" aria-labelledby="second-tab">
               <h2 class="text-4 mb-3">{{__('lang.book_domestic_and_international_hotels')}} </h2>
-              <form id="bookingHotels" method="get" action="{{route('SearchHotels')}}">
+              <form id="bookingHotels" method="get" action="{{route('webbedsSearchHotels')}}">
                 <div class="row g-3">
+                  
                   <div class="col-md-12 col-lg-2">
                     <div class="position-relative">
                       <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder=" {{__('lang.enter_city')}}">
@@ -272,7 +273,16 @@
                       <input id="hotelsCheckOut" type="text" class="form-control" name = "hotelsCheckOut" required placeholder="{{__('lang.check_out')}}">
                       <span class="icon-inside"><i class="far fa-calendar-alt"></i></span> </div>
                   </div>
-                  
+                  {{-- <div class="col-md-6 col-lg-2">
+                    <div class="position-relative">
+                      <select id="no-of-nights-id" class="form-select" name = "no-of-nights" required placeholder="{{__('lang.number_of_nights')}}">
+                        <option value="">{{__('lang.number_of_nights')}}</option>
+                        @for($i = 1; $i <= 30; $i++)
+                        <option value="{{$i}}">{{$i}}</option>
+                        @endfor
+                      </select>
+                    </div>
+                  </div> --}}
                   <div class="col-md-6 col-lg-2">
                     <div class="travellers-class hotelsTravellersClass-1 ">
                       <input type="text" id="hotelsTravellersClass"  class="travellers-class-input form-control" name="hotels-travellers-class" placeholder="Rooms / People" required onKeyPress="return false;">
@@ -365,7 +375,18 @@
                       </select>
                     </div>
                   </div>
-                  <div class="col-md-6 col-lg-2 d-grid">
+                   <div class="col-md-6 col-lg-2">
+                    <div class="position-relative">
+                      <select id="residency-id" class="form-select" name = "residency" required placeholder="{{__('lang.select_residency')}}">
+                        <option value="">{{__('lang.select_residency')}}</option>
+                        @foreach($countries as $country)
+                        <option value="{{$country->code}}">{{$country->name}}</option>
+                        @endforeach
+                      </select>
+                    </div>
+                  </div>
+                  
+                    <div class="col-md-6 col-lg-2 d-grid">
                     <button class="btn btn-primary" type="submit" id ="hotelsearchbutton"><span></span>{{__('lang.search')}}</button>
                   </div>
                 </div>
@@ -807,7 +828,8 @@ $("#bookingFlight").validate({
             //delay: 50,
             source: function( request, response ) {
                 $.ajax({
-                url: "{{route('hotelautoSuggest')}}",
+                // url: "{{route('hotelautoSuggest')}}",
+                url: "{{route('hotelCityAutoSuggest')}}",
                 dataType: "json",
                 data: {
                     q: request.term

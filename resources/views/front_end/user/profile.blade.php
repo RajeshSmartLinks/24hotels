@@ -143,6 +143,11 @@
                         <div class="mb-3">
                           <label class="form-label" for="birthDate">Profile Pic</label>
                           <input type="file" class="form-control"  placeholder="Profie Pic" name="profile_pic">
+                           @error('profile_pic')
+                              <span class="invalid-feedback" role="alert" style="display: block">
+                                  <strong>{{ $message }}</strong>
+                              </span>
+                          @enderror
                         </div>
                       </div>
                     </div>

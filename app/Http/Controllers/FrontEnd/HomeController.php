@@ -29,6 +29,7 @@ use App\Models\WalletLogger;
 use Illuminate\Http\Request;
 use App\Models\AppliedCoupon;
 use App\Models\FlightBooking;
+use App\Models\WebbedsCountry;
 use Illuminate\Support\Carbon;
 use App\Models\PopularEventNews;
 use App\Models\TboHotelsCountry;
@@ -209,7 +210,10 @@ class HomeController extends Controller
 
         $popularEventNews = PopularEventNews::select($name.' as name','image','created_at','id','slug')->where('status','Active')->orderBy('order','DESC')->get();
 
-        $countries      = TboHotelsCountry::get();
+        // $countries      = TboHotelsCountry::get();
+
+        $countries      = WebbedsCountry::get();
+
         $facebookPosts  = FacebookPost::get();
 
         //popup info

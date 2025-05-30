@@ -20,6 +20,11 @@ class CreateWebbedsCitiesTable extends Migration
             $table->string('country_name')->nullable();
             $table->string('country_code')->nullable();
             $table->enum('status', ['active', 'inactive'])->nullable();
+            $table->enum('is_hotel_data_dumped', ['yes', 'no'])->nullable();
+            $table->dateTime('last_dump_on')->nullable();
+            $table->enum('last_dump_staus', ['success', 'failure'])->nullable();
+            $table->enum('fetch_cycle', ['one', 'two','three','four','five'])->nullable();
+            $table->dateTime('cycle_update_on')->nullable();
             $table->timestamps();
         });
     }

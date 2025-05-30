@@ -1271,4 +1271,21 @@ if(! function_exists('imagenameMaker')){
        
     }
 }
+
+if(! function_exists('nodeConvertion')){
+    function nodeConvertion($node){
+        //converting single node to multiple node
+        if(isset($node['@attributes']))
+        {
+            $temp = [] ;
+            $temp = $node;
+            $node = [];
+            $node[0] = $temp;
+            return $node;
+        }else{
+            return $node;
+        }
+       
+    }
+}
 ?>

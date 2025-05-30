@@ -31,55 +31,126 @@ class UserController extends Controller
         $countries = Country::select('id','country_code','name','phone_code')->orderBy('name','ASC')->get();
         return view('front_end.user.profile',compact('countries','titles'));
     }
-    public function updateProfile(Request $request,$id)
-    {
-        // dd("ee");
-        $this->validate($request,[
-            'first_name' => ['required', 'string', 'max:255'],
-            'last_name' => ['required', 'string', 'max:255'],
-            'title' => ['required', 'string', 'max:255'],
-            'email' => 'required|email|unique:users,email,'.decrypt($id),
-         ]);
-         $update = [
-            'first_name' => $request->input('first_name'),
-            'last_name' => $request->input('last_name'),
-            'title' => $request->input('title'),
-            'country_id' => $request->input('country_id'),
-            'mobile' => $request->input('mobile'),
-            'date_of_birth' => $request->input('date_of_birth'),
-            'email' => $request->input('email'),
-         ];
-         $originalImage = $request->file('profile_pic');
+    // public function updateProfile(Request $request,$id)
+    // {
+    //     // dd("ee");
+    //     $this->validate($request,[
+    //         'first_name' => ['required', 'string', 'max:255'],
+    //         'last_name' => ['required', 'string', 'max:255'],
+    //         'title' => ['required', 'string', 'max:255'],
+    //         'email' => 'required|email|unique:users,email,'.decrypt($id),
+    //      ]);
+    //      $update = [
+    //         'first_name' => $request->input('first_name'),
+    //         'last_name' => $request->input('last_name'),
+    //         'title' => $request->input('title'),
+    //         'country_id' => $request->input('country_id'),
+    //         'mobile' => $request->input('mobile'),
+    //         'date_of_birth' => $request->input('date_of_birth'),
+    //         'email' => $request->input('email'),
+    //      ];
+    //      $originalImage = $request->file('profile_pic');
 
-         if ($originalImage != NULL) {
-             $newFileName = time() . $originalImage->getClientOriginalName();
-             $thumbnailPath = User::$imageThumbPath;
-             $originalPath = User::$imagePath;
+    //      if ($originalImage != NULL) {
+    //          $newFileName = time() . $originalImage->getClientOriginalName();
+    //          $thumbnailPath = User::$imageThumbPath;
+    //          $originalPath = User::$imagePath;
  
-             // Image Upload Process
-             $thumbnailImage = Image::make($originalImage);
+    //          // Image Upload Process
+    //          $thumbnailImage = Image::make($originalImage);
  
-             $thumbnailImage->save($originalPath . $newFileName);
-             //$thumbnailImage->resize(150, 150);
-             $thumbnailImage->resize(40, null, function ($constraint) {
-                 $constraint->aspectRatio();
-                 })->save($thumbnailPath . $newFileName);
-             //$thumbnailImage->save($thumbnailPath . $newFileName);
+    //          $thumbnailImage->save($originalPath . $newFileName);
+    //          //$thumbnailImage->resize(150, 150);
+    //          $thumbnailImage->resize(40, null, function ($constraint) {
+    //              $constraint->aspectRatio();
+    //              })->save($thumbnailPath . $newFileName);
+    //          //$thumbnailImage->save($thumbnailPath . $newFileName);
  
-             $update['profile_pic'] = $newFileName;
-         }
+    //          $update['profile_pic'] = $newFileName;
+    //      }
 
         
-        $user = User::where("id", decrypt($id))->update($update);
+    //     $user = User::where("id", decrypt($id))->update($update);
 
-        $user = User::find(decrypt($id));
+    //     $user = User::find(decrypt($id));
 
-        $role = Role::where("slug","user")->first();
-        $this->detachRole($user);
-        $user->assignRole($role->id);
+    //     $role = Role::where("slug","user")->first();
+    //     $this->detachRole($user);
+    //     $user->assignRole($role->id);
         
    
-        return redirect()->route('profile')->with('success','User Profile have been updated successfully');
+    //     return redirect()->route('profile')->with('success','User Profile have been updated successfully');
+    // }
+
+    public function updateProfile(Request $request, $id)
+    {
+        $userId = decrypt($id);
+        $user = User::findOrFail($userId);
+
+        $val = $this->validate($request, [
+            'first_name'   => ['required', 'string', 'max:255'],
+            'last_name'    => ['required', 'string', 'max:255'],
+            'title'        => ['required', 'string', 'max:255'],
+            'email'        => 'required|email|unique:users,email,' . $userId,
+            'profile_pic'  => 'mimes:jpeg,png,jpg,gif|max:2048', // ✅ secure image validation
+        ]);
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
+            $mime = $request->file('profile_pic')->getMimeType();
+            
+
+            if (!in_array($mime, $allowedMimes)) {
+                return back()->withErrors(['profile_pic' => 'Unsupported image type.']);
+            }
+       
+
+        $update = [
+            'first_name'    => $request->input('first_name'),
+            'last_name'     => $request->input('last_name'),
+            'title'         => $request->input('title'),
+            'country_id'    => $request->input('country_id'),
+            'mobile'        => $request->input('mobile'),
+            'date_of_birth' => $request->input('date_of_birth'),
+            'email'         => $request->input('email'),
+        ];
+
+
+        $originalImage = $request->file('profile_pic');
+
+        if ($originalImage !== null) {
+            // Secure filename generation
+            $ext = $originalImage->getClientOriginalExtension();
+            $newFileName = time() . '_' . uniqid() . '.' . $ext;
+
+            $originalPath = User::$imagePath;
+            $thumbnailPath = User::$imageThumbPath;
+
+            // Clean image and save
+            $image = Image::make($originalImage)->encode($ext); // Strips EXIF
+
+            $image->save($originalPath . $newFileName);
+
+            $image->resize(40, null, function ($constraint) {
+                $constraint->aspectRatio();
+            })->save($thumbnailPath . $newFileName);
+
+            //Optional: delete old profile pic if needed
+            if ($user->profile_pic && file_exists($originalPath . $user->profile_pic)) {
+                unlink($originalPath . $user->profile_pic);
+                @unlink($thumbnailPath . $user->profile_pic);
+            }
+
+            $update['profile_pic'] = $newFileName;
+        }
+
+        // Update user
+        $user->update($update);
+
+        // Reset and assign role
+        $role = Role::where("slug", "user")->first();
+        $this->detachRole($user);
+        $user->assignRole($role->id);
+
+        return redirect()->route('profile')->with('success', 'User profile has been updated successfully');
     }
 
     public function ChangePassword()

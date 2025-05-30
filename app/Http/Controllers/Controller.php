@@ -3,23 +3,26 @@
 namespace App\Http\Controllers;
 
 
+use Exception;
+use XMLReader;
 use App\Models\City;
 use App\Models\Role;
 use SimpleXMLElement;
 use GuzzleHttp\Client;
 use App\Models\Airport;
 use Illuminate\Http\Request;
+use App\Models\HotelXmlRequest;
 use App\Models\TravelportRequest;
 use Illuminate\Support\Facades\DB;
 use App\Models\FlightBookingSearch;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
 use Mtownsend\XmlToArray\XmlToArray;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use Exception;
+
 
 class Controller extends BaseController
 {
@@ -82,6 +85,14 @@ class Controller extends BaseController
     // public $AirarabiaAPIUrl = 'https://reservations.airarabia.com/webservices/services/AAResWebServices';
     // public $AirarabiaCompanyCode = 'KWI649';
 
+
+    // WEBBEDS
+    public $WebbedsUrl;
+    public $WebbedsUsername ;   
+    public $WebbedsPassword ;
+    public $WebbedsCompanyCode;
+
+
     public function __construct()
     {
         $this->TragetBranch = env('TARGET_BRANCH');
@@ -109,6 +120,13 @@ class Controller extends BaseController
         $this->jazeeraPaymentUrl        = env('JAZEERA_PAYMENT_URL');
         $this->jazeeraPaymentID         = env('JAZEERA_PAYMENT_ID');
         $this->jazeeraPaymentPassword   = env('JAZEERA_PAY_PASS');
+
+
+        // WEBBEDS
+        $this->WebbedsUrl               = env('WEBBEDS_URL');
+        $this->WebbedsUsername          = env('WEBBEDS_USERNAME');
+        $this->WebbedsPassword          = md5(env('WEBBEDS_PASSWORD'));
+        $this->WebbedsCompanyCode       = env('WEBBEDS_COMPANYCODE');
 
     }
 
@@ -769,4 +787,84 @@ class Controller extends BaseController
         $FlightBookingSearch->save();
         return $FlightBookingSearch->id;
     }
+
+
+    public function XmlRequestWithoutLog($request)
+    {
+        set_time_limit(300); 
+        try {
+            $headers = array(
+                "Accept"=> "application/xml",
+            );
+            $client = new Client();
+            $requestData = ['headers' => $headers,'body' => $request['xml'],'verify' => false];
+            
+            $clientrsp = $client->request('POST', $this->WebbedsUrl, $requestData);
+            $response = $clientrsp->getBody()->getContents();
+
+            $responseArray = XmlToArray::convert($response, $outputRoot = false);
+
+            return $travelportResponse = [
+                'hotels' => $responseArray['hotels'],
+                'success' => $responseArray['successful']
+            ];
+
+          } catch (\Exception $e) {
+
+               return $travelportResponse = [
+                 'hotels' => [],
+                'success' => false
+           
+            ];
+          }
+    }
+    
+
+    public function WebbedsApi($request)
+    {
+        set_time_limit(400); 
+        try {
+            $headers = array(
+                "Accept"=> "application/xml",
+            );
+            $client = new Client();
+            $requestData = ['headers' => $headers,'body' => $request['xml'],'verify' => false];
+            
+            $clientrsp = $client->request('POST', $this->WebbedsUrl, $requestData);
+            $response = $clientrsp->getBody()->getContents();
+
+
+            $responseArray = XmlToArray::convert($response, $outputRoot = false);
+       
+
+            //TravelportRequest data insert
+            $HotelXmlRequest = new HotelXmlRequest;
+            $HotelXmlRequest->request_xml    = $request['xml'];
+            $HotelXmlRequest->response_xml = $response;
+            $HotelXmlRequest->ip_address = $_SERVER['REMOTE_ADDR'];
+            $HotelXmlRequest->request_type = $request['request_type'] ??null;
+            $HotelXmlRequest->supplier = 'webbeds';
+            $HotelXmlRequest->hotel_search_id = $request['searchId']??null;
+
+            $HotelXmlRequest->save();
+         
+            return $hotelResponse = [
+                'hotelResponse' => $responseArray,
+                'hotelRequest' => $HotelXmlRequest
+            ];
+
+          } catch (\Exception $e) {
+
+            return $hotelResponse = [
+                'hotelResponse' => [],
+                'hotelRequest' => []
+            ];
+          }
+
+
+    }
+
+
+    
+
 }

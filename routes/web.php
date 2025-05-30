@@ -152,3 +152,14 @@ Route::get('remainderPreview/{id}', [App\Http\Controllers\FrontEnd\HomeControlle
 
 
 Route::get('remainders', [App\Http\Controllers\CronController::class, 'bookingRemainder']);
+
+
+//static data dump routes
+
+Route::get('webbedsHotelDump', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'WebBedsHoteldata'])->name('webbedsHotelDump');
+
+
+
+//webbeds
+Route::get('cityCountryList', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'AjaxHotelCityList'])->name('hotelCityAutoSuggest');
+Route::get('search/hotelsList', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'SearchHotels'])->name('webbedsSearchHotels');
