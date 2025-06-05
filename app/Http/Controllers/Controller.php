@@ -832,10 +832,16 @@ class Controller extends BaseController
             
             $clientrsp = $client->request('POST', $this->WebbedsUrl, $requestData);
             $response = $clientrsp->getBody()->getContents();
+            $xml = simplexml_load_string($response);
+            $array = json_decode(json_encode($xml), true);
+
+            // // Now you can use it like a normal array
+            // dd($array);
 
 
-            $responseArray = XmlToArray::convert($response, $outputRoot = false);
-       
+            // $responseArray = XmlToArray::convert($response, $outputRoot = false);
+           
+            //    SimpleXMLElement 
 
             //TravelportRequest data insert
             $HotelXmlRequest = new HotelXmlRequest;
@@ -849,7 +855,7 @@ class Controller extends BaseController
             $HotelXmlRequest->save();
          
             return $hotelResponse = [
-                'hotelResponse' => $responseArray,
+                'hotelResponse' => $array,
                 'hotelRequest' => $HotelXmlRequest
             ];
 

@@ -922,6 +922,7 @@ if (! function_exists('convertAmount')) {
 if (!function_exists('hotelMarkUpPrice')) {
     function hotelMarkUpPrice($data)
     {
+        // dd($data);
         if(isset($data))
         {
 
@@ -941,10 +942,15 @@ if (!function_exists('hotelMarkUpPrice')) {
 
             //     )
             // );
-            $usdtokwd = Cache::remember('usdtokwd', 60*60*24*30, function () {
-                $conversion =  Currency::where("currency_code_en","USD")->first();
-                return  (1/$conversion->conversion_rate);
-            });
+            if(isset($data['currencyCode']) && $data['currencyCode'] == 'KWD'){
+                $usdtokwd = 1;
+            }else{
+                $usdtokwd = Cache::remember('usdtokwd', 60*60*24*30, function () {
+                    $conversion =  Currency::where("currency_code_en","USD")->first();
+                    return  (1/$conversion->conversion_rate);
+                });
+            }
+            
 
             //converting usd to kwd
             //$usdtokwd = (1/$hotelCurrencyDetailsUsdToKwd->conversion_rate);

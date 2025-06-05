@@ -447,7 +447,8 @@ class StaticController extends Controller
 
             $images = [];
 
-            if(isset($hotelInfo['images']['hotelImages']['image'])){
+            if(isset($hotelInfo['images']['hotelImages']['image'])){     
+            $hotelInfo['images']['hotelImages']['image'] = nodeConvertion($hotelInfo['images']['hotelImages']['image']);
                 foreach($hotelInfo['images']['hotelImages']['image'] as $image){
                     $images[] = $image['url'];
                 }
@@ -457,6 +458,7 @@ class StaticController extends Controller
 
 
             if(isset($hotelInfo['amenitie']['language'])){
+                $hotelInfo['amenitie']['language']['amenitieItem'] = nodeConvertion($hotelInfo['amenitie']['language']['amenitieItem']);
                 foreach($hotelInfo['amenitie']['language']['amenitieItem'] as $facility){
                     $ammenities[] = $facility['@content'];
                 }
@@ -464,6 +466,16 @@ class StaticController extends Controller
             $map = null;
             if(isset($hotelInfo['geoPoint']['lat']) && isset($hotelInfo['geoPoint']['lng']) && $hotelInfo['geoPoint']['lat'] != '' && $hotelInfo['geoPoint']['lng'] != ''){
                 $map = $hotelInfo['geoPoint']['lat'].'|'.$hotelInfo['geoPoint']['lng'];
+            }
+            $phone_number = null;
+            if(isset($hotelInfo['hotelPhone']) ){
+                if(is_array($hotelInfo['hotelPhone']) ){
+                    if(!empty($hotelInfo['hotelPhone'][0])){
+                        $phone_number = $hotelInfo['hotelPhone'][0];
+                    }
+                }else{
+                    $phone_number = $hotelInfo['hotelPhone'];
+                }
             }
 
             $hoteldetails = [
@@ -477,7 +489,7 @@ class StaticController extends Controller
                 'country_code' => $hotelInfo['countryCode'] ?? null,
                 'description' => $hotelInfo['description1']['language']['@content'] ??null,
                 'map' => $map,
-                'phone_number' => $hotelInfo['hotelPhone'],
+                'phone_number' => $phone_number,
                 'pin_code' => $hotelInfo['zipCode']??null,
                 'city_name' => $hotelInfo['cityName']??null,
                 'city_code' => $hotelInfo['cityCode']??null,
@@ -488,7 +500,7 @@ class StaticController extends Controller
                 'hotel_facilities' => implode(',', $ammenities) ?? null,
                 'lastUpdated' => $hotelInfo['lastUpdated'] ?? null
             ];
-
+            
             WebbedsHotel::insert($hoteldetails);
         }
 

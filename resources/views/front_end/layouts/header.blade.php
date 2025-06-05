@@ -7,7 +7,7 @@
             
             <!-- Logo
             ============================================= -->
-            <div class="logo me-2 me-lg-3"> <a href="{{url('/')}}" class="d-flex" title="24flights"><img src='{{asset("frontEnd/images/logo.png")}}' alt="24-flights" /></a> </div>
+            <div class="logo me-2 me-lg-3"> <a href="{{url('/')}}" class="d-flex" title="MasilaHoildays"><img src='{{asset("frontEnd/images/logomh.png")}}' alt="24-flights" height="60"/></a> </div>
             <!-- Logo end --> 
             
           </div>
@@ -19,7 +19,7 @@
               <div id="header-nav" class="collapse navbar-collapse">
                 <ul class="navbar-nav">
                   <li><a class="dropdown-item" href="{{url('/')}}">{{__('lang.home')}}</a></li>
-                  <li><a class="dropdown-item" href="{{route('offers')}}">{{__('lang.offers')}}</a></li>
+                  {{-- <li><a class="dropdown-item" href="{{route('offers')}}">{{__('lang.offers')}}</a></li> --}}
                   <li><a class="dropdown-item" href="{{url('/contact-us')}}">{{__('lang.contact_us')}}</a></li>
                   <li class="dropdown dropdown-language nav-item ">
 
@@ -82,7 +82,8 @@
               </ul>
               @else
               <ul class="navbar-nav">
-                <li class="profile"><a class="pe-0"  href="{{url('/login')}}" title="{{__('lang.login_sign_up')}}"><span class="d-none d-sm-inline-block">{{__('lang.login_sign_up')}}</span> <span class="user-icon ms-sm-2"><i class="fas fa-user"></i></span></a></li>
+                {{-- <li class="profile"><a class="pe-0"  href="{{url('/login')}}" title="{{__('lang.login_sign_up')}}"><span class="d-none d-sm-inline-block">{{__('lang.login_sign_up')}}</span> <span class="user-icon ms-sm-2"><i class="fas fa-user"></i></span></a></li> --}}
+                <li class="profile"><a class="pe-0"  href="{{url('/login')}}" title="{{__('lang.login')}}"><span class="d-none d-sm-inline-block">{{__('lang.login')}}</span> <span class="user-icon ms-sm-2"><i class="fas fa-user"></i></span></a></li>
               </ul>
               @endif
             </nav>

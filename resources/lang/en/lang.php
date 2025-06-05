@@ -352,5 +352,6 @@
         'exclusive' => 'Exclusive',
         'preferred' => 'Preferred',
         'phone_number' => 'Phone Number',
+        'why_book_flight_with_masilaholidays' => 'Why book flight with Masila Holidays'
    ];
 ?>

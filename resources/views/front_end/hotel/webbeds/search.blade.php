@@ -367,7 +367,7 @@
                       <div class="text-dark text-4 fw-500 mb-0 mb-sm-2 me-2 me-sm-0 order-0">{{$hotelDetails['markups']['totalPrice']['currency_code']}} </div>
                       <div class="text-dark text-4 fw-500 mb-0 mb-sm-2 me-2 me-sm-0 order-0">{{$hotelDetails['markups']['totalPrice']['value']}}</div>
                       <div class="text-black-50 mb-0 mb-sm-2 order-3 d-none d-sm-block">{{$result['searchRequest']['no_of_rooms']}} {{__('lang.room')}} / {{$result['searchRequest']['no_of_nights']}} {{__('lang.night')}}</div>
-                      <a href="{{route('HotelDetails',['hotelCode'=>encrypt($hotelDetails['hotelCode']) , 'searchId' =>encrypt($result['searchId'])])}}" class="btn btn-sm btn-primary order-4 ms-auto gButton"><span class="gButtonloader"></span>{{__('lang.book_now')}}</a> </div>
+                      <a href="{{route('GethotelDetails',['hotelCode'=>encrypt($hotelDetails['hotelCode']) , 'searchId' =>encrypt($result['searchId'])])}}" class="btn btn-sm btn-primary order-4 ms-auto gButton"><span class="gButtonloader"></span>{{__('lang.book_now')}}</a> </div>
                   </div>
                   <div class="row">
                     {{-- <div class="col-4">

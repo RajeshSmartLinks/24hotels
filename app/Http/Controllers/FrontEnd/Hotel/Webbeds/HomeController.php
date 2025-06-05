@@ -2,15 +2,19 @@
 
 namespace App\Http\Controllers\FrontEnd\Hotel\Webbeds;
 
+use App\Models\Coupon;
+use App\Models\Country;
 use App\Models\SeoSettings;
 use App\Models\WebbedsCity;
 use App\Models\WebbedsHotel;
 use Illuminate\Http\Request;
 use App\Models\WebbedsCountry;
+use Illuminate\Support\Carbon;
 use App\Models\WebbedsHotelSearch;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\FrontEnd\Hotel\Xml\SearchController;
+use App\Http\Controllers\FrontEnd\Hotel\Xml\BookingController;
 
 class HomeController extends Controller
 {
@@ -56,8 +60,6 @@ class HomeController extends Controller
         $searchId = $searchResponse['searchId'] ??null;
         $searchResponse =  $searchResponse['hotelResponse'];
 
-
-
         $cityCode = $request->input('hotelsCityCode');
         if($searchResponse['successful'] == "TRUE" && count($searchResponse['hotels']['hotel']) > 0)
         {
@@ -85,11 +87,40 @@ class HomeController extends Controller
                 $hotelCode = $value['@attributes']['hotelid'];
                 $hotelDetails = $availableHotelDetailsList->firstWhere('hotel_code', $hotelCode);
                 if($hotelDetails){
+
                     $value['rooms']['room'] = nodeConvertion($value['rooms']['room']);
-                    $value['rooms']['room'][0]['roomType'] = nodeConvertion($value['rooms']['room'][0]['roomType']);
-                    $value['rooms']['room'][0]['roomType'][0]['rateBases']['rateBasis'] = nodeConvertion($value['rooms']['room'][0]['roomType'][0]['rateBases']['rateBasis']);
-                    $markup = hotelMarkUpPrice(array(
-                        'totalPrice' => $value['rooms']['room'][0]['roomType'][0]['rateBases']['rateBasis'][0]['total'] , 'currencyCode' => 'KWD' , 'totalTax' => $value['rooms']['room'][0]['roomType'][0]['rateBases']['rateBasis'][0]['totalTaxes'] ?? 0));
+
+                    foreach($value['rooms']['room'] as $rk => $room){
+                        $value['rooms']['room'][$rk]['roomType'] = nodeConvertion($value['rooms']['room'][$rk]['roomType']);
+                        foreach($value['rooms']['room'][$rk]['roomType'] as $rtk => $roomType){
+                            $value['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis'] = nodeConvertion($value['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis']);
+                        }
+                    }
+
+                    $roomInfo = [];
+                    foreach ($value['rooms']['room'] as $rk => $room) {
+                        foreach ($room['roomType'] as $rtk => $roomType) {
+                            foreach ($roomType['rateBases']['rateBasis'] as $rbk => $rateBasis) {
+                                $roomTypeCode = $roomType['@attributes']['roomtypecode'];
+                                $rateBasisId = $rateBasis['@attributes']['id'];
+                                $key = $roomTypeCode . '_' . $rateBasisId;
+                                // Prepare allocation detail
+                                if (!isset($roomInfo[$key])) {
+                                    // First time adding this combination
+                                    $roomInfo[$key] = [
+                                        'name' => $roomType['name'],
+                                        'total' => $rateBasis['total']
+                                    ];
+                                } else {
+                                    // Already exists — add to total and append allocationDetails
+                                    $roomInfo[$key]['total'] += $rateBasis['total'];
+                                }
+                            }
+                        }
+                    }
+                    $roomInfo = array_values($roomInfo);
+
+                    $markup = hotelMarkUpPrice(array('totalPrice' => $roomInfo[0]['total'] , 'currencyCode' => 'KWD' , 'totalTax' => $roomInfo[0]['totalTaxes'] ?? 0));
 
 
                 //         	<rooms>
@@ -129,6 +160,7 @@ class HomeController extends Controller
                         'pin_code' => $hotelDetails->pin_code,
                         //'roomPromotion' => isset($value['Rooms'][0]['RoomPromotion']) ? $value['Rooms'][0]['RoomPromotion'] :[]
                     ];
+                    //dd($result['hotelList']);
 
                     switch ($hotelDetails->hotel_rating) {
                         case '1':
@@ -211,6 +243,313 @@ class HomeController extends Controller
         
         //dd($result);
         return view('front_end.hotel.webbeds.search',compact('titles','result'));
+    }
+
+    public function GethotelDetails(Request $request)
+    {
+        $hotelCode = decrypt($request->query('hotelCode'));
+        $searchId = decrypt($request->query('searchId'));
+        // dd($hotelCode,$searchId);
+        $seoData = SeoSettings::where(['page_type' => 'static' , 'static_page_name' => 'hotelDetails','status' => 'Active'])->first();
+   
+        $titles = [
+            'title' => $seoData->title ?? '',
+            'description' => $seoData->description ?? '',
+        ];
+
+        $rooms = new SearchController();
+        $hotelDetailsAndRooms = $rooms->getRooms(['hotel_code' => $hotelCode ,'search_id' => $searchId]);
+
+
+        // dd($hotelDetailsAndRooms);
+
+        $result = [];
+
+        $result['hotelDeatils'] = [] ;
+        if(!empty($hotelDetailsAndRooms['hotelDetails']))
+        {
+            $result['hotelDeatils'] = $hotelDetailsAndRooms['hotelDetails'] ;
+        }
+        $result['availablerooms'] = [] ;
+        if(!empty($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room']))
+        {
+            $result['availablerooms'] = [];
+            $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'] = nodeConvertion($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room']);
+
+            foreach($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'] as $rk => $room){
+                $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$rk]['roomType'] = nodeConvertion($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$rk]['roomType']);
+                foreach($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$rk]['roomType'] as $rtk => $roomType){
+                    $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis'] = nodeConvertion($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis']);
+                }
+            }
+            //after node convertion
+            //room formation to single pricing
+
+            foreach ($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'] as $rk => $room) {
+                foreach ($room['roomType'] as $rtk => $roomType) {
+                    foreach ($roomType['rateBases']['rateBasis'] as $rbk => $rateBasis) {
+                        $roomTypeCode = $roomType['@attributes']['roomtypecode'];
+                        $rateBasisId = $rateBasis['@attributes']['id'];
+                        $key = $roomTypeCode . '_' . $rateBasisId;
+
+                        // Prepare allocation detail
+
+                        $allocationDetail = $rateBasis['allocationDetails'];
+                        if (!isset( $result['availablerooms'][$key])) {
+                            // First time adding this combination
+                             $result['availablerooms'][$key] = [
+                                'name' => $roomType['name'],
+                                'roomPromotion' => $rateBasis['@attributes']['description'],
+                                'roomTypeCode' => $roomTypeCode,
+                                'rateBasisId' => $rateBasisId,
+                                'total' => $rateBasis['total'],
+                                'roomPrice' => [$rateBasis['total']],
+                                'allocationDetails' => [$allocationDetail]
+                            ];
+                        } else {
+                            // Already exists — add to total and append allocationDetails
+                            $result['availablerooms'][$key]['roomPrice'][] = $rateBasis['total'];
+                            $result['availablerooms'][$key]['total'] += $rateBasis['total'];
+                            if (!in_array($allocationDetail,  $result['availablerooms'][$key]['allocationDetails'])) {
+                                 $result['availablerooms'][$key]['allocationDetails'][] = $allocationDetail;
+                            }
+                        }
+                    }
+                }
+            }
+            $result['availablerooms'] = array_values($result['availablerooms']);
+            foreach($result['availablerooms'] as $r=>$room){
+                $result['availablerooms'][$r]['markups'] = hotelMarkUpPrice(array('totalPrice' =>  $room['total'] , 'currencyCode' => 'KWD' , 'totalTax' =>  0));
+                $result['availablerooms'][$r]['allocationDetails'] = json_encode($result['availablerooms'][$r]['allocationDetails']);
+                $bookingCode  = [ 'allocationDetails' => $result['availablerooms'][$r]['allocationDetails'] , 'code' => $result['availablerooms'][$r]['roomTypeCode'] , 'selectedRateBasis' => $result['availablerooms'][$r]['rateBasisId']];
+                $result['availablerooms'][$r]['bookingCode'] = json_encode($bookingCode);
+
+                // $result['availablerooms'][$r]['roomPromotion'] = [];
+                $result['availablerooms'][$r]['CancelPolicies'] = [];
+            }
+            // foreach($result['availablerooms'] as $r=>$room){
+            //     if(isset($room['Supplements']))
+            //     {
+            //         $supplments = $room['Supplements'];
+            //         unset($result['availablerooms'][$r]['Supplements']);
+            //         $supplmentAmout = 0.000;
+            //         $currency = '';
+            //         foreach ($supplments as $skey => $svalue) {
+            //             if($svalue[0]['Type'] == 'AtProperty' && ($svalue[0]['Description'] == 'mandatory_fee' || $svalue[0]['Description'] == 'mandatory_tax'))
+            //             {
+            //                 $supplmentAmout+=$svalue[0]['Price'] ;
+            //                 $currency = $svalue[0]['Currency'];
+
+            //             }
+                        
+            //         }
+            //         $result['availablerooms'][$r]['supplment_charges'] = $currency.' '.$supplmentAmout;
+            //     }
+            //     else{
+            //         $result['availablerooms'][$r]['supplment_charges'] = null;
+            //     }
+            //     $result['availablerooms'][$r]['markups'] = hotelMarkUpPrice(array('totalPrice' =>  isset($result['availablerooms'][$r]['RecommendedSellingRate']) ? $result['availablerooms'][$r]['RecommendedSellingRate'] : $result['availablerooms'][$r]['TotalFare'] , 'currencyCode' => 'USD' , 'totalTax' =>  $result['availablerooms'][$r]['TotalTax']));
+            //     unset($result['availablerooms'][$r]['TotalFare']);
+            //     unset($result['availablerooms'][$r]['TotalTax']);
+            //     $poilcy = $room['CancelPolicies'];
+            //     unset($result['availablerooms'][$r]['CancelPolicies']);
+            //     $calcelationPolicys = [];
+            //     if(isset($poilcy)){
+            //         foreach ($poilcy as $key => $value) {
+            //             if($value['ChargeType'] == 'Percentage')
+            //             {
+            //                 $calcelationPolicys[] = 'From '.$value['FromDate']. ' cancellation charge '.$value['CancellationCharge'].'%';
+            //             }else{
+            //                 $calcelationPolicys[] = 'From '.$value['FromDate']. ' cancellation charge '.$value['CancellationCharge'];
+            //             }
+            //         }
+            //     }
+            //     $result['availablerooms'][$r]['CancelPolicies'] = $calcelationPolicys ;
+            //     $result['availablerooms'][$r]['roomPromotion'] = isset($result['availablerooms'][$r]['RoomPromotion']) ? $result['availablerooms'][$r]['RoomPromotion'] :[];
+            // }
+        }
+
+        //searchRequest 
+
+        $result['searchRequest'] = WebbedsHotelSearch::find($searchId);
+        $result['hotelCode'] = $hotelCode;
+        //dd($result);
+
+        return view('front_end.hotel.webbeds.details',compact('titles','result'));
+        
+    }
+
+    public function PreBooking($hotelCode,$bookingCode,$searchId){
+
+        //PreBooking
+        $hotelCode = decrypt($hotelCode);
+        $bookingCode = decrypt($bookingCode);
+        $searchId = decrypt($searchId);
+        // dd($hotelCode,$bookingCode,$searchId);
+
+        $titles = [
+            'title' => "Save Passanger Details",
+        ];
+        
+        $prebooking = new BookingController();
+        $prebookingDeatails = $prebooking->PreBooking(['hotel_code' => $hotelCode ,'search_id' => $searchId , 'booking_code'=>$bookingCode]);
+
+         
+    
+        $result = [];
+
+        //hotelDetails
+
+        $hotelDetails = WebbedsHotel::where('hotel_code', $hotelCode)->firstOrFail()->toArray();
+        $result['hotelDetails'] = $hotelDetails;
+
+        $result['hotelDetails']['image'] = explode(",", $hotelDetails['images']);
+        if($prebookingDeatails['success'] == false)
+        {
+            //error page
+            //session expire
+            $data['errorresponse'] = 'Session Expired';
+            $titles = [
+                'title' => "Error Page",
+            ];
+
+            return view('front_end.error',compact('titles','data'));
+
+        }
+
+        if(!empty($prebookingDeatails['preBooking']['hotelResponse']['hotel']['rooms']['room']))
+        {
+           // $result['availablerooms'] = [];
+            $prebookingDeatails['preBooking']['hotelResponse']['hotel']['rooms']['room'] = nodeConvertion($prebookingDeatails['preBooking']['hotelResponse']['hotel']['rooms']['room']);
+
+            foreach($prebookingDeatails['preBooking']['hotelResponse']['hotel']['rooms']['room'] as $rk => $room){
+                $prebookingDeatails['preBooking']['hotelResponse']['hotel']['rooms']['room'][$rk]['roomType'] = nodeConvertion($prebookingDeatails['preBooking']['hotelResponse']['hotel']['rooms']['room'][$rk]['roomType']);
+                foreach($prebookingDeatails['preBooking']['hotelResponse']['hotel']['rooms']['room'][$rk]['roomType'] as $rtk => $roomType){
+                    $prebookingDeatails['preBooking']['hotelResponse']['hotel']['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis'] = nodeConvertion($prebookingDeatails['preBooking']['hotelResponse']['hotel']['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis']);
+                }
+            }
+            //after node convertion
+            //room formation to single pricing
+
+            foreach ($prebookingDeatails['preBooking']['hotelResponse']['hotel']['rooms']['room'] as $rk => $room) {
+                foreach ($room['roomType'] as $rtk => $roomType) {
+                    foreach ($roomType['rateBases']['rateBasis'] as $rbk => $rateBasis) {
+                        $roomTypeCode = $roomType['@attributes']['roomtypecode'];
+                        $rateBasisId = $rateBasis['@attributes']['id'];
+                        $key = $roomTypeCode . '_' . $rateBasisId;
+
+                        // Prepare allocation detail
+
+                        if($rateBasis['status'] == 'checked'){
+                            $allocationDetail = $rateBasis['allocationDetails'];
+                            if (!isset( $result['roomDetails'][$key])) {
+                                // First time adding this combination
+                                $result['roomDetails'][$key] = [
+                                    'Name' => $roomType['name'],
+                                    'roomPromotion' => $rateBasis['@attributes']['description'],
+                                    'roomTypeCode' => $roomTypeCode,
+                                    'rateBasisId' => $rateBasisId,
+                                    'total' => $rateBasis['total'],
+                                    'roomPrice' => [$rateBasis['total']],
+                                    'allocationDetails' => [$allocationDetail],
+                                    'Inclusion' => [],
+                                    'supplment_charges' => []
+                                ];
+                            } else {
+                                // Already exists — add to total and append allocationDetails
+                                $result['roomDetails'][$key]['roomPrice'][] = $rateBasis['total'];
+                                $result['roomDetails'][$key]['total'] += $rateBasis['total'];
+                                if (!in_array($allocationDetail,  $result['roomDetails'][$key]['allocationDetails'])) {
+                                    $result['roomDetails'][$key]['allocationDetails'][] = $allocationDetail;
+                                }
+                            }
+                        }
+
+                        
+                    }
+                }
+            }
+            $result['roomDetails'] = array_values($result['roomDetails']);
+            foreach($result['roomDetails'] as $r=>$room){
+                $result['roomDetails'][$r]['markups'] = hotelMarkUpPrice(array('totalPrice' =>  $room['total'] , 'currencyCode' => 'KWD' , 'totalTax' =>  0));
+                $result['roomDetails'][$r]['allocationDetails'] = json_encode($result['roomDetails'][$r]['allocationDetails']);
+                $bookingCode  = [ 'allocationDetails' => $result['roomDetails'][$r]['allocationDetails'] , 'code' => $result['roomDetails'][$r]['roomTypeCode'] , 'selectedRateBasis' => $result['roomDetails'][$r]['rateBasisId']];
+                $result['roomDetails'][$r]['bookingCode'] = json_encode($bookingCode);
+                $result['roomDetails'][$r]['CancelPolicies'] = [];
+            }
+        }
+        $result['roomDetails'] = $result['roomDetails'][0];
+   
+        
+        
+        
+       
+        //dd($prebookingDeatails['preBooking'][0]['Rooms'][0]);
+        // if($prebookingDeatails['preBooking'][0]['Rooms'][0]){
+        //     //$supplments = $prebookingDeatails['preBooking'][0]['Rooms'][0]['Supplements'];
+        //     if(isset($prebookingDeatails['preBooking'][0]['Rooms'][0]['Supplements']))
+        //     {
+        //         $supplments = $prebookingDeatails['preBooking'][0]['Rooms'][0]['Supplements'];
+        //         unset($prebookingDeatails['preBooking'][0]['Rooms'][0]['Supplements']);
+        //         $supplmentAmout = 0.000;
+        //         $currency = '';
+        //         foreach ($supplments as $skey => $svalue) {
+        //             if($svalue[0]['Type'] == 'AtProperty' && ($svalue[0]['Description'] == 'mandatory_fee' || $svalue[0]['Description'] == 'mandatory_tax'))
+        //             {
+        //                 $supplmentAmout+=$svalue[0]['Price'] ;
+        //                 $currency = $svalue[0]['Currency'];
+
+        //             }
+                 
+        //         }
+        //         $prebookingDeatails['preBooking'][0]['Rooms'][0]['supplment_charges'] = $currency.' '.$supplmentAmout;
+        //     }
+        //     else{
+        //         $prebookingDeatails['preBooking'][0]['Rooms'][0]['supplment_charges'] = null;
+        //     }
+
+        //     $prebookingDeatails['preBooking'][0]['Rooms'][0]['markups'] = hotelMarkUpPrice(array('totalPrice' =>  
+        //     isset($prebookingDeatails['preBooking'][0]['Rooms'][0]['RecommendedSellingRate']) ? $prebookingDeatails['preBooking'][0]['Rooms'][0]['RecommendedSellingRate'] : $prebookingDeatails['preBooking'][0]['Rooms'][0]['TotalFare'] , 'currencyCode' => 'USD' , 'totalTax' =>  $prebookingDeatails['preBooking'][0]['Rooms'][0]['TotalTax']));
+        //     unset($prebookingDeatails['preBooking'][0]['Rooms'][0]['TotalFare']);
+        //     unset($prebookingDeatails['preBooking'][0]['Rooms'][0]['TotalTax']);
+        //     $poilcy = $prebookingDeatails['preBooking'][0]['Rooms'][0]['CancelPolicies'];
+        //     unset($prebookingDeatails['preBooking'][0]['Rooms'][0]['CancelPolicies']);
+        //     $calcelationPolicys = [];
+        //     if(isset($poilcy)){
+        //         foreach ($poilcy as $key => $value) {
+        //             if($value['ChargeType'] == 'Percentage')
+        //             {
+        //                 $calcelationPolicys[] = 'From '.$value['FromDate']. ' cancellation charge '.$value['CancellationCharge'].'%';
+        //             }else{
+        //                 $calcelationPolicys[] = 'From '.$value['FromDate']. ' cancellation charge '.$value['CancellationCharge'];
+        //             }
+        //         }
+        //     }
+        //     $prebookingDeatails['preBooking'][0]['Rooms'][0]['CancelPolicies'] = $calcelationPolicys ;
+        //     $prebookingDeatails['preBooking'][0]['Rooms'][0]['roomPromotion'] = isset($prebookingDeatails['preBooking'][0]['Rooms'][0]['RoomPromotion']) ? $prebookingDeatails['preBooking'][0]['Rooms'][0]['RoomPromotion'] :[];
+
+        // }
+        if(app()->getLocale() == 'ar')
+        {
+            $name = 'IFNULL(name_ar,name) as name' ;
+        }
+        else{
+            $name = 'name' ;
+        }
+        $result['countries'] = Country::select('id',DB::raw($name),'phone_code')->whereNotNull("phone_code")->get();
+        //$result['roomDetails'] = $result['availablerooms'][0] ?? [];
+        $result['RateConditions'] = [];
+        $result['searchRequest'] = WebbedsHotelSearch::find($searchId);
+        $result['searchRequest']->rooms_request = json_decode($result['searchRequest']->rooms_request,true);
+        $result['bookingCode'] = $result['roomDetails']['bookingCode']??'';
+        $result['hotelCode'] = $hotelCode;
+        $result['searchId'] = $searchId;
+
+        $currentDate = Carbon::now()->toDateString();
+        $couponCodes = Coupon::where("status" , '1')->whereDate('coupon_valid_from', '<=', $currentDate)->whereDate('coupon_valid_to', '>=', $currentDate)->whereIn('coupon_valid_on' ,[1,3])->get();
+        $result['couponCodes'] = $couponCodes;
+
+        return view('front_end.hotel.webbeds.pre_booking',compact('titles','result'));
     }
 
     // public function CountryList(Request $request){

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\FrontEnd\Hotel\Xml;
 
 use App\Models\HotelSearch;
+use App\Models\WebbedsHotel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use App\Models\WebbedsHotelSearch;
@@ -166,6 +167,9 @@ class SearchController extends Controller
                 }
                 $xml .= "</children>";
             }
+            else {
+                $xml .= "<children no=\"0\" />";
+            }
 
             $xml .= <<<EOM
                             <rateBasis>-1</rateBasis>
@@ -294,4 +298,99 @@ class SearchController extends Controller
         }
 
     }
+
+    public function getRooms($data)
+    {
+        //hotel details 
+        $hotel_code = $data['hotel_code'];
+        $hotelDetails = WebbedsHotel::where('hotel_code', $data['hotel_code'])->firstOrFail()->toArray();
+        $searchId = $data['search_id'];
+
+
+        //hotel room details
+        $searchRequest = WebbedsHotelSearch::find($data['search_id']);
+      
+
+
+        $cityCode = $searchRequest->city_code;
+        $checkIn = $searchRequest->check_in;
+        $checkOut = $searchRequest->check_out;
+        $noOfRooms = (int) $searchRequest->no_of_rooms;
+        $nationality = $searchRequest->nationality;
+        $residency = $searchRequest->residency;
+
+        $roomRequest = json_decode($searchRequest->rooms_request,true);
+
+    
+     
+           
+        $xml = <<<EOM
+        <customer>
+            <username>{$this->WebbedsUsername}</username>
+            <password>{$this->WebbedsPassword}</password>
+            <id>{$this->WebbedsCompanyCode}</id>
+            <source>1</source>
+            <product>hotel</product>
+            <request command="getrooms">
+                <bookingDetails>
+                    <fromDate>{$checkIn}</fromDate>
+                    <toDate>{$checkOut}</toDate>
+                    <currency>769</currency>
+                    <rooms>
+        EOM;
+
+            for ($i = 0; $i < $noOfRooms; $i++) {
+                $roomData = $roomRequest[$i];
+                $adults = (int) $roomData['Adults'];
+                $childrenCount = (int) $roomData['Children'];
+                $childrenAges = $roomData['ChildrenAges'];
+
+            $xml .= <<<EOM
+                        <room runno="{$i}">
+                            <adultsCode>{$adults}</adultsCode>
+        EOM;
+
+            if ($childrenCount > 0 && is_array($childrenAges)) {
+                $xml .= "<children no=\"{$childrenCount}\">";
+                foreach ($childrenAges as $index => $age) {
+                    $xml .= "<child runno=\"{$index}\">{$age}</child>";
+                }
+                $xml .= "</children>";
+            }
+            else {
+                $xml .= "<children no=\"0\" />";
+            }
+
+            $xml .= <<<EOM
+                            <rateBasis>-1</rateBasis>
+                            <passengerNationality>{$nationality}</passengerNationality>
+                            <passengerCountryOfResidence>{$residency}</passengerCountryOfResidence>
+                        </room>
+        EOM;
+        }
+
+        $xml .= <<<EOM
+                    </rooms>
+                     <productId>$hotel_code</productId>
+                </bookingDetails>
+            </request>
+        </customer>
+        EOM;
+    
+
+        $data = array(
+            'xml' => $xml,
+            'request_type' => 'getRooms',
+            'searchId' => $searchId
+        );
+        $data = $this->WebbedsApi($data);
+     
+        return [
+            'hotelDetails' => $hotelDetails ,
+            'allRooms' =>  $data['hotelResponse'],
+            'success' => $data['hotelResponse']['successful'],
+            'searchId' => $searchId
+        ];
+
+    } 
 }

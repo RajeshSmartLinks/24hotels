@@ -19,261 +19,83 @@
     background-image: url('{{ asset('frontEnd/images/backGroundImg.jpg') }}'); 
    } */
 
+   .login-card {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        .login-card h4 {
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .form-control::placeholder {
+            color: #c4c4c4;
+        }
+
+        .btn-login {
+            background-color: #003e9f;
+            color: white;
+        }
+
+        /* .btn-login:hover {
+            background-color: #002e7a;
+        } */
+
+        .text-link {
+            font-size: 0.9rem;
+        }
+
+        .form-group .form-control {
+            border-radius: 6px;
+        }
+
+        .bg-Font{
+          font-weight: 500;
+          color: black;
+        }
+
 </style>
+
 
   <!-- Content -->
   <div id="content">
     <div class="bg-secondary pb-4" style = "background-image: url('{{ asset('frontEnd/images/bg-index2.jpg') }}');">
       <div class="background-image-container">
-        <div class="container content-img" style="max-width: 1220px;"> 
+        <div class="container content-img" style="max-width: 1420px;padding-top:60px;height: 465px"> 
           <!-- Secondary Navigation -->
           <div class="row">
-            <div class="col-6">
-              <ul class="nav secondary-nav alternate" id="myTab" role="tablist">
-                <li class="nav-item"> <a class="nav-link active"  id="first-tab" data-bs-toggle="tab" href="#first" role="tab" aria-controls="first" aria-selected="true"><span><i class="fas fa-plane"></i></span> {{__('lang.flights')}}</a> </li>
-                <li class="nav-item"> <a class="nav-link" id="second-tab" data-bs-toggle="tab" href="#second" role="tab" aria-controls="second" aria-selected="false"><span><i class="fas fa-bed"></i></span> {{__('lang.hotels')}}</a></li>
-              </ul>
+             <div class="col-lg-5 logo-column d-none d-lg-block">
+              {{-- <img src="your-logo.png" alt="Logo" class="img-fluid mb-4"> --}}
             </div>
-            
-            <div class="col-6" style={{app()->getLocale() == 'ar' ? "text-align:left;" : "text-align:right;"}}>
-              <a data-bs-toggle="modal" data-bs-target="#flight-1" class="btn btn-primary" style="padding: 11px;
-              margin: 22px 3px;" href="">{{__('lang.manage_booking')}}</a>
-              
-            </div>
-            <div id="flight-1" class="modal fade" role="dialog" aria-hidden="true" tabindex="-1"  aria-labelledby="exampleModalLabel" >
-              <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title">{{__('lang.manage_booking')}}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    <div class="flight-details ">
-  
-                      <div class="col-12">
-                        <p class="text-4 fw-300 text-muted text-center mb-4">{{__('lang.booking_reference_pnr_no')}}</p>
-                        <form id="serachpnrfrom" method="get">
-                          <div class="mb-3">
-                            <input type="text" class="form-control" id="pnr" required="" placeholder="{{__('lang.booking_reference_pnr_no')}}">
-                            <div id="pnrerror" style="color: red"></div>
-                          </div>
-                          <div class="d-grid my-4">
-                            <button class="btn btn-primary" type="submit" id ="serachpnrfromsubmit"><span></span>{{__('lang.find_reservation')}}</button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div id="flight-2" class="modal fade" role="dialog" aria-hidden="true">
-              <div class="modal-dialog modal-lg modal-dialog-centered" role="document" >
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title">{{__('lang.manage_booking')}}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                  </div>
-                  <div class="modal-body">
-                    <div class="flight-details ticketdetails">
-                      {{-- <div class="col-3"></div> --}}
-                      <div class="col-12">
-                        <p class="text-4 fw-300 text-muted text-center mb-4">{{__('lang.booking_reference_pnr_no')}}</p>
-                        <form id="serachpnrfrom" method="get">
-                          <div class="mb-3">
-                            {{-- <label>Booking Ref/ PNR</label> --}}
-                            <input type="text" class="form-control" id="pnr" required="" placeholder="{{__('lang.booking_reference_pnr_no')}}">
-                          </div>
-                        
-                        
-                          <div class="d-grid my-4">
-                            <button class="btn btn-primary" type="submit">{{__('lang.find_reservation')}}</button>
-                          </div>
-                        </form>
-                      
-  
-                      </div>
-                    
-                      
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Secondary Navigation end --> 
-          
-          
-          <div class="tab-content" id="myTabContent">
-            <!-- Flights Search -->
-            <div class="bg-white shadow-md tab-pane fade rounded p-4 active show"  id="first" role="tabpanel" aria-labelledby="first-tab" >
-              <form id="bookingFlight" method="get" action="{{route('SearchFlights')}}">
-                <div class="mb-3">
-                  <div class="form-check form-check-inline">
-                    <input id="oneway" name="flight-trip" class="form-check-input" checked="" required type="radio" value = "onewaytrip" >
-                    <label class="form-check-label" for="oneway">{{__('lang.one_way')}}</label>
-                  </div>
-                  <div class="form-check form-check-inline">
-                    <input id="roundtrip" name="flight-trip" class="form-check-input" required type="radio" value = "roundtrip">
-                    <label class="form-check-label" for="roundtrip">{{__('lang.round_trip')}}</label>
-                  </div>
-                </div>
-                <div class="row g-3">
-                  <div class="col-md-6 col-lg-2">
-                    <div class="position-relative">
-                      <input type="text" class="form-control @error('flightFromAirportCode') is-invalid @enderror" name = "flightFrom" id="flightFrom" required placeholder="{{__('lang.from')}}" value = "{{$fromDestination['text'] ?? ''}}">
-                      <input type="hidden" class="form-control" id="flightFromAirportCode"  name = "flightFromAirportCode"  value="{{old('flightFromAirportCode', $fromDestination['airportCode'] ?? '')}}">
-  
-                      @error('flightFromAirportCode')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                      @enderror
-                      <span class="icon-inside"   onclick="switchFlightDir()"><i class="fas fa-exchange-alt arrowicon"></i></span> 
-                    
-                    </div>
-                
-                  </div>
-                  <div class="col-md-6 col-lg-2">
-                    <div class="position-relative">
-                      <input type="text" class="form-control  @error('flightToAirportCode') is-invalid @enderror" id="flightTo" name = "flightTo" required placeholder="{{__('lang.to')}}" value="{{old('flightTo')}}">
-                      <input type="hidden" class="form-control" id="flightToAirportCode"  name = "flightToAirportCode" value="{{old('flightToAirportCode')}}">
-                      @error('flightToAirportCode')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                      @enderror
-                      {{-- <span class="icon-inside"><i class="fas fa-map-marker-alt"></i></span>  --}}
-                    </div>
-                  </div>
-                  <div class="col-md-6 col-lg-2">
-                    <div class="position-relative">
-                      <input id="flightDepart" type="text" class="form-control @error('DepartDate') is-invalid @enderror" required placeholder="{{__('lang.depart_date')}}" name="DepartDate" autocomplete="off" value="{{old('DepartDate')}}">
-                      <span class="icon-inside"><i class="far fa-calendar-alt"></i></span> 
-                      @error('DepartDate')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                      @enderror
-                    </div>
-                  </div>
-                  <div class="col-md-6 col-lg-2">
-                    <div class="position-relative">
-                      <input id="flightReturn" type="text" class="form-control"  placeholder="{{__('lang.return_date')}}" name = "ReturnDate" autocomplete="off" disabled>
-                      <span class="icon-inside"><i class="far fa-calendar-alt"></i></span> </div>
-                  </div>
-                  <div class="col-md-6 col-lg-2">
-                    <div class="travellers-class">
-                      <input type="text" id="flightTravellersClass" class="travellers-class-input form-control" name="flight-travellers-class" value="{{old('flight-travellers-class')}}" placeholder="Travellers, Class" readonly required onkeypress="return false;">
-                      <span class="icon-inside"><i class="fas fa-caret-down"></i></span>
-                      <div class="travellers-dropdown">
-                        <div class="row align-items-center">
-                          <div class="col-sm-7">
-                            <p class="mb-sm-0">Adults <small class="text-muted">(12+ {{__('lang.yrs')}})</small></p>
-                          </div>
-                          <div class="col-sm-5">
-                            <div class="qty input-group">
-                              <div class="input-group-prepend">
-                                <button type="button" class="btn bg-light-4" id = "adult-flight-travellers-minus" data-toggle="spinner">-</button>
-                              </div>
-                              <input type="text" data-ride="spinner"  id="adult-flight-travellers" class="qty-spinner form-control" value="{{old('noofAdults','1')}}" readonly name="noofAdults">
-                              <div class="input-group-append">
-                                <button type="button" class="btn bg-light-4" id = "adult-flight-travellers-plus" data-toggle="spinner">+</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <hr class="my-2">
-                        <div class="row align-items-center">
-                          <div class="col-sm-7">
-                            <p class="mb-sm-0">{{__('lang.children')}} <small class="text-muted">(2-12 {{__('lang.yrs')}})</small></p>
-                          </div>
-                          <div class="col-sm-5">
-                            <div class="qty input-group">
-                              <div class="input-group-prepend">
-                                <button type="button" class="btn bg-light-4" id="children-flight-travellers-minus" data-toggle="spinner">-</button>
-                              </div>
-                              <input type="text" data-ride="spinner"  id="children-flight-travellers" class="qty-spinner form-control" value="{{old('noofChildren','0')}}" readonly name="noofChildren">
-                              <div class="input-group-append">
-                                <button type="button" class="btn bg-light-4" id="children-flight-travellers-plus" data-toggle="spinner">+</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <hr class="my-2">
-                        <div class="row align-items-center">
-                          <div class="col-sm-7">
-                            <p class="mb-sm-0">{{__('lang.infants')}} <small class="text-muted">({{__('lang.below_2_yrs')}})</small></p>
-                          </div>
-                          <div class="col-sm-5">
-                            <div class="qty input-group">
-                              <div class="input-group-prepend">
-                                <button type="button" class="btn bg-light-4" id="infant-flight-travellers-minus"  data-toggle="spinner">-</button>
-                              </div>
-                              <input type="text" data-ride="spinner" id="infant-flight-travellers"  class="qty-spinner form-control" value="{{old('noofInfants','0')}}" readonly name="noofInfants">
-                              <div class="input-group-append">
-                                <button type="button" class="btn bg-light-4" id="infant-flight-travellers-plus" data-toggle="spinner">+</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <hr class="mt-2">
-                        <div class="mb-3">
-                          <div class="form-check">
-                            <input id="flightClassEconomic" name="flight-class" class="flight-class form-check-input" value="Economy" {{old('flight-class','Economy')== 'Economy' ? 'checked' :''}}  required type="radio" >
-                            <label class="form-check-label" for="flightClassEconomic">{{__('lang.economy')}}</label>
-                          </div>
-                          {{-- <div class="form-check">
-                            <input id="flightClassPremiumEconomic" name="flight-class" class="flight-class form-check-input" value="Premium Economy" required type="radio">
-                            <label class="form-check-label" for="flightClassPremiumEconomic">{{__('lang.premium_economic')}}</label>
-                          </div> --}}
-                          <div class="form-check">
-                            <input id="flightClassBusiness" name="flight-class" class="flight-class form-check-input" value="Business" {{old('flight-class') == 'Business' ? 'checked' :''}} required type="radio">
-                            <label class="form-check-label" for="flightClassBusiness">{{__('lang.business')}}</label>
-                          </div>
-                          <div class="form-check">
-                            <input id="flightClassFirstClass" name="flight-class" class="flight-class form-check-input" value="First" {{old('flight-class') == 'First' ? 'checked' :''}} required type="radio">
-                            <label class="form-check-label" for="flightClassFirstClass">{{__('lang.first_class')}}</label>
-                          </div>
-                        </div>
-                        <div class="d-grid">
-                          <button class="btn btn-primary submit-done hotelguestsdone" type="button">{{__('lang.done')}}</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-md-6 col-lg-2 d-grid">
-                    <button class="btn btn-primary" type="submit" id= "searchbutton" style="height: fit-content;"> <span></span>{{__('lang.search')}}</button>
-                  </div>
-                </div>
-                {{-- <div class="sc-evcjhq btxSgp"><button class="sc-fHeRUh jHgPBA" type="submit">SEARCH FLIGHTS</button></div> --}}
-              </form>
-            </div>
-            <!-- Flights Search end --> 
-            <!-- Hotel Search -->
-            <div class="bg-white shadow-md tab-pane fade rounded p-4" id="second" role="tabpanel" aria-labelledby="second-tab">
+            @if(auth()->user())
+            <div class="col-md-7 col-lg-7 pt-5">
+              <div class="bg-white shadow-md tab-pane  rounded p-4" id="second" role="tabpanel" aria-labelledby="second-tab">
               <h2 class="text-4 mb-3">{{__('lang.book_domestic_and_international_hotels')}} </h2>
               <form id="bookingHotels" method="get" action="{{route('webbedsSearchHotels')}}">
                 <div class="row g-3">
                   
-                  <div class="col-md-12 col-lg-2">
+                  <div class="col-md-12 col-lg-4">
                     <div class="position-relative">
                       <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder=" {{__('lang.enter_city')}}">
                       <span class="icon-inside"><i class="fas fa-map-marker-alt"></i></span> </div>
                       <input type="hidden" class="form-control" id="hotelsCityCode"  name = "hotelsCityCode" value = "">
                   </div>
-                  <div class="col-md-6 col-lg-2">
+                  <div class="col-md-6 col-lg-4">
                     <div class="position-relative">
                       <input id="hotelsCheckIn" type="text" class="form-control" name = "hotelsCheckIn" required placeholder="{{__('lang.check_in')}}">
                       <span class="icon-inside"><i class="far fa-calendar-alt"></i></span> </div>
                   </div>
-                  <div class="col-md-6 col-lg-2">
+                  <div class="col-md-6 col-lg-4">
                     <div class="position-relative">
                       <input id="hotelsCheckOut" type="text" class="form-control" name = "hotelsCheckOut" required placeholder="{{__('lang.check_out')}}">
                       <span class="icon-inside"><i class="far fa-calendar-alt"></i></span> </div>
                   </div>
-                  {{-- <div class="col-md-6 col-lg-2">
+                  {{-- <div class="col-md-6 col-lg-4">
                     <div class="position-relative">
                       <select id="no-of-nights-id" class="form-select" name = "no-of-nights" required placeholder="{{__('lang.number_of_nights')}}">
                         <option value="">{{__('lang.number_of_nights')}}</option>
@@ -283,7 +105,7 @@
                       </select>
                     </div>
                   </div> --}}
-                  <div class="col-md-6 col-lg-2">
+                  <div class="col-md-6 col-lg-4">
                     <div class="travellers-class hotelsTravellersClass-1 ">
                       <input type="text" id="hotelsTravellersClass"  class="travellers-class-input form-control" name="hotels-travellers-class" placeholder="Rooms / People" required onKeyPress="return false;">
                       <span class="icon-inside"><i class="fas fa-caret-down"></i></span>
@@ -365,7 +187,7 @@
                       </div>
                     </div>
                   </div>
-                  <div class="col-md-6 col-lg-2">
+                  <div class="col-md-6 col-lg-4">
                     <div class="position-relative">
                       <select id="nationality-id" class="form-select" name = "nationality" required placeholder="{{__('lang.select_nationality')}}">
                         <option value="">{{__('lang.select_nationality')}}</option>
@@ -375,7 +197,7 @@
                       </select>
                     </div>
                   </div>
-                   <div class="col-md-6 col-lg-2">
+                   <div class="col-md-6 col-lg-4">
                     <div class="position-relative">
                       <select id="residency-id" class="form-select" name = "residency" required placeholder="{{__('lang.select_residency')}}">
                         <option value="">{{__('lang.select_residency')}}</option>
@@ -386,14 +208,77 @@
                     </div>
                   </div>
                   
-                    <div class="col-md-6 col-lg-2 d-grid">
+                    <div class="text-center">
                     <button class="btn btn-primary" type="submit" id ="hotelsearchbutton"><span></span>{{__('lang.search')}}</button>
                   </div>
                 </div>
               </form>
             </div>
-            <!-- Hotel Search end --> 
+
+            </div>
+            @else
+            <div class="col-md-7 col-lg-3">
+                <div class="bg-Font mt-5">
+                    <p >Masila Holidays empowers travel agencies to operate more efficiently.</p>
+                    <p class="mt-3">As a leading global travel distribution platform, we streamline business processes for both suppliers and buyers like travel agencies and online travel platforms.</p>
+                    <div class="logos pt-5">
+                        <img src="{{asset("frontEnd/images/iata-trans.png")}}" style="width: 170px;height: 78px;" alt="Image Alternative text" title="IATA">
+                        <img src="{{asset("frontEnd/images/civil-aviation.png")}}" style="width: 130px;height: 55px;" alt="Image Alternative text" title="Kuwait-Civil">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-5 col-lg-4" >
+              {{-- style={{app()->getLocale() == 'ar' ? "text-align:left;" : "text-align:right;"}} --}}
+              <form id="loginForm" method="post" action ="{{ route('login') }}">
+                @csrf
+              <div class="login-card">
+                <h4>Login to your account</h4>
+                <form>
+                    <div class="form-group">
+                        <label class = "form-label">Email </label>
+                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="emailAddress"  placeholder="{{__('lang.email')}}" name ="email" value={{ old('email') }}>
+                         @error('email')
+                          <span class="invalid-feedback" role="alert">
+                              <strong>{{ $message }}</strong>
+                          </span>
+                        @enderror
+                    </div>
+
+                    <div class="form-group mt-2">
+                        <label class ="form-label">Password</label>
+                        <div class="input-group">
+                             <input type="password" class="form-control @error('password') is-invalid @enderror" id="loginPassword"  placeholder="{{__('lang.password')}}" name="password">
+                            @error('password')
+                            <span class="invalid-feedback" role="alert">
+                                <strong>{{ $message }}</strong>
+                            </span>
+                            @enderror
+                        </div>
+                        <div class="text-right text-link mt-1">
+                            <a class="btn-link" href="{{route('user-forget.password.get')}}"> {{__('lang.forgot_password')}}</a>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-login btn-block mt-3">Login →</button>
+
+                    <div class="text-center text-link mt-3">
+                        Don’t have an account? <a href="#"><strong>Register with us</strong></a>
+                    </div>
+                </form>
+              </div>
+               </form>
+
+            </div>
+            @endif
+            
           </div>
+          
+          <!-- Secondary Navigation end --> 
+          
+          
+       
+          
         </div>
 
       </div>
@@ -423,7 +308,7 @@
 
         <!-- Banner
     ============================================= -->
-    <div class="bg-white shadow-md pt-5 pb-4">
+    {{-- <div class="bg-white shadow-md pt-5 pb-4">
       <div class="container">
         <div class="owl-carousel owl-theme" data-autoplay="true" data-loop="true" data-margin="30" data-items-xs="1" data-items-sm="2" data-items-md="2" data-items-lg="3">
           @foreach($offers as $offer)
@@ -440,13 +325,13 @@
         </div>
         
       </div>
-    </div>
+    </div> --}}
     <!-- Banner end -->
     <!-- Banner end -->
     
     <div class="container">
       <section class="section px-3 px-md-5 pb-4">
-        <h2 class="text-9 fw-600 text-center">{{__('lang.why_book_flight_with_24flights')}}</h2>
+        <h2 class="text-9 fw-600 text-center">{{__('lang.why_book_flight_with_masilaholidays')}}</h2>
         <p class="lead mb-5 text-center">{{__('lang.book_fligh_tickets_online_save_time_and_money')}}</p>
         <div class="row g-4">
           <div class="col-md-4">
@@ -474,7 +359,7 @@
       </section>
     </div>
     <!-- Banner ============================================= -->
-    <div class="bg-white shadow-md pt-5 pb-4">
+    {{-- <div class="bg-white shadow-md pt-5 pb-4">
       <div class="container">
         <h2  class="fs_xs_14 fs_24"><p  class="fs_xs_14 fw_600 mb-4">{{__('lang.our_packages')}}</p></h2>
         <div class="owl-carousel owl-theme" data-autoplay="true" data-loop="true" data-nav="true" data-margin="30" data-items-xs="1" data-items-sm="2" data-items-md="2" data-items-lg="3">
@@ -496,10 +381,10 @@
             @endif
         </div>
       </div>
-    </div>
+    </div> --}}
     <!-- Banner end -->
 
-    <section class="section bg-white shadow-md pt-4 pb-1">
+    {{-- <section class="section bg-white shadow-md pt-4 pb-1">
       <div class="container">
         <div class="row">
           <div  class="col-12">
@@ -533,7 +418,6 @@
                 <p class="destinationCity">{{$destination->name}}</p>
                 <div class="destinationbutton">
                   <button type="button" class="btn btn-primary rounded-pill  btn-sm destinationbuttonText" >{{__('lang.book_flight')}}</button>
-                  {{-- <button type="button" class="btn btn-primary rounded-pill  btn-sm">Small Button</button> --}}
                 </div>
               </div>
               @endif
@@ -546,10 +430,10 @@
         </div>
         @endif
       </div>
-    </section>
+    </section> --}}
 
     <!-- Banner============================================= -->
-    <div class="bg-white shadow-md pt-5 pb-4">
+    {{-- <div class="bg-white shadow-md pt-5 pb-4">
       <div class="container">
         <h2  class="fs_xs_14 fs_24"><p  class="fs_xs_14 fw_600 mb-4">{{__('lang.popular_events_and_news')}}</p></h2>
         <div class="owl-carousel owl-theme" data-autoplay="true" data-loop="true" data-nav="true" data-margin="30" data-items-xs="1" data-items-sm="2" data-items-md="2" data-items-lg="4">
@@ -561,7 +445,7 @@
           @endforeach          
         </div>
       </div>
-    </div>
+    </div> --}}
     <!-- Banner end -->
 
     {{-- <div class="section py-4">

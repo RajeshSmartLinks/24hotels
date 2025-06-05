@@ -163,3 +163,5 @@ Route::get('webbedsHotelDump', [App\Http\Controllers\FrontEnd\Hotel\StaticContro
 //webbeds
 Route::get('cityCountryList', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'AjaxHotelCityList'])->name('hotelCityAutoSuggest');
 Route::get('search/hotelsList', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'SearchHotels'])->name('webbedsSearchHotels');
+Route::get('hotel/rooms/details', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'GethotelDetails'])->name('GethotelDetails');
+Route::get('hotel/preBookRoom/{hotelCode}/{bookingCode}/{searchId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'PreBooking'])->name('PreBookingRoom');
