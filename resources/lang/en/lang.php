@@ -352,6 +352,12 @@
         'exclusive' => 'Exclusive',
         'preferred' => 'Preferred',
         'phone_number' => 'Phone Number',
-        'why_book_flight_with_masilaholidays' => 'Why book flight with Masila Holidays'
+        'why_book_hotel_with_masilaholidays' => 'Why book Hotels with Masila Holidays',
+        'best_b2b_rates_of_agencies' => 'Best B2B rates of agencies',
+        'agent_information' => 'Agent Information',
+        'best_B2B_rates_of_for_agencies' => 'Best B2B rates (of) FOR  agencies',
+        '24flights_best_mobile_app_for_flight_booking' => '24Flights - Best Mobile App for Flight Bookings',
+        'download_description' => 'Download our app for the fastest, most convenient way to Book Flights',
+
    ];
 ?>

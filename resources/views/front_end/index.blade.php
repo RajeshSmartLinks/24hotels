@@ -19,7 +19,7 @@
     background-image: url('{{ asset('frontEnd/images/backGroundImg.jpg') }}'); 
    } */
 
-   .login-card {
+        .login-card {
             width: 100%;
             max-width: 400px;
             background: white;
@@ -66,158 +66,138 @@
   <div id="content">
     <div class="bg-secondary pb-4" style = "background-image: url('{{ asset('frontEnd/images/bg-index2.jpg') }}');">
       <div class="background-image-container">
-        <div class="container content-img" style="max-width: 1420px;padding-top:60px;height: 465px"> 
+        <div class="container content-img" style="max-width: 1420px;padding-top:60px;"> 
           <!-- Secondary Navigation -->
           <div class="row">
              <div class="col-lg-5 logo-column d-none d-lg-block">
               {{-- <img src="your-logo.png" alt="Logo" class="img-fluid mb-4"> --}}
             </div>
             @if(auth()->user())
-            <div class="col-md-7 col-lg-7 pt-5">
+            <div class="col-md-12 col-lg-7 pt-5 pb-5">
               <div class="bg-white shadow-md tab-pane  rounded p-4" id="second" role="tabpanel" aria-labelledby="second-tab">
-              <h2 class="text-4 mb-3">{{__('lang.book_domestic_and_international_hotels')}} </h2>
-              <form id="bookingHotels" method="get" action="{{route('webbedsSearchHotels')}}">
-                <div class="row g-3">
-                  
-                  <div class="col-md-12 col-lg-4">
-                    <div class="position-relative">
-                      <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder=" {{__('lang.enter_city')}}">
-                      <span class="icon-inside"><i class="fas fa-map-marker-alt"></i></span> </div>
-                      <input type="hidden" class="form-control" id="hotelsCityCode"  name = "hotelsCityCode" value = "">
-                  </div>
-                  <div class="col-md-6 col-lg-4">
-                    <div class="position-relative">
-                      <input id="hotelsCheckIn" type="text" class="form-control" name = "hotelsCheckIn" required placeholder="{{__('lang.check_in')}}">
-                      <span class="icon-inside"><i class="far fa-calendar-alt"></i></span> </div>
-                  </div>
-                  <div class="col-md-6 col-lg-4">
-                    <div class="position-relative">
-                      <input id="hotelsCheckOut" type="text" class="form-control" name = "hotelsCheckOut" required placeholder="{{__('lang.check_out')}}">
-                      <span class="icon-inside"><i class="far fa-calendar-alt"></i></span> </div>
-                  </div>
-                  {{-- <div class="col-md-6 col-lg-4">
-                    <div class="position-relative">
-                      <select id="no-of-nights-id" class="form-select" name = "no-of-nights" required placeholder="{{__('lang.number_of_nights')}}">
-                        <option value="">{{__('lang.number_of_nights')}}</option>
-                        @for($i = 1; $i <= 30; $i++)
-                        <option value="{{$i}}">{{$i}}</option>
-                        @endfor
-                      </select>
+                <h2 class="text-4 mb-3">{{__('lang.book_domestic_and_international_hotels')}} </h2>
+                <form id="bookingHotels" method="get" action="{{route('webbedsSearchHotels')}}">
+                  <div class="row g-3">
+                    
+                    <div class="col-md-12 col-lg-4">
+                      <div class="position-relative">
+                        <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder=" {{__('lang.enter_city')}}">
+                        <span class="icon-inside"><i class="fas fa-map-marker-alt"></i></span> </div>
+                        <input type="hidden" class="form-control" id="hotelsCityCode"  name = "hotelsCityCode" value = "">
                     </div>
-                  </div> --}}
-                  <div class="col-md-6 col-lg-4">
-                    <div class="travellers-class hotelsTravellersClass-1 ">
-                      <input type="text" id="hotelsTravellersClass"  class="travellers-class-input form-control" name="hotels-travellers-class" placeholder="Rooms / People" required onKeyPress="return false;">
-                      <span class="icon-inside"><i class="fas fa-caret-down"></i></span>
-                      <div class="travellers-dropdown">
-                        <div class="row align-items-center">
-                          <div class="col-sm-7">
-                            <p class="mb-sm-0">{{__('lang.rooms')}} </p>
-                          </div>
-                          <div class="col-sm-5">
-                            {{-- <div class="qty input-group">
-                              <div class="input-group-prepend">
-                                <button type="button" class="btn bg-light-4" data-value="decrease" data-target="#hotels-rooms" data-toggle="spinner">-</button>
-                              </div>
-                              <input type="text" data-ride="spinner" id="hotels-rooms" class="qty-spinner form-control" value="1" name = "noOfRooms" readonly >
-                              <div class="input-group-append">
-                                <button type="button" class="btn bg-light-4" data-value="increase" data-target="#hotels-rooms" data-toggle="spinner">+</button>
-                              </div>
-                            </div> --}}
-                            <div class="qty input-group">
-                              <div class="input-group-prepend">
-                                <button type="button" class="btn bg-light-4 qtyChanger" id = "remove-room">-</button>
-                              </div>
-                              <input type="text" data-ride="spinner" id="hotels-rooms" class="qty-spinner form-control" value="1" name = "noOfRooms" readonly  >
-                              <div class="input-group-append">
-                                <button type="button" class="btn bg-light-4 qtyChanger" id = "add-room">+</button>
-                              </div>
+                    <div class="col-md-6 col-lg-4">
+                      <div class="position-relative">
+                        <input id="hotelsCheckIn" type="text" class="form-control" name = "hotelsCheckIn" required placeholder="{{__('lang.check_in')}}">
+                        <span class="icon-inside"><i class="far fa-calendar-alt"></i></span> </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                      <div class="position-relative">
+                        <input id="hotelsCheckOut" type="text" class="form-control" name = "hotelsCheckOut" required placeholder="{{__('lang.check_out')}}">
+                        <span class="icon-inside"><i class="far fa-calendar-alt"></i></span> </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                      <div class="travellers-class hotelsTravellersClass-1 ">
+                        <input type="text" id="hotelsTravellersClass"  class="travellers-class-input form-control" name="hotels-travellers-class" placeholder="Rooms / People" required onKeyPress="return false;">
+                        <span class="icon-inside"><i class="fas fa-caret-down"></i></span>
+                        <div class="travellers-dropdown">
+                          <div class="row align-items-center">
+                            <div class="col-sm-7">
+                              <p class="mb-sm-0">{{__('lang.rooms')}} </p>
                             </div>
-                          </div>
-                        </div>
-                        <hr class="mt-2 mb-4">
-                        <div id="rooms-container"> 
-                          <div>
-                            {{__('lang.room')}} 1
-                            <div class="row align-items-center">
-                              
-                              <div class="col-sm-7">
-                                <p class="mb-sm-0">{{__('lang.adults')}}  <small class="text-muted">(18+ yrs)</small></p>
-                              </div>
-                              <div class="col-sm-5">
-                                <div class="qty input-group">
-                                  <div class="input-group-prepend">
-                                    <button type="button" class="btn bg-light-4" id = "adult-travellers-minus-1">-</button>
-                                  </div>
-                                  <input type="text" data-ride="spinner" id="adult-travellers-1" class="qty-spinner form-control" value="1" readonly name = "room1[adult]">
-                                  <div class="input-group-append">
-                                    <button type="button" class="btn bg-light-4" id = "adult-travellers-plus-1">+</button>
-                                  </div>
+                            <div class="col-sm-5">
+                              <div class="qty input-group">
+                                <div class="input-group-prepend">
+                                  <button type="button" class="btn bg-light-4 qtyChanger" id = "remove-room">-</button>
                                 </div>
-                              </div>
-                              
-                            </div>
-                            
-                            <div class="row align-items-center mt-2">
-                              <div class="col-sm-7">
-                                <p class="mb-sm-0">{{__('lang.children')}} <small class="text-muted">(1-18 yrs)</small></p>
-                              </div>
-                              <div class="col-sm-5">
-                                <div class="qty input-group">
-                                  <div class="input-group-prepend">
-                                    <button type="button" class="btn bg-light-4" id = "children-travellers-minus-1">-</button>
-                                  </div>
-                                  <input type="text" data-ride="spinner" id="children-travellers-1" class="qty-spinner form-control" value="0" name = "room1[children]" readonly>
-                                  <div class="input-group-append">
-                                    <button type="button" class="btn bg-light-4" id = "children-travellers-plus-1">+</button>
-                                  </div>
+                                <input type="text" data-ride="spinner" id="hotels-rooms" class="qty-spinner form-control" value="1" name = "noOfRooms" readonly  >
+                                <div class="input-group-append">
+                                  <button type="button" class="btn bg-light-4 qtyChanger" id = "add-room">+</button>
                                 </div>
                               </div>
                             </div>
-                            <div class="row mt-3" id="children-age-room-1">
-                              
-                            </div>
-                            <hr class="my-2">
                           </div>
-                        </div>
-  
-                        <div class="d-grid">
-                          <button class="btn btn-primary submit-done mt-3" type="button">{{__('lang.done')}}</button>
+                          <hr class="mt-2 mb-4">
+                          <div id="rooms-container"> 
+                            <div>
+                              {{__('lang.room')}} 1
+                              <div class="row align-items-center">
+                                
+                                <div class="col-sm-7">
+                                  <p class="mb-sm-0">{{__('lang.adults')}}  <small class="text-muted">(18+ yrs)</small></p>
+                                </div>
+                                <div class="col-sm-5">
+                                  <div class="qty input-group">
+                                    <div class="input-group-prepend">
+                                      <button type="button" class="btn bg-light-4" id = "adult-travellers-minus-1">-</button>
+                                    </div>
+                                    <input type="text" data-ride="spinner" id="adult-travellers-1" class="qty-spinner form-control" value="1" readonly name = "room1[adult]">
+                                    <div class="input-group-append">
+                                      <button type="button" class="btn bg-light-4" id = "adult-travellers-plus-1">+</button>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                              </div>
+                              
+                              <div class="row align-items-center mt-2">
+                                <div class="col-sm-7">
+                                  <p class="mb-sm-0">{{__('lang.children')}} <small class="text-muted">(1-18 yrs)</small></p>
+                                </div>
+                                <div class="col-sm-5">
+                                  <div class="qty input-group">
+                                    <div class="input-group-prepend">
+                                      <button type="button" class="btn bg-light-4" id = "children-travellers-minus-1">-</button>
+                                    </div>
+                                    <input type="text" data-ride="spinner" id="children-travellers-1" class="qty-spinner form-control" value="0" name = "room1[children]" readonly>
+                                    <div class="input-group-append">
+                                      <button type="button" class="btn bg-light-4" id = "children-travellers-plus-1">+</button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="row mt-3" id="children-age-room-1">
+                                
+                              </div>
+                              <hr class="my-2">
+                            </div>
+                          </div>
+    
+                          <div class="d-grid">
+                            <button class="btn btn-primary submit-done mt-3" type="button">{{__('lang.done')}}</button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="col-md-6 col-lg-4">
-                    <div class="position-relative">
-                      <select id="nationality-id" class="form-select" name = "nationality" required placeholder="{{__('lang.select_nationality')}}">
-                        <option value="">{{__('lang.select_nationality')}}</option>
-                        @foreach($countries as $country)
-                        <option value="{{$country->code}}">{{$country->name}}</option>
-                        @endforeach
-                      </select>
+                    <div class="col-md-6 col-lg-4">
+                      <div class="position-relative">
+                        <select id="nationality-id" class="form-select" name = "nationality" required placeholder="{{__('lang.select_nationality')}}">
+                          <option value="">{{__('lang.select_nationality')}}</option>
+                          @foreach($countries as $country)
+                          <option value="{{$country->code}}">{{$country->name}}</option>
+                          @endforeach
+                        </select>
+                      </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                      <div class="position-relative">
+                        <select id="residency-id" class="form-select" name = "residency" required placeholder="{{__('lang.select_residency')}}">
+                          <option value="">{{__('lang.select_residency')}}</option>
+                          @foreach($countries as $country)
+                          <option value="{{$country->code}}">{{$country->name}}</option>
+                          @endforeach
+                        </select>
+                      </div>
+                    </div>
+                    
+                      <div class="text-center">
+                      <button class="btn btn-primary" type="submit" id ="hotelsearchbutton"><span></span>{{__('lang.search')}}</button>
                     </div>
                   </div>
-                   <div class="col-md-6 col-lg-4">
-                    <div class="position-relative">
-                      <select id="residency-id" class="form-select" name = "residency" required placeholder="{{__('lang.select_residency')}}">
-                        <option value="">{{__('lang.select_residency')}}</option>
-                        @foreach($countries as $country)
-                        <option value="{{$country->code}}">{{$country->name}}</option>
-                        @endforeach
-                      </select>
-                    </div>
-                  </div>
-                  
-                    <div class="text-center">
-                    <button class="btn btn-primary" type="submit" id ="hotelsearchbutton"><span></span>{{__('lang.search')}}</button>
-                  </div>
-                </div>
-              </form>
-            </div>
-
+                </form>
+              </div>
             </div>
             @else
-            <div class="col-md-7 col-lg-3">
+            <div class="col-md-7 col-lg-3 d-none d-lg-block">
                 <div class="bg-Font mt-5">
                     <p >Masila Holidays empowers travel agencies to operate more efficiently.</p>
                     <p class="mt-3">As a leading global travel distribution platform, we streamline business processes for both suppliers and buyers like travel agencies and online travel platforms.</p>
@@ -229,7 +209,7 @@
             </div>
             
             <div class="col-md-5 col-lg-4" >
-              {{-- style={{app()->getLocale() == 'ar' ? "text-align:left;" : "text-align:right;"}} --}}
+              
               <form id="loginForm" method="post" action ="{{ route('login') }}">
                 @csrf
               <div class="login-card">
@@ -331,8 +311,8 @@
     
     <div class="container">
       <section class="section px-3 px-md-5 pb-4">
-        <h2 class="text-9 fw-600 text-center">{{__('lang.why_book_flight_with_masilaholidays')}}</h2>
-        <p class="lead mb-5 text-center">{{__('lang.book_fligh_tickets_online_save_time_and_money')}}</p>
+        <h2 class="text-9 fw-600 text-center">{{__('lang.why_book_hotel_with_masilaholidays')}}</h2>
+        <p class="lead mb-5 text-center">{{__('lang.best_b2b_rates_of_agencies')}}</p>
         <div class="row g-4">
           <div class="col-md-4">
             <div class="featured-box text-center">
@@ -485,14 +465,14 @@
     <section class="section pb-0">
       <div class="container">
         <div class="row">
-          <div class="col-lg-6 text-center"> <img class="img-fluid" alt="" src='{{asset("frontEnd/images/24-App.png")}}'> </div>
+          <div class="col-lg-6 text-center"> <img class="img-fluid" alt="" src='{{asset("frontEnd/images/24-app-banner-2.png")}}' style="height: 362px;" > </div>
           <div class="col-lg-6 text-center text-lg-start">
             <h2 class="text-9 fw-600 my-4">
               {{-- {{__('lang.download_our_24flights')}} --}}
-              {{__('lang.book_tickets_faster_on_our_mobile_apps')}}
+              {{__('lang.24flights_best_mobile_app_for_flight_booking')}}
               <br class="d-none d-lg-inline-block">
               {{-- {{__('lang.mobile_app')}} </h2> --}}
-            <p class="lead">{{__('lang.download_desc')}}</p>
+            <p class="lead">{{__('lang.download_description')}}</p>
             <div class="pt-3"> <a class="me-4" href="https://apps.apple.com/kw/app/24-flights/id1466042184"><img alt="" src='{{asset("frontEnd/images/app-store.png")}}'></a><a href="https://play.google.com/store/apps/details?id=com.ni.tfflights"><img alt="" src='{{asset("frontEnd/images/google-play-store.png")}}'></a> </div>
           </div>
         </div>
@@ -578,87 +558,87 @@ $("#bookingFlight").validate({
         var airuplogo = "{{asset('frontEnd/images/image.png')}}";
         var airdownlogo = "{{asset('frontEnd/images/image.png')}}";
         var returndateSartFrom = moment();
-        $('#flightFrom').autocomplete({
-            minLength: 3,
-            //delay: 50,
-            source: function( request, response ) {
-                $.ajax({
-                url: "{{route('autoSuggest')}}",
-                dataType: "json",
-                data: {
-                    q: request.term
-                },
-                success: function( data ) {
-                    //response(data);
-                    response($.map(data, function (item) {
-                        return {
-                            label: item.display_name,
-                            value: item.display_name,
-                            code: item.airport_code,
-                            city_name: item.city_name,
-                            country_name:item.country_name,
-                            airport_name:item.name
-                        };
-                    }));
-                },
-                });
-            },
-            select: function( event, ui ) {
-                $("input[name='flightFromAirportCode']").val(ui.item.code);
-                $("#flightTo").focus();
-            },
-            search  : function(){$(this).addClass('preloader');},
-            open    : function(){$(this).removeClass('preloader');}
-        }).data( "ui-autocomplete" )._renderItem = function( ul, item ) 
-        {  
-          return $( "<li dir='ltr' role='presentation' tabindex='0' class='sc-iUKqMP hlZHGM'></li>" )  
-              .data( "item.autocomplete", item )  
-              .append( '<div class="sc-iAKWXU iyyKqe"><div class="sc-efQSVx iQoDho"><span class="sc-cTAqQK fywikg"><img src="'+airuplogo+'" alt="flight Icon" width="25px"style="margin-top:7px"></span><div class="sc-jObWnj dmPlWU"><p class="sc-dPiLbb kUaZDb"><span class="autoCompleteTitle ">'+item.city_name+', '+item.country_name+'&nbsp;</span> <span class="autoCompleteSubTitle">('+item.code+')</span></p><p class="sc-bBHHxi cTvqKV">'+item.airport_name+'</p></div></div></div>' )  
-              .appendTo( ul );  
-        };  
-        //flightTo
+        // $('#flightFrom').autocomplete({
+        //     minLength: 3,
+        //     //delay: 50,
+        //     source: function( request, response ) {
+        //         $.ajax({
+        //         url: "{{route('autoSuggest')}}",
+        //         dataType: "json",
+        //         data: {
+        //             q: request.term
+        //         },
+        //         success: function( data ) {
+        //             //response(data);
+        //             response($.map(data, function (item) {
+        //                 return {
+        //                     label: item.display_name,
+        //                     value: item.display_name,
+        //                     code: item.airport_code,
+        //                     city_name: item.city_name,
+        //                     country_name:item.country_name,
+        //                     airport_name:item.name
+        //                 };
+        //             }));
+        //         },
+        //         });
+        //     },
+        //     select: function( event, ui ) {
+        //         $("input[name='flightFromAirportCode']").val(ui.item.code);
+        //         $("#flightTo").focus();
+        //     },
+        //     search  : function(){$(this).addClass('preloader');},
+        //     open    : function(){$(this).removeClass('preloader');}
+        // }).data( "ui-autocomplete" )._renderItem = function( ul, item ) 
+        // {  
+        //   return $( "<li dir='ltr' role='presentation' tabindex='0' class='sc-iUKqMP hlZHGM'></li>" )  
+        //       .data( "item.autocomplete", item )  
+        //       .append( '<div class="sc-iAKWXU iyyKqe"><div class="sc-efQSVx iQoDho"><span class="sc-cTAqQK fywikg"><img src="'+airuplogo+'" alt="flight Icon" width="25px"style="margin-top:7px"></span><div class="sc-jObWnj dmPlWU"><p class="sc-dPiLbb kUaZDb"><span class="autoCompleteTitle ">'+item.city_name+', '+item.country_name+'&nbsp;</span> <span class="autoCompleteSubTitle">('+item.code+')</span></p><p class="sc-bBHHxi cTvqKV">'+item.airport_name+'</p></div></div></div>' )  
+        //       .appendTo( ul );  
+        // };  
+        // //flightTo
        
 
-        $('#flightTo').autocomplete({
-            minLength: 3,
-            delay: 10,
-            source: function( request, response ) {
-                var except = $("input[name='flightFromAirportCode']").val();
-                $.ajax({
-                url: "{{route('autoSuggest')}}",
-                dataType: "json",
-                data: {
-                    q: request.term,
-                    ff:except,
-                },
-                success: function( data ) {
-                    //response(data);
-                    response($.map(data, function (item) {
-                        console.log(item);
-                        return {
-                            label: item.display_name,
-                            value: item.display_name,
-                            code: item.airport_code,
-                            city_name: item.city_name,
-                            country_name:item.country_name,
-                            airport_name:item.name
-                        };
-                    }));
-                },
-                });
-            },
-            select: function( event, ui ) {
-                $("input[name='flightToAirportCode']").val(ui.item.code);
-                $("#flightDepart").focus();
-            },
+        // $('#flightTo').autocomplete({
+        //     minLength: 3,
+        //     delay: 10,
+        //     source: function( request, response ) {
+        //         var except = $("input[name='flightFromAirportCode']").val();
+        //         $.ajax({
+        //         url: "{{route('autoSuggest')}}",
+        //         dataType: "json",
+        //         data: {
+        //             q: request.term,
+        //             ff:except,
+        //         },
+        //         success: function( data ) {
+        //             //response(data);
+        //             response($.map(data, function (item) {
+        //                 console.log(item);
+        //                 return {
+        //                     label: item.display_name,
+        //                     value: item.display_name,
+        //                     code: item.airport_code,
+        //                     city_name: item.city_name,
+        //                     country_name:item.country_name,
+        //                     airport_name:item.name
+        //                 };
+        //             }));
+        //         },
+        //         });
+        //     },
+        //     select: function( event, ui ) {
+        //         $("input[name='flightToAirportCode']").val(ui.item.code);
+        //         $("#flightDepart").focus();
+        //     },
             
-        }).data( "ui-autocomplete" )._renderItem = function( ul, item ) 
-        {
-          return $( "<li role='presentation' dir='ltr' tabindex='0' class='sc-iUKqMP hlZHGM'></li>" )  
-              .data( "item.autocomplete", item )  
-              .append( '<div class="sc-iAKWXU iyyKqe"><div class="sc-efQSVx iQoDho"><span class="sc-cTAqQK fywikg"><img src="'+airuplogo+'" alt="flight Icon" width="25px"style="margin-top:7px"></span><div class="sc-jObWnj dmPlWU"><p class="sc-dPiLbb kUaZDb"><span class="autoCompleteTitle ">'+item.city_name+', '+item.country_name+'&nbsp;</span> <span class="autoCompleteSubTitle">('+item.code+')</span></p><p class="sc-bBHHxi cTvqKV">'+item.airport_name+'</p></div></div></div>' )  
-              .appendTo( ul );  
-        };
+        // }).data( "ui-autocomplete" )._renderItem = function( ul, item ) 
+        // {
+        //   return $( "<li role='presentation' dir='ltr' tabindex='0' class='sc-iUKqMP hlZHGM'></li>" )  
+        //       .data( "item.autocomplete", item )  
+        //       .append( '<div class="sc-iAKWXU iyyKqe"><div class="sc-efQSVx iQoDho"><span class="sc-cTAqQK fywikg"><img src="'+airuplogo+'" alt="flight Icon" width="25px"style="margin-top:7px"></span><div class="sc-jObWnj dmPlWU"><p class="sc-dPiLbb kUaZDb"><span class="autoCompleteTitle ">'+item.city_name+', '+item.country_name+'&nbsp;</span> <span class="autoCompleteSubTitle">('+item.code+')</span></p><p class="sc-bBHHxi cTvqKV">'+item.airport_name+'</p></div></div></div>' )  
+        //       .appendTo( ul );  
+        // };
         
         // Depart Date
         $('#flightDepart').daterangepicker({
@@ -707,45 +687,60 @@ $("#bookingFlight").validate({
         });
 
         //hotelserach
-        $('#hotelsCityName').autocomplete({
-            minLength: 3,
-            //delay: 50,
-            source: function( request, response ) {
-                $.ajax({
-                // url: "{{route('hotelautoSuggest')}}",
-                url: "{{route('hotelCityAutoSuggest')}}",
-                dataType: "json",
-                data: {
-                    q: request.term
-                },
-                success: function( data ) {
-                    //response(data);
-                    response($.map(data, function (item) {
-                        return {
-                            label: item.display_name,
-                            value: item.display_name,
-                            code: item.code,
-                            city_name: item.name,
-                            country_name:item.country_name,
-                       
-                        };
-                    }));
-                },
-                });
-            },
-            select: function( event, ui ) {
-                $("input[name='hotelsCityCode']").val(ui.item.code);
-                $("#hotelsCheckIn").focus();
-            },
-            search  : function(){$(this).addClass('preloader');},
-            open    : function(){$(this).removeClass('preloader');}
-        }).data( "ui-autocomplete" )._renderItem = function( ul, item ) 
-        {  
-          return $( "<li dir='ltr' role='presentation' tabindex='0' class='sc-iUKqMP hlZHGM'></li>" )  
-              .data( "item.autocomplete", item )  
-              .append( '<div class="sc-iAKWXU iyyKqe"><div class="sc-efQSVx iQoDho"><div class="sc-jObWnj dmPlWU"><p class="sc-dPiLbb kUaZDb"><span class="autoCompleteTitle ">'+item.label+'&nbsp;</span></p><p class="sc-bBHHxi cTvqKV">'+item.country_name+'</p></div></div></div>' )  
-              .appendTo( ul );  
-        }; 
+       $('#hotelsCityName').autocomplete({
+          minLength: 3,
+          source: function(request, response) {
+              $.ajax({
+                  url: "{{route('hotelCityAutoSuggest')}}",
+                  dataType: "json",
+                  data: {
+                      q: request.term
+                  },
+                  success: function(data) {
+                      response($.map(data, function(item) {
+                          return {
+                              label: item.display_name,
+                              value: item.display_name,
+                              code: item.code,
+                              city_name: item.name,
+                              country_name: item.country_name,
+                          };
+                      }));
+                  },
+              });
+          },
+          select: function(event, ui) {
+              $("input[name='hotelsCityCode']").val(ui.item.code);
+              $("#hotelsCheckIn").focus();
+          },
+          search: function() { $(this).addClass('preloader'); },
+          open: function() { $(this).removeClass('preloader'); }
+      });
+
+      // Wait until DOM is ready and autocomplete is initialized
+      $(function() {
+          var autocomplete = $('#hotelsCityName').data('ui-autocomplete');
+          if (autocomplete) {
+              autocomplete._renderItem = function(ul, item) {
+                  return $("<li dir='ltr' role='presentation' tabindex='0' class='sc-iUKqMP hlZHGM'></li>")
+                      .data("item.autocomplete", item)
+                      .append(
+                          '<div class="sc-iAKWXU iyyKqe">' +
+                              '<div class="sc-efQSVx iQoDho">' +
+                                  '<div class="sc-jObWnj dmPlWU">' +
+                                      '<p class="sc-dPiLbb kUaZDb">' +
+                                          '<span class="autoCompleteTitle">' + item.label + '&nbsp;</span>' +
+                                      '</p>' +
+                                      '<p class="sc-bBHHxi cTvqKV">' + item.country_name + '</p>' +
+                                  '</div>' +
+                              '</div>' +
+                          '</div>'
+                      )
+                      .appendTo(ul);
+              };
+          }
+      });
+
         
          // Depart Date
          $('#hotelsCheckIn').daterangepicker({

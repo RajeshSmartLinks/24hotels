@@ -39,10 +39,10 @@
                                     <dt class="col-sm-6 col-6" style = "font-size: small">{{__('lang.total_sale')}} :</dt>
                                     <dd class="col-sm-6 col-6"> ({{$info['totaltodaySalesCount']}}/{{$info['totaltodaySalesAmount']}}) </dd>
                                 </dl>
-                                <dl class="row">
+                                {{-- <dl class="row">
                                     <dt class="col-sm-6 col-6" style = "font-size: small"> {{__('lang.flights')}}  :</dt>
                                     <dd class="col-sm-6 col-6"> ({{$info['todayFlightSalesCount']}}/{{$info['todayFlightSalesAmount']}}) </dd>
-                                </dl>
+                                </dl> --}}
                                 <dl class="row">
                                     <dt class="col-sm-6 col-6" style = "font-size: small"> {{__('lang.hotels')}} :</dt>
                                     <dd class="col-sm-6 col-6"> ({{$info['todayHotelSalesCount']}}/{{$info['todayHotelSalesAmount']}}) </dd>
@@ -64,10 +64,10 @@
                                     <dt class="col-sm-6 col-6" style = "font-size: small"> {{__('lang.total_sale')}} :</dt>
                                     <dd class="col-sm-6 col-6"> ({{$info['totalmonthlySalesCount']}}/{{$info['totalmonthlySalesAmount']}}) </dd>
                                 </dl>
-                                <dl class="row">
+                                {{-- <dl class="row">
                                     <dt class="col-sm-6 col-6" style = "font-size: small"> {{__('lang.flights')}} :</dt>
                                     <dd class="col-sm-6 col-6"> ({{$info['monthlyFlightSalesCount']}}/{{$info['monthlyFlightSalesAmount']}}) </dd>
-                                </dl>
+                                </dl> --}}
                                 <dl class="row">
                                     <dt class="col-sm-6 col-6" style = "font-size: small"> {{__('lang.hotels')}} :</dt>
                                     <dd class="col-sm-6 col-6"> ({{$info['monthlyHotelSalesCount']}}/{{$info['monthlyHotelSalesAmount']}}) </dd>
@@ -89,10 +89,10 @@
                                 <dt class="col-sm-6 col-6" style = "font-size: small"> {{__('lang.total_sale')}} :</dt>
                                 <dd class="col-sm-6 col-6"> ({{$info['totalSalesCount']}}/{{$info['totalSalesAmount']}}) </dd>
                             </dl>
-                            <dl class="row">
+                            {{-- <dl class="row">
                                 <dt class="col-sm-6 col-6" style = "font-size: small"> {{__('lang.flights')}} :</dt>
                                 <dd class="col-sm-6 col-6"> ({{$info['totalFlightSalesCount']}}/{{$info['totalFlightSalesAmount']}}) </dd>
-                            </dl>
+                            </dl> --}}
                             <dl class="row">
                                 <dt class="col-sm-6 col-6" style = "font-size: small"> {{__('lang.hotels')}} :</dt>
                                 <dd class="col-sm-6 col-6"> ({{$info['totalHotelSalesCount']}}/{{$info['totalHotelSalesAmount']}}) </dd>
@@ -136,20 +136,12 @@
 		  <hr class="mx-n4">
             {{-- <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
                 <li class="nav-item"> 
-                    <a class="nav-link {{ request('tab') == 'flight-tab' ? 'active' : '' }} " id="flight-tab" data-bs-toggle="tab" href="#first" role="tab" aria-controls="first" aria-selected="false">Flight </a> 
-                </li>
-                <li class="nav-item"> 
-                    <a class="nav-link {{ request('tab') == 'hotel-tab' ? 'active' : '' }}" id="hotel-tab" data-bs-toggle="tab" href="#second" role="tab" aria-controls="second" aria-selected="false">Hotel</a> 
-                </li>
-            </ul> --}}
-            <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
-                <li class="nav-item"> 
                     <a class="nav-link {{ $activeTab == 'flight-tab' ? 'active' : '' }} " id="flight-tab"  href="{{ route('agent-dashboard', ['tab' => 'flight-tab']) }}" role="tab" aria-controls="first" aria-selected="false">{{__('lang.flights')}} </a> 
                 </li>
                 <li class="nav-item"> 
                     <a class="nav-link {{ $activeTab == 'hotel-tab' ? 'active' : '' }}" id="hotel-tab"  href="{{ route('agent-dashboard', ['tab' => 'hotel-tab']) }}" role="tab" aria-controls="second" aria-selected="false">{{__('lang.hotels')}} </a> 
                 </li>
-            </ul>
+            </ul> --}}
             <div class="tab-content my-3" id="myTabContent">
               @if (Session::has('success'))
               <div class="alert alert-success" role="alert">
@@ -163,18 +155,11 @@
               @endif
               
               
-              <div class="tab-pane fade {{ $activeTab == 'flight-tab' ? 'show active' : '' }}" id="first"  aria-labelledby="flight-tab">
+              {{-- <div class="tab-pane fade {{ $activeTab == 'flight-tab' ? 'show active' : '' }}" id="first"  aria-labelledby="flight-tab">
                 <div class="table-responsive-md">
                   <table class="table table-hover border">
                     <thead>
                       <tr>
-                        {{-- <th>Booking Date</th>
-                        <th>Journey</th>
-                        <th>Booking ID</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-center">Amount</th>
-                        <th class="text-center">Actions</th> --}}
-
                         <th>SrNo</th>
                         <th>Flight</th>
                         <th class="text-center">Customer</th>
@@ -196,7 +181,6 @@
                             <td class="align-middle">{{$bookingdetails->email }} </td>
                             <td class="align-middle">{{$bookingdetails->currency_code ." ".$bookingdetails->total_amount }}</td>
                             <td class="align-middle">{{str_replace("_"," ",$bookingdetails->booking_status) }}</td>
-                            {{-- <td class="align-middle">{{$bookingdetails->created_at->format('d/m/Y')}}</td> --}}
                             <td class="align-middle text-end">
                                 @if(!empty($bookingdetails->flight_ticket_path))
                                 <a  href = "{{asset($bookingdetails->flight_ticket_path)}}" download data-bs-toggle="tooltip" title="Download Ticket"><i class="fas fa-download"></i></a>
@@ -204,11 +188,11 @@
                                 @if(!empty($bookingdetails->invoice_path))
                                 <a  href = "{{asset($bookingdetails->invoice_path)}}" download data-bs-toggle="tooltip" title="Download Invoice"><i class="fas fa-file-invoice"></i></a>
                                 @endif
-                                {{-- @can('booking-cancel') --}}
+                               
                                 @if($bookingdetails->ticket_status == 1 && $bookingdetails->booking_status == "booking_completed" && $bookingdetails->is_cancel != 1 )
                                 <a  href = "#" onclick="togglePopup({{$bookingdetails->id}})" data-bs-toggle="tooltip" title="{{__('lang.cancel_Reschedule')}}"><i class="fas fa-times-circle"></i></a>
                                 @endif
-                                {{-- @endcan --}}
+                             
                                 
                             </td>
                             </tr>
@@ -224,9 +208,9 @@
                   {{ $userbookings->appends(['tab' => 'flight-tab'])->links() }}
                  
                 </div>
-              </div>
+              </div> --}}
 
-              <div class="tab-pane fade {{ $activeTab == 'hotel-tab' ? 'show active' : '' }}" id="second"  aria-labelledby="hotel-tab">
+              <div class="tab-pane fade show active" id="second"  aria-labelledby="hotel-tab">
                 <div class="table-responsive-md">
                   <table class="table table-hover border">
                     <thead>

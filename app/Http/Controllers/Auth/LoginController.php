@@ -52,7 +52,8 @@ class LoginController extends Controller
        // Override the redirectTo property
        protected function redirectTo()
        {
-           return Auth::user()->is_agent ? '/agent-dashboard' : '/profile';
+           //return Auth::user()->is_agent ? '/agent-dashboard' : '/profile';
+           return Auth::user()->is_agent ? '/' : '/profile';
        }
 
     /**

@@ -348,6 +348,14 @@
         'booking_history' => 'سجل الحجوزات',
         'flight_booking_history' => 'سجل حجوزات الطيران',
         'hotel_booking_history' => 'سجل حجوزات الفنادق',
-        'amount'=>'المبلغ'
+        'amount'=>'المبلغ',
+        'select_residency' => 'Select Residency',
+        'number_of_nights'=> 'Number Of Nights',
+        'exclusive' => 'Exclusive',
+        'preferred' => 'Preferred',
+        'phone_number' => 'Phone Number',
+        'why_book_hotel_with_masilaholidays' => 'لماذا تحجز الفنادق من المسيلة هوليدايز',
+        'best_b2b_rates_of_agencies' => 'افضل اسعار فنادق لوكلاء السياحة والسفر',
+        'agent_information' => 'Agent Information'
    ]; 
 ?>

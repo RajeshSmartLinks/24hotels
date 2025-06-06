@@ -49,11 +49,11 @@
                       @endforeach
                     </div>
                   </li>
-                  @if(app()->getLocale() == 'ar')
+                  {{-- @if(app()->getLocale() == 'ar')
                   <li> <a class="dropdown-item" href="{{route('changelang',['lang'=>'en'])}}">English</a></li>
                   @else
                   <li> <a class="dropdown-item" href="{{route('changelang',['lang'=>'ar'])}}">عربى</a></li>
-                  @endif
+                  @endif --}}
                   @if(auth()->user())
                   <li> <a class="dropdown-item" href="{{route('wallet-logs')}}">Wallet : KWD {{auth()->user()->wallet_balance}}</a></li>
                   @endif

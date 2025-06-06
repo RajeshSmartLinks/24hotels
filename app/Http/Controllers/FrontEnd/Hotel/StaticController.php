@@ -411,6 +411,7 @@ class StaticController extends Controller
                 if($HotelsInfo['success'])
                 {
                     if(isset($HotelsInfo['hotels']['hotel'])){
+                        $HotelsInfo['hotels']['hotel'] = nodeConvertion($HotelsInfo['hotels']['hotel']);
                         foreach($HotelsInfo['hotels']['hotel'] as $hotelInfo)
                         {
                             $this->storeHotel($hotelInfo);
