@@ -165,3 +165,13 @@ Route::get('cityCountryList', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeC
 Route::get('search/hotelsList', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'SearchHotels'])->name('webbedsSearchHotels');
 Route::get('hotel/rooms/details', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'GethotelDetails'])->name('GethotelDetails');
 Route::get('hotel/preBookRoom/{hotelCode}/{bookingCode}/{searchId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'PreBooking'])->name('PreBookingRoom');
+Route::post('hotel/savePassengerDetails', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'savePassanger'])->name('hotelsavePassengerDetails');
+
+Route::get('hotel/bookingPreviewInfo/{bookingId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'HotelBookingPreview'])->name('HotelBookingPreviewInfo');
+
+Route::post('agentHotelpaymentGateWay', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'HotelpaymentGateWay'])->name('agentHotelpaymentGateWay');
+
+
+Route::get('agentbookHotelRooms/{hotelbookingId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'bookHotelRooms'])->name('agentbookHotelRooms');
+
+Route::get('hotelTest', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'test']);

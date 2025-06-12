@@ -43,7 +43,7 @@ class CreateHotelBookingsTable extends Migration
             $table->string('price_from_supplier')->nullable();
 
 
-            $table->string('booking_code')->nullable();
+            $table->text('booking_code')->nullable();
             $table->enum('booking_status',['booking_initiated','payment_initiated','payment_successful','payment_failure','payment_exipre','booking_failure','booking_completed','refund_initiated','refund_completed','cancellation_initiated','canceled','booking_pending'])->nullable();
 
             $table->string('confirmation_number')->nullable();
@@ -63,12 +63,14 @@ class CreateHotelBookingsTable extends Migration
             $table->string('no_of_guests')->nullable();
 
             $table->enum('type_of_payment',['k_net','credit_card','wallet'])->default('k_net');
-            $table->enum('supplier',['tbo'])->default('tbo');
+            $table->enum('supplier',['tbo','webbeds'])->default('tbo');
 
             $table->enum('reservation_status',['Confirmed','Cancelled','CancellationInProgress','CancelPending','CxlRequestSentToHotel','CancelledAndRefundAwaited'])->nullable();
             $table->string('supplement_charges')->nullable();
             $table->tinyInteger('is_rsp_price')->default('0')->comment('if price is Recommended Selling Price enabling this flag')->nullable();
             $table->text('hotel_name')->nullable();
+            $table->string('booking_reference_number')->nullable();
+            $table->string('webbeds_booking_request_id')->nullable();
             $table->timestamps();
         });
     }

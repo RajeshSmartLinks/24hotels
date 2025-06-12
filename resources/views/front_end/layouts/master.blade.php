@@ -13,19 +13,20 @@
     <link href="{{asset('frontEnd/images/favicon.png')}}" rel="icon" />
     <title>{{ isset($titles['title']) && !empty($titles['title']) ? $titles['title'] : env('APP_NAME') }}</title>
     {{-- <title>{{ env('APP_NAME') }}</title> --}}
-    <meta name="description" content="{{ isset($titles['description']) && !empty($titles['description']) ? $titles['description'] : 'Find the best deals on flights and hotels with ease! Explore our user-friendly website and app for seamless booking experiences. Save time and money on your next travel adventure.' }} ">
-    <meta name="keywords" content="{{ isset($titles['keywords']) && !empty($titles['keywords']) ? $titles['keywords'] : '24Flights,Booking Engine' }}">
+
+    <meta name="description" content="{{ isset($titles['description']) && !empty($titles['description']) ? $titles['description'] : 'We empowers travel agencies to operate more efficiently.As a leading global travel distribution platform.' }} ">
+    <meta name="keywords" content="{{ isset($titles['keywords']) && !empty($titles['keywords']) ? $titles['keywords'] : 'MasilaHoildays,Booking Engine' }}">
     <meta name="author" content="masilaGroup">
     <link rel="canonical" href="{{url()->current()}}" />
-    <meta property="og:title" content="{{ isset($titles['title']) && !empty($titles['title']) ? $titles['title'] : '24Flights | Book Flights & Hotels' }}" />
+    <meta property="og:title" content="{{ isset($titles['title']) && !empty($titles['title']) ? $titles['title'] : 'MasilaHoildays | B2B Hotel Bookings' }}" />
     <meta property="og:type" content="website" />
     <meta property="og:URL" content="{{url()->current()}}"/>
-    <meta property="og:image" content="{{ isset($titles['image']) && !empty($titles['image']) ? $titles['image'] : asset('frontEnd/images/ogImage.jpg') }}" />
-    <meta property="og:description" content="{{ isset($titles['description']) && !empty($titles['description']) ? $titles['description'] : 'Discover incredible savings on flights and hotels, ensuring your journey convenient and affordable' }}" />
-    <meta name="twitter:card" content="24flights" />
-    <meta name="twitter:title" content="{{ isset($titles['title']) && !empty($titles['title']) ? $titles['title'] : '24Flights | Book Flights & Hotels' }} " />
-    <meta name="twitter:description" content="{{ isset($titles['description']) && !empty($titles['description']) ? $titles['description'] : 'Discover incredible savings on flights and hotels, ensuring your journey convenient and affordable' }}" />
-    <meta name="twitter:site" content="@24flights" />
+    <meta property="og:image" content="{{ isset($titles['image']) && !empty($titles['image']) ? $titles['image'] : asset('frontEnd/images/favicon.png') }}" />
+    <meta property="og:description" content="{{ isset($titles['description']) && !empty($titles['description']) ? $titles['description'] : 'We empowers travel agencies to operate more efficiently.As a leading global travel distribution platform.' }}" />
+    <meta name="twitter:card" content="MasilaHoildays" />
+    <meta name="twitter:title" content="{{ isset($titles['title']) && !empty($titles['title']) ? $titles['title'] : 'MasilaHoildays | Book Flights & Hotels' }} " />
+    <meta name="twitter:description" content="{{ isset($titles['description']) && !empty($titles['description']) ? $titles['description'] : 'We empowers travel agencies to operate more efficiently.As a leading global travel distribution platform.' }}" />
+    <meta name="twitter:site" content="@masilahoildays" />
     @if (App::environment('prod'))
         <!-- Meta Pixel Code -->
         <script>

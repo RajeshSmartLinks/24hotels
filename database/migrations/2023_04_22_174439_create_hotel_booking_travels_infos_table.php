@@ -24,6 +24,7 @@ class CreateHotelBookingTravelsInfosTable extends Migration
             $table->integer('room_no')->nullable();
             // $table->string('traveler_ref_id')->comment('')->default(NULL)->nullable();
             $table->string('gender')->default(NULL)->nullable();
+            $table->string('webbeds_code')->default(NULL)->nullable();
             $table->timestamps();
         });
     }

@@ -832,8 +832,13 @@ class Controller extends BaseController
             
             $clientrsp = $client->request('POST', $this->WebbedsUrl, $requestData);
             $response = $clientrsp->getBody()->getContents();
-            $xml = simplexml_load_string($response);
-            $array = json_decode(json_encode($xml), true);
+            if(isset($request['request_type']) && $request['request_type'] == 'confirmBooking'){
+               $array =  XmlToArrayWithHTML($response);
+            }else{
+                $xml = simplexml_load_string($response);
+                $array = json_decode(json_encode($xml), true);
+            }
+        
 
             // // Now you can use it like a normal array
             // dd($array);

@@ -1,5 +1,6 @@
 <?php
 
+use DOMDocument;
 use App\Models\Coupon;
 use App\Models\MarkUp;
 use GuzzleHttp\Client;
@@ -1294,4 +1295,77 @@ if(! function_exists('nodeConvertion')){
        
     }
 }
+
+if(! function_exists('XmlToArray')){
+    function XmlToArray($response){
+
+        $xml = simplexml_load_string($response);
+        $array = json_decode(json_encode($xml), true);
+        return $array;
+    }
+}
+
+if(! function_exists('webbedsSalutationsIds')){
+    function webbedsSalutationsIds($salutation){
+
+        // Mapping of salutation to [code, gender]
+        $map = [
+            'Child'          => ['code' => '14632', 'gender' => 'O'],
+            'Dr'            => ['code' => '558',   'gender' => 'O'],
+            'Madame'         => ['code' => '1671',  'gender' => 'F'],
+            'Mademoiselle'   => ['code' => '74195', 'gender' => 'F'],
+            'Messrs'        => ['code' => '9234',  'gender' => 'M'],
+            'Miss'           => ['code' => '15134', 'gender' => 'F'],
+            'Monsieur'       => ['code' => '74185', 'gender' => 'M'],
+            'Mr'            => ['code' => '147',   'gender' => 'M'],
+            'Mrs'           => ['code' => '149',   'gender' => 'F'],
+            'Ms'            => ['code' => '148',   'gender' => 'F'],
+            'Sir'            => ['code' => '1328',  'gender' => 'M'],
+            'Sir/Madam'      => ['code' => '3801',  'gender' => 'O']
+        ];
+
+        return $map[$salutation] ?? ['code' => null, 'gender' => 'U'];
+
+        
+    }
+}
+
+
+if(! function_exists('XmlToArrayWithHTML')){
+    function XmlToArrayWithHTML($response) {
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true); // suppress warnings
+        $dom->loadXML($response);
+
+        // Convert to array
+        $simpleXml = simplexml_import_dom($dom);
+        $result = json_decode(json_encode($simpleXml), true);
+
+        // Manually extract raw HTML CDATA
+        $confirmationTextNode = $dom->getElementsByTagName('confirmationText')->item(0);
+        if ($confirmationTextNode) {
+            $result['confirmationText_html'] = $confirmationTextNode->nodeValue;
+        }
+
+        // Extract <voucher> for each booking
+        $voucherHTMLs = [];
+        foreach ($dom->getElementsByTagName('voucher') as $voucherNode) {
+            $voucherHTMLs[] = $voucherNode->nodeValue;
+        }
+        $result['voucher_htmls'] = $voucherHTMLs;
+
+        return $result;
+    }
+}
+
+if (!function_exists('clean_string')) {
+    function clean_string($string, $keepSpaces = true) {
+        $pattern = $keepSpaces ? '/[^A-Za-z0-9 ]/' : '/[^A-Za-z0-9]/';
+        return preg_replace($pattern, '', trim($string));
+    }
+}
+
+
+
+
 ?>

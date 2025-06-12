@@ -108,11 +108,12 @@
               @endif
 
             </h2>
-            <form name ="booking" method="POST" action="{{route('hotelSavePassenger')}}" id="hotelForm">
+            <form name ="booking" method="POST" action="{{route('hotelsavePassengerDetails')}}" id="hotelForm">
               @csrf
               <input type = "hidden" value = "{{encrypt($result['bookingCode'])}}" name ="bookingCode">
               <input type = "hidden" value = "{{encrypt($result['hotelCode'])}}" name ="hotelCode">
               <input type = "hidden" value = "{{encrypt($result['searchId'])}}" name ="searchId">
+              <input type = "hidden" value = "{{encrypt($result['webbedsBlockingId'])}}" name ="webbedsBlockingId">
               <p class="text-info">{{__('lang.message_info')}} </p>
               <p class="fw-600">{{__('lang.contact_details')}}</p>
             <div class="row g-3 mb-3">
