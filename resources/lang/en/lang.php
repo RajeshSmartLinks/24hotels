@@ -358,6 +358,7 @@
         'best_B2B_rates_of_for_agencies' => 'Best B2B rates (of) FOR  agencies',
         '24flights_best_mobile_app_for_flight_booking' => '24Flights - Best Mobile App for Flight Bookings',
         'download_description' => 'Download our app for the fastest, most convenient way to Book Flights',
+        'view_rooms' => 'View Rooms',
 
    ];
 ?>

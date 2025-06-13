@@ -25,9 +25,9 @@
   ============================================= -->
   <div id="content">
     <section class="container">
-      <form id="bookingHotels" method="get" action="{{route('SearchHotels')}}">
+      <form id="bookingHotels" method="get" action="{{route('webbedsSearchHotels')}}">
         <div class="row g-3 mb-4">
-          <div class="col-md-12 col-lg-2">
+          <div class="col-md-12 col-lg-4">
             <div class="position-relative">
               <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder="{{__('lang.enter_city')}}" value="{{app('request')->input('hotelsCityName')}}">
               <span class="icon-inside"><i class="fas fa-map-marker-alt"></i></span> </div>
@@ -45,7 +45,7 @@
               <span class="icon-inside"><i class="far fa-calendar-alt"></i></span> 
              </div>
           </div>
-          <div class="col-md-6 col-lg-2">
+          <div class="col-md-6 col-lg-4">
             <div class="travellers-class hotelsTravellersClass-1 ">
               <input type="text" id="hotelsTravellersClass"  class="travellers-class-input form-control" name="hotels-travellers-class" placeholder="Rooms / People" required onKeyPress="return false;" value= "{{app('request')->input('hotels-travellers-class')}}">
               <span class="icon-inside"><i class="fas fa-caret-down"></i></span>
@@ -152,12 +152,22 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6 col-lg-2">
+          <div class="col-md-6 col-lg-3">
             <div class="position-relative">
               <select id="nationality-id" class="form-select" name = "nationality" required placeholder="{{__('lang.select_nationality')}}">
                 <option value="">{{__('lang.select_nationality')}}</option>
                 @foreach($result['countries'] as $country)
                 <option value="{{$country->code}}" {{app('request')->input('nationality') == $country->code?"selected":""}}>{{$country->name}}</option>
+                @endforeach
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-3">
+            <div class="position-relative">
+              <select id="residency-id" class="form-select" name = "residency" required placeholder="{{__('lang.select_residency')}}">
+                <option value="">{{__('lang.select_residency')}}</option>
+                @foreach($result['countries'] as $country)
+                <option value="{{$country->code}}" {{app('request')->input('residency') == $country->code?"selected":""}}>{{$country->name}}</option>
                 @endforeach
               </select>
             </div>
@@ -367,7 +377,7 @@
                       <div class="text-dark text-4 fw-500 mb-0 mb-sm-2 me-2 me-sm-0 order-0">{{$hotelDetails['markups']['totalPrice']['currency_code']}} </div>
                       <div class="text-dark text-4 fw-500 mb-0 mb-sm-2 me-2 me-sm-0 order-0">{{$hotelDetails['markups']['totalPrice']['value']}}</div>
                       <div class="text-black-50 mb-0 mb-sm-2 order-3 d-none d-sm-block">{{$result['searchRequest']['no_of_rooms']}} {{__('lang.room')}} / {{$result['searchRequest']['no_of_nights']}} {{__('lang.night')}}</div>
-                      <a href="{{route('GethotelDetails',['hotelCode'=>encrypt($hotelDetails['hotelCode']) , 'searchId' =>encrypt($result['searchId'])])}}" class="btn btn-sm btn-primary order-4 ms-auto gButton"><span class="gButtonloader"></span>{{__('lang.book_now')}}</a> </div>
+                      <a  target="_blank" rel="noopener noreferrer" href="{{route('GethotelDetails',['hotelCode'=>encrypt($hotelDetails['hotelCode']) , 'searchId' =>encrypt($result['searchId'])])}}" class="btn btn-sm btn-primary order-4 ms-auto gButton"><span class="gButtonloader"></span>{{__('lang.view_rooms')}}</a> </div>
                   </div>
                   <div class="row">
                     {{-- <div class="col-4">

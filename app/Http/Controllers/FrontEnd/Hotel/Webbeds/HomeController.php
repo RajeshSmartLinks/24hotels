@@ -280,6 +280,7 @@ class HomeController extends Controller
         // dd($hotelDetailsAndRooms);
 
         $result = [];
+        $result['countries'] = WebbedsCountry::get();
 
         $result['hotelDeatils'] = [] ;
         if(!empty($hotelDetailsAndRooms['hotelDetails']))
@@ -316,6 +317,7 @@ class HomeController extends Controller
                              $result['availablerooms'][$key] = [
                                 'name' => $roomType['name'],
                                 'roomPromotion' => $rateBasis['@attributes']['description'],
+                                'boardbasis' => $rateBasis['@attributes']['description'],
                                 'roomTypeCode' => $roomTypeCode,
                                 'rateBasisId' => $rateBasisId,
                                 'total' => $rateBasis['total'],
@@ -336,9 +338,14 @@ class HomeController extends Controller
                 }
 
             }
+            // dd($result['availablerooms']);
 
             $result['availablerooms'] = array_values($result['availablerooms']);
             foreach($result['availablerooms'] as $r=>$room){
+                foreach($room['roomPrice'] as $rp => $fbc){
+                    $result['availablerooms'][$r]['roomPrice'][$rp] = hotelMarkUpPrice(array('totalPrice' =>  $fbc , 'currencyCode' => 'KWD' , 'totalTax' =>  0));
+                }
+
                 $result['availablerooms'][$r]['markups'] = hotelMarkUpPrice(array('totalPrice' =>  $room['total'] , 'currencyCode' => 'KWD' , 'totalTax' =>  0));
                 $result['availablerooms'][$r]['allocationDetails'] = json_encode($result['availablerooms'][$r]['allocationDetails']);
                 $bookingCode  = [ 'allocationDetails' => $result['availablerooms'][$r]['allocationDetails'] , 'code' => $result['availablerooms'][$r]['roomTypeCode'] , 'selectedRateBasis' => $result['availablerooms'][$r]['rateBasisId']];
@@ -388,10 +395,12 @@ class HomeController extends Controller
             //     $result['availablerooms'][$r]['roomPromotion'] = isset($result['availablerooms'][$r]['RoomPromotion']) ? $result['availablerooms'][$r]['RoomPromotion'] :[];
             // }
         }
+        //dd($result['availablerooms']);
 
         //searchRequest 
 
         $result['searchRequest'] = WebbedsHotelSearch::find($searchId);
+        // $result['searchRequest'] = !empty($result['searchId']) ?  WebbedsHotelSearch::find($searchId)->toArray() : [];
         $result['hotelCode'] = $hotelCode;
         //dd($result);
 
@@ -1184,26 +1193,69 @@ class HomeController extends Controller
     //     $hotel = WebbedsCity::select('country_name')->groupBy('country_name')->get()->toArray();
     //     return $hotel;
     // }
+    
+
+
+    //                 $dom = new DOMDocument();
+    // $dom->loadXML($response);
+
+    // $result = [];
+
+    // // Convert basic XML to array
+    // $simpleXml = simplexml_import_dom($dom);
+    // $result = json_decode(json_encode($simpleXml), true);
+
+    // // Manually fetch and insert raw CDATA content
+    // $confirmationTextNodes = $dom->getElementsByTagName('confirmationText');
+    // if ($confirmationTextNodes->length > 0) {
+    //     $result['confirmationText_raw'] = $confirmationTextNodes->item(0)->nodeValue;
+    // }
 
     public function test(){
-                $response = file_get_contents(public_path('response2.xml'));
+          $jsonString = file_get_contents(public_path('roomsinfo.json'));
+    $decodedJson = json_decode($jsonString, true); // decode as array
+
+    $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
+
+          
 
 
+    $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
+      
+        $mergedRoomData = [];
 
-                    $dom = new DOMDocument();
-    $dom->loadXML($response);
+        foreach ($allRooms as $roomIndex => $room) {
+            foreach ($room['roomType'] as $roomType) {
+                $roomTypeCode = $roomType['_roomtypecode'];
+                $roomName = $roomType['name'];
 
-    $result = [];
+                foreach ($roomType['rateBases']['rateBasis'] as $rateBasis) {
+                    $rateBasisId = $rateBasis['_id'];
+                    $allocationDetails = $rateBasis['allocationDetails'];
+                    $totalPrice = floatval($rateBasis['total']['__text']);
 
-    // Convert basic XML to array
-    $simpleXml = simplexml_import_dom($dom);
-    $result = json_decode(json_encode($simpleXml), true);
+                    $key = $roomTypeCode . '_' . $rateBasisId;
 
-    // Manually fetch and insert raw CDATA content
-    $confirmationTextNodes = $dom->getElementsByTagName('confirmationText');
-    if ($confirmationTextNodes->length > 0) {
-        $result['confirmationText_raw'] = $confirmationTextNodes->item(0)->nodeValue;
-    }
+                    if (!isset($mergedRoomData[$key])) {
+                        $mergedRoomData[$key] = [
+                            'roomTypeCode' => $roomTypeCode,
+                            'roomName' => $roomName,
+                            'rateBasisId' => $rateBasisId,
+                            'total' => 0,
+                            'allocationDetails' => [],
+                            'roomCount' => 0
+                        ];
+                    }
+
+                    // Merge totals and allocationDetails
+                    $mergedRoomData[$key]['total'] += $totalPrice;
+                    $mergedRoomData[$key]['allocationDetails'][] = $allocationDetails;
+                    $mergedRoomData[$key]['roomCount'] += 1;
+                }
+            }
+        }
+
+        $result = $mergedRoomData;
 
     dd($result) ;
 

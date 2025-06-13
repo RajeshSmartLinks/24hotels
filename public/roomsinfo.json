@@ -1,0 +1,1721 @@
+{
+	"result": {
+		"currencyShort": "KWD",
+		"hotel": {
+			"allowBook": "yes",
+			"rooms": {
+				"room": [
+					{
+						"roomType": [
+							{
+								"name": "Standard",
+								"twin": "no",
+								"roomInfo": {
+									"maxOccupancy": "4",
+									"maxAdultWithChildren": "2",
+									"minChildAge": "0",
+									"maxChildAge": "11",
+									"maxAdult": "3",
+									"maxExtraBed": "1",
+									"maxChildren": "2"
+								},
+								"specials": {
+									"_count": "0"
+								},
+								"rateBases": {
+									"rateBasis": [
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "-",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "false",
+											"allowsSpecialRequests": "false",
+											"allowsBeddingPreference": "false",
+											"allocationDetails": "1749811116000001B1760B0",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "35.75",
+															"__text": "35.7531"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "35.75",
+												"__text": "35.7531"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "17.88",
+															"__text": "17.8765"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "17.88",
+															"__text": "17.8765"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "15",
+											"_runno": "0",
+											"_id": "0",
+											"_description": "Room Only"
+										},
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "-",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "false",
+											"allowsSpecialRequests": "false",
+											"allowsBeddingPreference": "false",
+											"allocationDetails": "1749811116000001B1760B1",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "42.85",
+															"__text": "42.8469"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "42.85",
+												"__text": "42.8469"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "21.42",
+															"__text": "21.4235"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "21.42",
+															"__text": "21.4235"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "15",
+											"_runno": "1",
+											"_id": "1331",
+											"_description": "Breakfast"
+										}
+									],
+									"_count": "2"
+								},
+								"_runno": "0",
+								"_roomtypecode": "73692215"
+							},
+							{
+								"name": "Suite.",
+								"twin": "no",
+								"roomInfo": {
+									"maxOccupancy": "4",
+									"maxAdultWithChildren": "2",
+									"minChildAge": "0",
+									"maxChildAge": "11",
+									"maxAdult": "3",
+									"maxExtraBed": "1",
+									"maxChildren": "2"
+								},
+								"specials": {
+									"_count": "0"
+								},
+								"rateBases": {
+									"rateBasis": [
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "-",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "false",
+											"allowsSpecialRequests": "false",
+											"allowsBeddingPreference": "false",
+											"allocationDetails": "1749811116000001B1760B2",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "78.17",
+															"__text": "78.1744"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "78.17",
+												"__text": "78.1744"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "39.09",
+															"__text": "39.0872"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "39.09",
+															"__text": "39.0872"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "2",
+											"_runno": "0",
+											"_id": "0",
+											"_description": "Room Only"
+										},
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "-",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "false",
+											"allowsSpecialRequests": "false",
+											"allowsBeddingPreference": "false",
+											"allocationDetails": "1749811116000001B1760B3",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "85.27",
+															"__text": "85.2682"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "85.27",
+												"__text": "85.2682"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "42.63",
+															"__text": "42.6341"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "42.63",
+															"__text": "42.6341"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "2",
+											"_runno": "1",
+											"_id": "1331",
+											"_description": "Breakfast"
+										}
+									],
+									"_count": "2"
+								},
+								"_runno": "1",
+								"_roomtypecode": "73692235"
+							}
+						],
+						"lookedForText": "Room Number 1: 1 adult/s and 1 child",
+						"_runno": "0",
+						"_count": "2",
+						"_adults": "1",
+						"_children": "1",
+						"_childrenages": "9",
+						"_extrabeds": "0"
+					},
+					{
+						"roomType": [
+							{
+								"name": "Standard",
+								"twin": "no",
+								"roomInfo": {
+									"maxOccupancy": "4",
+									"maxAdultWithChildren": "2",
+									"minChildAge": "0",
+									"maxChildAge": "11",
+									"maxAdult": "3",
+									"maxExtraBed": "1",
+									"maxChildren": "2"
+								},
+								"specials": {
+									"_count": "0"
+								},
+								"rateBases": {
+									"rateBasis": [
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "-",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "false",
+											"allowsSpecialRequests": "false",
+											"allowsBeddingPreference": "false",
+											"allocationDetails": "1749811116000001B1760B4",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "20.15",
+															"__text": "20.1466"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "20.15",
+												"__text": "20.1466"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "10.07",
+															"__text": "10.0733"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "10.07",
+															"__text": "10.0733"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "14",
+											"_runno": "0",
+											"_id": "0",
+											"_description": "Room Only"
+										},
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "-",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "false",
+											"allowsSpecialRequests": "false",
+											"allowsBeddingPreference": "false",
+											"allocationDetails": "1749811116000001B1760B5",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "25.40",
+															"__text": "25.396"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "25.40",
+												"__text": "25.396"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "12.70",
+															"__text": "12.698"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "12.70",
+															"__text": "12.698"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "14",
+											"_runno": "1",
+											"_id": "1331",
+											"_description": "Breakfast"
+										}
+									],
+									"_count": "2"
+								},
+								"_runno": "0",
+								"_roomtypecode": "73692215"
+							},
+							{
+								"name": "STANDARD ROOM",
+								"twin": "no",
+								"roomInfo": {
+									"maxOccupancy": "4",
+									"maxAdultWithChildren": "2",
+									"minChildAge": "0",
+									"maxChildAge": "11",
+									"maxAdult": "3",
+									"maxExtraBed": "1",
+									"maxChildren": "2"
+								},
+								"specials": {
+									"_count": "0"
+								},
+								"rateBases": {
+									"rateBasis": [
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "XML",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "true",
+											"allowsSpecialRequests": "true",
+											"allowsBeddingPreference": "true",
+											"allocationDetails": "1749811116000002B1000B0",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "21.28",
+															"__text": "21.2816"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "21.28",
+												"__text": "21.2816"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "10.64",
+															"__text": "10.6408"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "10.64",
+															"__text": "10.6408"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "2",
+											"_runno": "0",
+											"_id": "0",
+											"_description": "Room Only"
+										},
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "XML",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "true",
+											"allowsSpecialRequests": "true",
+											"allowsBeddingPreference": "true",
+											"allocationDetails": "1749811116000002B1000B1",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "26.60",
+															"__text": "26.602"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "26.60",
+												"__text": "26.602"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "13.30",
+															"__text": "13.301"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Buffet",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "13.30",
+															"__text": "13.301"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Buffet",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "2",
+											"_runno": "1",
+											"_id": "1331",
+											"_description": "Breakfast"
+										},
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "XML",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "true",
+											"allowsSpecialRequests": "true",
+											"allowsBeddingPreference": "true",
+											"allocationDetails": "1749811116000002B1000B2",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "38.13",
+															"__text": "38.1295"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "38.13",
+												"__text": "38.1295"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "19.06",
+															"__text": "19.0648"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast + Dinner",
+																"mealType": {
+																	"_code": "1334",
+																	"__text": "Half Board"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "19.06",
+															"__text": "19.0648"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast + Dinner",
+																"mealType": {
+																	"_code": "1334",
+																	"__text": "Half Board"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "2",
+											"_runno": "2",
+											"_id": "1334",
+											"_description": "Half Board"
+										},
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "XML",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "true",
+											"allowsSpecialRequests": "true",
+											"allowsBeddingPreference": "true",
+											"allocationDetails": "1749811116000002B1000B3",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "44.34",
+															"__text": "44.3366"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "44.34",
+												"__text": "44.3366"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "22.17",
+															"__text": "22.1683"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Full Board",
+																"mealType": {
+																	"_code": "1335",
+																	"__text": "Full Board"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "22.17",
+															"__text": "22.1683"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Full Board",
+																"mealType": {
+																	"_code": "1335",
+																	"__text": "Full Board"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "2",
+											"_runno": "3",
+											"_id": "1335",
+											"_description": "Full Board"
+										}
+									],
+									"_count": "4"
+								},
+								"_runno": "1",
+								"_roomtypecode": "33166025"
+							},
+							{
+								"name": "Suite.",
+								"twin": "no",
+								"roomInfo": {
+									"maxOccupancy": "4",
+									"maxAdultWithChildren": "2",
+									"minChildAge": "0",
+									"maxChildAge": "11",
+									"maxAdult": "3",
+									"maxExtraBed": "1",
+									"maxChildren": "2"
+								},
+								"specials": {
+									"_count": "0"
+								},
+								"rateBases": {
+									"rateBasis": [
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "-",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "false",
+											"allowsSpecialRequests": "false",
+											"allowsBeddingPreference": "false",
+											"allocationDetails": "1749811116000001B1760B6",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "62.57",
+															"__text": "62.5679"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "62.57",
+												"__text": "62.5679"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "31.28",
+															"__text": "31.2839"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "31.28",
+															"__text": "31.2839"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "1",
+											"_runno": "0",
+											"_id": "0",
+											"_description": "Room Only"
+										},
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "-",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "false",
+											"allowsSpecialRequests": "false",
+											"allowsBeddingPreference": "false",
+											"allocationDetails": "1749811116000001B1760B7",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "67.82",
+															"__text": "67.8173"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "67.82",
+												"__text": "67.8173"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "33.91",
+															"__text": "33.9087"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "33.91",
+															"__text": "33.9087"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "1",
+											"_runno": "1",
+											"_id": "1331",
+											"_description": "Breakfast"
+										}
+									],
+									"_count": "2"
+								},
+								"_runno": "2",
+								"_roomtypecode": "73692235"
+							},
+							{
+								"name": "SUITE.",
+								"twin": "no",
+								"roomInfo": {
+									"maxOccupancy": "4",
+									"maxAdultWithChildren": "2",
+									"minChildAge": "0",
+									"maxChildAge": "11",
+									"maxAdult": "3",
+									"maxExtraBed": "1",
+									"maxChildren": "2"
+								},
+								"specials": {
+									"_count": "0"
+								},
+								"rateBases": {
+									"rateBasis": [
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "XML",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "true",
+											"allowsSpecialRequests": "true",
+											"allowsBeddingPreference": "true",
+											"allocationDetails": "1749811116000002B1000B4",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "70.94",
+															"__text": "70.9386"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "70.94",
+												"__text": "70.9386"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "35.47",
+															"__text": "35.4693"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "35.47",
+															"__text": "35.4693"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"_count": "0"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "1",
+											"_runno": "0",
+											"_id": "0",
+											"_description": "Room Only"
+										},
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "XML",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "true",
+											"allowsSpecialRequests": "true",
+											"allowsBeddingPreference": "true",
+											"allocationDetails": "1749811116000002B1000B5",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "79.81",
+															"__text": "79.806"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "79.81",
+												"__text": "79.806"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "39.90",
+															"__text": "39.903"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Buffet",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "39.90",
+															"__text": "39.903"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Buffet",
+																"mealType": {
+																	"_code": "1331",
+																	"__text": "Breakfast"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "1",
+											"_runno": "1",
+											"_id": "1331",
+											"_description": "Breakfast"
+										},
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "XML",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "true",
+											"allowsSpecialRequests": "true",
+											"allowsBeddingPreference": "true",
+											"allocationDetails": "1749811116000002B1000B6",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "91.33",
+															"__text": "91.3335"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "91.33",
+												"__text": "91.3335"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "45.67",
+															"__text": "45.6667"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast + Dinner",
+																"mealType": {
+																	"_code": "1334",
+																	"__text": "Half Board"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "45.67",
+															"__text": "45.6667"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Breakfast + Dinner",
+																"mealType": {
+																	"_code": "1334",
+																	"__text": "Half Board"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "1",
+											"_runno": "2",
+											"_id": "1334",
+											"_description": "Half Board"
+										},
+										{
+											"status": "unchecked",
+											"passengerNamesRequiredForBooking": "1",
+											"rateType": {
+												"_currencyid": "769",
+												"_currencyshort": "KWD",
+												"_description": "XML",
+												"__text": "1"
+											},
+											"allowsExtraMeals": "true",
+											"allowsSpecialRequests": "true",
+											"allowsBeddingPreference": "true",
+											"allocationDetails": "1749811116000002B1000B7",
+											"minStay": "",
+											"dateApplyMinStay": "",
+											"cancellationRules": {
+												"rule": [
+													{
+														"fromDate": "2025-06-13 13:38:36",
+														"fromDateDetails": "Fri, 13 Jun 2025 13:38:36",
+														"amendRestricted": "true",
+														"cancelRestricted": "true",
+														"_runno": "0"
+													},
+													{
+														"fromDate": "2025-06-18 23:00:00",
+														"fromDateDetails": "Wed, 18 Jun 2025 23:00:00",
+														"noShowPolicy": "true",
+														"charge": {
+															"formatted": "97.54",
+															"__text": "97.5406"
+														},
+														"_runno": "1"
+													}
+												],
+												"_count": "2"
+											},
+											"withinCancellationDeadline": "yes",
+											"tariffNotes": "Rate Notes:\n\nHotel Tariff Notes:\nCompulsory Tourism Dirham to be paid by guest directly to the hotel per room per night valid from 31st March 2014 Onward.\nRates are based on existing bedding only. no show and early departure will be subjected to 100% charge. No name change.Bookings including children will be based on sharing parents bedding, no separate bed for children is provided unless otherwise stated”.\nExisting reservation cannot be cancelled and rebooked under lower promotion.\n\n\nPlease note guests are not allowed to cancel existing bookings and rebook. The hotel has the right to reject the booking.\nThe Tourism Dirham Fee charged per room per night is applicable when booking guest rooms &amp; suites and it will be collected directly at the property and is not reflected in the room rate.",
+											"isBookable": "yes",
+											"onRequest": "0",
+											"extraBedOnRequest": "0",
+											"total": {
+												"formatted": "97.54",
+												"__text": "97.5406"
+											},
+											"dates": {
+												"date": [
+													{
+														"price": {
+															"formatted": "48.77",
+															"__text": "48.7703"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Full Board",
+																"mealType": {
+																	"_code": "1335",
+																	"__text": "Full Board"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "0",
+														"_datetime": "2025-06-18",
+														"_day": "Jun, 18 2025",
+														"_wday": "Wednesday"
+													},
+													{
+														"price": {
+															"formatted": "48.77",
+															"__text": "48.7703"
+														},
+														"freeStay": "no",
+														"dayOnRequest": "0",
+														"including": {
+															"includedMeal": {
+																"mealName": "Full Board",
+																"mealType": {
+																	"_code": "1335",
+																	"__text": "Full Board"
+																},
+																"_runno": "0"
+															},
+															"_count": "1"
+														},
+														"_runno": "1",
+														"_datetime": "2025-06-19",
+														"_day": "Jun, 19 2025",
+														"_wday": "Thursday"
+													}
+												],
+												"_count": "2"
+											},
+											"leftToSell": "1",
+											"_runno": "3",
+											"_id": "1335",
+											"_description": "Full Board"
+										}
+									],
+									"_count": "4"
+								},
+								"_runno": "3",
+								"_roomtypecode": "967351085"
+							}
+						],
+						"lookedForText": "Room Number 2: 1 adult/s",
+						"_runno": "1",
+						"_count": "4",
+						"_adults": "1",
+						"_children": "0",
+						"_childrenages": "",
+						"_extrabeds": "0"
+					}
+				],
+				"_count": "2"
+			},
+			"extraMeals": {
+				"_count": "0"
+			},
+			"_id": "31124",
+			"_name": "Nihal Hotel"
+		},
+		"successful": "TRUE",
+		"_command": "getrooms",
+		"_tID": "1749811116100009",
+		"_ip": "49.204.16.243",
+		"_date": "2025-06-13 10:38:37",
+		"_version": "4.0",
+		"_elapsedTime": "0.44375395774841"
+	}
+}
