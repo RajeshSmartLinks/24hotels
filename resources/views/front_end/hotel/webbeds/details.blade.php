@@ -105,11 +105,12 @@
             <div class="col-lg-12">
               <?php $searchRequest = json_decode($result['searchRequest']->request_json ,true);?>
 
-              <form id="bookingHotels" method="get" action="{{route('SearchHotels')}}">
+              <form id="bookingHotels" method="get" action="{{route('GethotelDetails')}}">
+                <input type="hidden" class="form-control" id="hotelCode"  name = "hotelCode" value = "{{app('request')->input('hotelCode')}}">
                 <div class="row g-3 mb-4">
                   <div class="col-md-12 col-lg-4">
                     <div class="position-relative">
-                      <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder="{{__('lang.enter_city')}}" value="{{$searchRequest['hotelsCityName']}}">
+                      <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder="{{__('lang.enter_city')}}" value="{{$searchRequest['hotelsCityName']}}" readonly>
                       <span class="icon-inside"><i class="fas fa-map-marker-alt"></i></span> </div>
                       <input type="hidden" class="form-control" id="hotelsCityCode"  name = "hotelsCityCode" value = "{{$searchRequest['hotelsCityCode']}}">
                   </div>

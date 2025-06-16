@@ -261,11 +261,69 @@ class HomeController extends Controller
         return view('front_end.hotel.webbeds.search',compact('titles','result'));
     }
 
+
     public function GethotelDetails(Request $request)
     {
         $hotelCode = decrypt($request->query('hotelCode'));
-        $searchId = decrypt($request->query('searchId'));
-        // dd($hotelCode,$searchId);
+        if ($request->has('searchId')) {
+            $searchId = decrypt($request->query('searchId'));
+        }else{
+            // if search id not found in url then creading new entry in search table
+
+            $cityCode = $request->input('hotelsCityCode');
+            $checkIn = $request->input('hotelsCheckIn');
+            $checkOut = $request->input('hotelsCheckOut');
+            $noOfRooms = (int) $request->input('noOfRooms');
+            $nationality = $request->input('nationality');
+            $residency = $request->input('residency');
+
+            $cityDetails = DB::table('webbeds_cities')->where('code',$cityCode)->first();
+            $noOfGuests = 0;
+            //preprating json forrequest
+            
+            for ($i=1; $i <= $noOfRooms; $i++) { 
+                
+            
+                $roomDetails = $request->input('room'.$i);
+                $childrenAge = [];
+                if(isset($roomDetails['childrenAge']) && count($roomDetails['childrenAge']) > 0)
+                {
+                    $childrenAge = $roomDetails['childrenAge'];
+                }
+                $noOfGuests += $roomDetails['adult']; 
+                $noOfGuests += $roomDetails['children'] ?? 0; 
+                $hotelRequestArray['PaxRooms'][] = array( 
+                    "Adults" => $roomDetails['adult'],
+                    "Children" => $roomDetails['children'],
+                    "ChildrenAges"=> $childrenAge
+                );
+            }
+            $CIn = Carbon::parse($checkIn);
+            $COut =Carbon::parse($checkOut);
+
+            //saving search request in HotelSearch table 
+            $hotelSearch = new WebbedsHotelSearch();
+            $hotelSearch->no_of_rooms = $request->input('noOfRooms');
+            $hotelSearch->no_of_nights    = $CIn->diffInDays($COut);
+            $hotelSearch->nationality    = $nationality;
+            $hotelSearch->residency    = $residency;
+            $hotelSearch->city_code    = $cityCode;
+            $hotelSearch->no_of_guests    = $noOfGuests;
+            $hotelSearch->city_name    = $cityDetails->name;
+            $hotelSearch->country = $cityDetails->country_name;
+            $hotelSearch->country_code = $cityDetails->country_code;
+            $hotelSearch->check_in = $checkIn;
+            $hotelSearch->check_out = $checkOut;
+            $hotelSearch->rooms_request = json_encode($hotelRequestArray['PaxRooms']);
+            $hotelSearch->ip_address = $_SERVER['REMOTE_ADDR'];
+            $hotelSearch->hotel_traveller_info = $request->input('hotels-travellers-class');
+            $hotelSearch->request_json = json_encode($request->input());
+            $hotelSearch->save();
+
+            $searchId = $hotelSearch->id;
+        }
+     
+     
         $seoData = SeoSettings::where(['page_type' => 'static' , 'static_page_name' => 'hotelDetails','status' => 'Active'])->first();
    
         $titles = [
@@ -1089,7 +1147,7 @@ class HomeController extends Controller
         if($hotelBookingdetails->type_of_payment == 'wallet'){
             $wallet = auth()->user()->wallet_balance + $hotelBookingdetails->sub_total;
             auth()->user()->update(['wallet_balance' => $wallet]);
-            dd($hotelBookingdetails);
+            // dd($hotelBookingdetails);
             $walletDetails = WalletLogger::create([
                 'user_id' => auth()->user()->id,
                 'reference_id' => $hotelbookingdetails->id,
