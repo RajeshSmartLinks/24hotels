@@ -142,6 +142,23 @@
                                                             @enderror
                                                         </div>
                                                     </div>
+                                                    <div class= "col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="valid_from">Agency</label>
+                                                            <select name="agency_id" class="form-control @error('agency_id') is-invalid @enderror" id="basicSelect">
+                                                                <option value="">--select agency_id --</option>
+                                                                @foreach($agencies as $agency)
+                                                                    <option value="{{$agency->id}}" @if (old('agency_id') == $agency->id) {{ 'selected' }} @endif>{{$agency->name}}</option>
+                                                                @endforeach
+                                                               
+                                                            </select>
+                                                            @error('agency_id')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
                                                     <div class="col-md-6 col-12">
                                                        
                                                         <div class="form-group">

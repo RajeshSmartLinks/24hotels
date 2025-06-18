@@ -1,6 +1,5 @@
 <?php
 
-use DOMDocument;
 use App\Models\Coupon;
 use App\Models\MarkUp;
 use GuzzleHttp\Client;

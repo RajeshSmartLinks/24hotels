@@ -55,6 +55,10 @@
             <li class=" nav-item {{Request::segment(2) == 'destinations' ? 'active' : '' }}"><a href="{{route('destinations.index')}}"><i class="feather icon-check-square"></i><span class="menu-title" data-i18n="Destinations">Destinations</span></a>
             </li>
             @endcan
+             @can('agency-view')
+            <li class=" nav-item {{Request::segment(2) == 'agency' ? 'active' : '' }}"><a href="{{route('agency.index')}}"><i class="feather icon-users"></i><span class="menu-title" data-i18n="Agencies">Agencies</span></a>
+            </li>
+            @endcan
             @can('agent-view')
             <li class=" nav-item {{Request::segment(2) == 'agents' ? 'active' : '' }}"><a href="{{route('agents.index')}}"><i class="feather icon-users"></i><span class="menu-title" data-i18n="Agents">Agents</span></a>
             </li>

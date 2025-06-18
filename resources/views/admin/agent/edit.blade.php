@@ -119,6 +119,23 @@
                                                             @enderror
                                                         </div>
                                                     </div>
+                                                    <div class= "col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="valid_from">Agency</label>
+                                                            <select name="agency_id" class="form-control @error('agency_id') is-invalid @enderror" id="basicSelect">
+                                                                <option value="">--select agency_id --</option>
+                                                                @foreach($agencies as $agency)
+                                                                    <option value="{{$agency->id}}" @if (old('agency_id' , $editagent->agency_id) == $agency->id) {{ 'selected' }} @endif>{{$agency->name}}</option>
+                                                                @endforeach
+                                                               
+                                                            </select>
+                                                            @error('agency_id')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div>&nbsp;</div>
                                                 <div>&nbsp;</div>
@@ -259,7 +276,7 @@
                 </section>
                 @endcan
 
-                <section id="multiple-column-form" class="input-validation">
+                {{-- <section id="multiple-column-form" class="input-validation">
                     <div class="row match-height">
                         <div class="col-12">
                             <div class="card">
@@ -269,9 +286,6 @@
                                 <div class="card-content">
                                     <div class="card-body">
                                         <hr>
-                                        {{-- <x-admin-error-list-show></x-admin-error-list-show> --}}
-
-                                      
                                         <form class="form"
                                               action="{{route('markups.update', $editmarkup->id)}}"
                                               method="post"
@@ -355,7 +369,7 @@
                             </div>
                         </div>
                     </div>
-                </section>
+                </section> --}}
 
                 <!-- Adding Form Ends -->
 

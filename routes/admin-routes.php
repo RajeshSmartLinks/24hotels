@@ -77,6 +77,7 @@ Route::group([
 
     Route::resource('setting', \App\Http\Controllers\Admin\SettingsController::class);//Settings
     Route::resource('popup', \App\Http\Controllers\Admin\PopUpController::class);//popup
+    Route::resource('agency', \App\Http\Controllers\Admin\AgencyController::class);//agency
 
 
 });

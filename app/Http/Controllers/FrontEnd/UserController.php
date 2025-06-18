@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Intervention\Image\Facades\Image;
+use Illuminate\Support\Facades\Config;
 
 class UserController extends Controller
 {
@@ -29,7 +30,9 @@ class UserController extends Controller
             'title' => "User Profile",
         ];
         $countries = Country::select('id','country_code','name','phone_code')->orderBy('name','ASC')->get();
-        return view('front_end.user.profile',compact('countries','titles'));
+        $noImage = asset(Config::get('constants.NO_IMG_ADMIN'));
+        //dd(Auth::user()->agency->country_id??'');
+        return view('front_end.user.profile',compact('countries','titles','noImage'));
     }
     // public function updateProfile(Request $request,$id)
     // {

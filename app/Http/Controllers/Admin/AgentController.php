@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
+use App\Models\Agency;
 use App\Models\MarkUp;
 use App\Models\HotelMarkUp;
 use App\Models\HotelBooking;
@@ -58,8 +59,9 @@ class AgentController extends Controller
         if (!auth()->user()->can('agent-add')) {
             return view('admin.abort', compact('titles'));
         }
+        $agencies = Agency::where('status', 'Active')->get();
 
-        return view('admin.agent.create', compact('titles'));
+        return view('admin.agent.create', compact('titles' , 'agencies'));
         
     }
 
@@ -88,6 +90,7 @@ class AgentController extends Controller
             'hotel_fee_type' => 'required',
             'hotel_fee_value' => 'required',
             'hotel_fee_amount' => 'required|numeric',
+            'agency_id' => 'required',
         ]);
         $data = array();
 
@@ -101,6 +104,7 @@ class AgentController extends Controller
         $user->is_agent = 1 ;
         $user->wallet_balance = $request->wallet_balance;
         $user->mobile = $request->mobile;
+        $user->agency_id = $request->agency_id;
         $user->save();
 
         //adding in adding wallet balance in wallet logger
@@ -174,8 +178,9 @@ class AgentController extends Controller
         $editagent = User::find($id);
 
         $editmarkup = MarkUp::where('user_id', $id)->first();
+        $agencies = Agency::where('status', 'Active')->get();
 
-        return view('admin.agent.edit', compact('titles', 'editagent' ,'editmarkup'));
+        return view('admin.agent.edit', compact('titles', 'editagent' ,'editmarkup','agencies'));
     }
 
     /**
@@ -196,6 +201,7 @@ class AgentController extends Controller
             'last_name' => 'required',
             'email' =>  'required|email|unique:users,email,'.$id,
             'status' => 'required',
+            'agency_id' => 'required'
         ]);
         $user = User::find($id);
 
@@ -204,6 +210,7 @@ class AgentController extends Controller
         $user->email = $request->email;
         $user->status = $request->status;
         $user->mobile = $request->mobile;
+        $user->agency_id = $request->agency_id;
         $user->save();
 
         return redirect()->route('agents.index')->with('success', 'Agent update Successfully');
