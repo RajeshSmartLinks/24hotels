@@ -244,9 +244,6 @@ class HomeController extends Controller
         $result['searchId'] = $searchId??'';
         $result['searchRequest'] = !empty($result['searchId']) ?  WebbedsHotelSearch::find($searchId)->toArray() : [];
 
-        // $result['minPrice'] = $minPrice;
-        // $result['maxPrice'] = $maxPrice;
-
         $result['filter']['minPrice'] = $minPrice;
         $result['filter']['maxPrice'] = $maxPrice;
         // $result['filter']['refundableCount'] = $refundableCount;
@@ -335,8 +332,6 @@ class HomeController extends Controller
         $hotelDetailsAndRooms = $rooms->getRooms(['hotel_code' => $hotelCode ,'search_id' => $searchId]);
 
 
-        // dd($hotelDetailsAndRooms);
-
         $result = [];
         $result['countries'] = WebbedsCountry::get();
 
@@ -396,7 +391,6 @@ class HomeController extends Controller
                 }
 
             }
-            // dd($result['availablerooms']);
 
             $result['availablerooms'] = array_values($result['availablerooms']);
             foreach($result['availablerooms'] as $r=>$room){
@@ -453,14 +447,12 @@ class HomeController extends Controller
             //     $result['availablerooms'][$r]['roomPromotion'] = isset($result['availablerooms'][$r]['RoomPromotion']) ? $result['availablerooms'][$r]['RoomPromotion'] :[];
             // }
         }
-        //dd($result['availablerooms']);
 
         //searchRequest 
 
         $result['searchRequest'] = WebbedsHotelSearch::find($searchId);
         // $result['searchRequest'] = !empty($result['searchId']) ?  WebbedsHotelSearch::find($searchId)->toArray() : [];
         $result['hotelCode'] = $hotelCode;
-        //dd($result);
 
         return view('front_end.hotel.webbeds.details',compact('titles','result'));
         
@@ -1269,55 +1261,55 @@ class HomeController extends Controller
     //     $result['confirmationText_raw'] = $confirmationTextNodes->item(0)->nodeValue;
     // }
 
-    public function test(){
-          $jsonString = file_get_contents(public_path('roomsinfo.json'));
-    $decodedJson = json_decode($jsonString, true); // decode as array
+    // public function test(){
+    //     $jsonString = file_get_contents(public_path('roomsinfo.json'));
+    //     $decodedJson = json_decode($jsonString, true); // decode as array
 
-    $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
+    //     $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
 
-          
+            
 
 
-    $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
-      
-        $mergedRoomData = [];
+    //     $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
+        
+    //         $mergedRoomData = [];
 
-        foreach ($allRooms as $roomIndex => $room) {
-            foreach ($room['roomType'] as $roomType) {
-                $roomTypeCode = $roomType['_roomtypecode'];
-                $roomName = $roomType['name'];
+    //         foreach ($allRooms as $roomIndex => $room) {
+    //             foreach ($room['roomType'] as $roomType) {
+    //                 $roomTypeCode = $roomType['_roomtypecode'];
+    //                 $roomName = $roomType['name'];
 
-                foreach ($roomType['rateBases']['rateBasis'] as $rateBasis) {
-                    $rateBasisId = $rateBasis['_id'];
-                    $allocationDetails = $rateBasis['allocationDetails'];
-                    $totalPrice = floatval($rateBasis['total']['__text']);
+    //                 foreach ($roomType['rateBases']['rateBasis'] as $rateBasis) {
+    //                     $rateBasisId = $rateBasis['_id'];
+    //                     $allocationDetails = $rateBasis['allocationDetails'];
+    //                     $totalPrice = floatval($rateBasis['total']['__text']);
 
-                    $key = $roomTypeCode . '_' . $rateBasisId;
+    //                     $key = $roomTypeCode . '_' . $rateBasisId;
 
-                    if (!isset($mergedRoomData[$key])) {
-                        $mergedRoomData[$key] = [
-                            'roomTypeCode' => $roomTypeCode,
-                            'roomName' => $roomName,
-                            'rateBasisId' => $rateBasisId,
-                            'total' => 0,
-                            'allocationDetails' => [],
-                            'roomCount' => 0
-                        ];
-                    }
+    //                     if (!isset($mergedRoomData[$key])) {
+    //                         $mergedRoomData[$key] = [
+    //                             'roomTypeCode' => $roomTypeCode,
+    //                             'roomName' => $roomName,
+    //                             'rateBasisId' => $rateBasisId,
+    //                             'total' => 0,
+    //                             'allocationDetails' => [],
+    //                             'roomCount' => 0
+    //                         ];
+    //                     }
 
-                    // Merge totals and allocationDetails
-                    $mergedRoomData[$key]['total'] += $totalPrice;
-                    $mergedRoomData[$key]['allocationDetails'][] = $allocationDetails;
-                    $mergedRoomData[$key]['roomCount'] += 1;
-                }
-            }
-        }
+    //                     // Merge totals and allocationDetails
+    //                     $mergedRoomData[$key]['total'] += $totalPrice;
+    //                     $mergedRoomData[$key]['allocationDetails'][] = $allocationDetails;
+    //                     $mergedRoomData[$key]['roomCount'] += 1;
+    //                 }
+    //             }
+    //         }
 
-        $result = $mergedRoomData;
+    //         $result = $mergedRoomData;
 
-    dd($result) ;
+    //     dd($result) ;
 
     
    
-    }
+    // }
 }

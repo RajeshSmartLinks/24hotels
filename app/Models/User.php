@@ -107,4 +107,9 @@ class User extends Authenticatable
         return $this->belongsTo(Agency::class);
     }
 
+    public function agencyMasterAgentHotelmarkups()
+    {
+        return $this->hasOne(HotelMarkUp::class, 'user_id', 'id');
+    }
+
 }

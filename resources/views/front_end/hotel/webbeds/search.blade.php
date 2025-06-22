@@ -219,19 +219,6 @@
                 <h2 class="accordion-header" id="propertyTypes">
                   <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#toggleRefund" aria-expanded="true" aria-controls="toggleRefund">{{__('lang.refund')}} </button>
                 </h2>
-                {{-- <div id="toggleRefund" class="accordion-collapse collapse show" aria-labelledby="propertyTypes">
-                  <div class="accordion-body">
-                    <div class="form-check refundscheck">
-                      <input type="checkbox" id="hotel" name="propertyTypes" class="form-check-input" value="refundable">
-                      <label class="form-check-label d-block" for="hotel">{{__('lang.refundable')}} <small class="text-muted float-end">{{$result['filter']['refundableCount']}}</small></label>
-                    </div>
-                    <div class="form-check refundscheck">
-                      <input type="checkbox" id="resort" name="propertyTypes" class="form-check-input" value="non-refundable">
-                      <label class="form-check-label d-block" for="resort">{{__('lang.non_refundable')}} <small class="text-muted float-end">{{$result['filter']['nonrefundableCount']}}</small></label>
-                    </div>
-                    
-                  </div>
-                </div> --}}
               </div>
               <div class="accordion-item">
                 <h2 class="accordion-header" id="starCategory">
@@ -262,35 +249,6 @@
                   </div>
                 </div>
               </div>
-              {{-- <div class="accordion-item">
-                <h2 class="accordion-header" id="userReview">
-                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#toggleuserReview" aria-expanded="true" aria-controls="toggleuserReview">User Review</button>
-                </h2>
-                <div id="toggleuserReview" class="accordion-collapse collapse show" aria-labelledby="userReview">
-                  <div class="accordion-body">
-                    <div class="form-check ">
-                      <input type="checkbox" id="excellent" name="userReview" class="form-check-input">
-                      <label class="form-check-label d-block" for="excellent">Excellent <small class="text-muted float-end">499</small></label>
-                    </div>
-                    <div class="form-check ">
-                      <input type="checkbox" id="good" name="userReview" class="form-check-input">
-                      <label class="form-check-label d-block" for="good">Good <small class="text-muted float-end">310</small></label>
-                    </div>
-                    <div class="form-check ">
-                      <input type="checkbox" id="fair" name="userReview" class="form-check-input">
-                      <label class="form-check-label d-block" for="fair">Fair <small class="text-muted float-end">225</small></label>
-                    </div>
-                    <div class="form-check ">
-                      <input type="checkbox" id="poor" name="userReview" class="form-check-input">
-                      <label class="form-check-label d-block" for="poor">Poor <small class="text-muted float-end">110</small></label>
-                    </div>
-                    <div class="form-check ">
-                      <input type="checkbox" id="bad" name="userReview" class="form-check-input">
-                      <label class="form-check-label d-block" for="bad">Bad <small class="text-muted float-end">44</small></label>
-                    </div>
-                  </div>
-                </div>
-              </div> --}}
             </div>
           </div>
         </aside>
@@ -343,11 +301,9 @@
             ?>
 
             <div class="hotels-item bg-white shadow-md rounded p-3" data-pricing = "{{$hotelDetails['markups']['totalPrice']['value']}}" 
-            {{-- data-refund = "{{$hotelDetails['isRefundable'] == '1' ? 'refundable':'non-refundable'}}" --}}
              data-rating = "{{$ratingval}}" data-hotelname ="{{$hotelDetails['hotelName']}}">
               <div class="row">
                 <div class="col-md-4"> <a href="#">
-                  {{-- <img class="img-fluid rounded align-top" style="height:187px;width: 250px;" src="{{$hotelDetails['image']}}" alt="hotels" onError="this.onerror=null;this.src='{{ asset('frontEnd/images/no-hotel-image.png') }}';"> --}}
                   <img class="img-fluid rounded align-top lazy-image" style="height:187px;width: 250px;" data-src="{{$hotelDetails['image']}}" alt="{{$hotelDetails['hotelName']}}" src="{{ asset('frontEnd/images/no-hotel-image.png') }}">
                 </a> </div>
                 <div class="col-md-8 ps-3 ps-md-0 mt-3 mt-md-0">
@@ -380,15 +336,6 @@
                       <a  target="_blank" rel="noopener noreferrer" href="{{route('GethotelDetails',['hotelCode'=>encrypt($hotelDetails['hotelCode']) , 'searchId' =>encrypt($result['searchId'])])}}" class="btn btn-sm btn-primary order-4 ms-auto gButton"><span class="gButtonloader"></span>{{__('lang.view_rooms')}}</a> </div>
                   </div>
                   <div class="row">
-                    {{-- <div class="col-4">
-                      <p class="reviews mb-2 mt-2"> <span class="fw-600">{{__('lang.refundable')}}</span>
-                        @if($hotelDetails['isRefundable'] == 1)
-                        <span class="reviews-score px-2 py-1 rounded fw-600 text-light">{{__('lang.yes')}}</span> 
-                        @else
-                        <span class="px-2 py-1 rounded fw-600 text-light" style="background: red">{{__('lang.no')}}</span> 
-                        @endif
-                     </p>
-                    </div> --}}
                      <div class="col-6">
                       <p class="reviews mb-2 mt-2"> 
                         <span class="fw-600">{{__('lang.phone_number')}}</span>
@@ -407,52 +354,15 @@
                        
                             <span class="px-2 py-1 rounded fw-600 text-light" style="background: #aa92fc">{{__('lang.preferred')}}</span> 
                         @endif
-
-                    
                      </p>
-                        {{-- @if($hotelDetails['exclusive'] == 'yes')
-                        <p class="reviews mb-2 mt-2">
-                            <span class="reviews-score px-2 py-1 rounded fw-600" style="background:#8fdc55">{{__('lang.exclusive')}}</span> 
-                        </p>
-                        @endif
-                        @if($hotelDetails['preferred'] == 'yes')
-                        <p class="reviews mb-2 mt-2">
-                            <span class="px-2 py-1 rounded fw-600 text-light" style="background: #aa92fc">{{__('lang.preferred')}}</span> 
-                        </p>
-                        @endif --}}
                     </div>
-
-                    
-                    {{-- <div class="col-7">
-                      <div class="row text-1 mt-2">
-                        @foreach($hotelDetails['roomPromotion'] as $promotion)
-                        <div class="col-6 col-xl-6" style="display: -webkit-box;
-                        -webkit-line-clamp: 2;
-                        -webkit-box-orient: vertical;
-                        overflow: hidden;
-                        text-overflow: ellipsis;"><span class="text-success me-1"></span>{!! html_entity_decode($promotion) !!}</div>
-                        @endforeach
-                      </div>
-                    </div> --}}
                   </div>
                 </div>
               </div>
             </div>
             @endforeach
           </div>
-          <!-- List Item end --> 
-          
-          <!-- Pagination
-            ============================================= -->
-          {{-- <ul class="pagination justify-content-center mt-4 mb-0">
-            <li class="page-item disabled"> <a class="page-link" href="#" tabindex="-1"><i class="fas fa-angle-left"></i></a> </li>
-            <li class="page-item"><a class="page-link" href="#">1</a></li>
-            <li class="page-item active"> <a class="page-link" href="#">2</a> </li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"> <a class="page-link" href="#"><i class="fas fa-angle-right"></i></a> </li>
-          </ul> --}}
-          <!-- Paginations end --> 
-          
+          <!-- List Item end -->           
         </div>
       </div>
     </section>

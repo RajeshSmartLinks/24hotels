@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\User;
 use App\Models\MarkUp;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Models\AdditionalPrice;
-use App\Models\HotelAdditionalPrice;
 use App\Models\HotelMarkUp;
+use Illuminate\Http\Request;
+use App\Models\AdditionalPrice;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Models\HotelAdditionalPrice;
 use Illuminate\Support\Facades\Cache;
 
 class MarkUpsController extends Controller
@@ -30,16 +32,25 @@ class MarkUpsController extends Controller
 
         //flights
 
-        $markups = MarkUp::where('user_id' , 0)->get();
+        // $markups = MarkUp::where('user_id' , 0)->get();
 
-        $additionalPrices = AdditionalPrice::get();
+        // $additionalPrices = AdditionalPrice::get();
 
         //hotel
-        $hotelmarkups = HotelMarkUp::get();
+        $hotelmarkups = DB::table('hotel_mark_ups')
+        ->select(
+            'hotel_mark_ups.*',
+            'users.id as UserId',
+            'agencies.name as AgencyName'
+        )
+        ->leftJoin('users', 'hotel_mark_ups.user_id', '=', 'users.id')
+        ->leftJoin('agencies', 'agencies.id', '=', 'users.agency_id')
+        ->where('users.is_master_agent', 1)->get();
+        // $hotelmarkups = HotelMarkUp::get();
 
         $hoteladditionalPrices = HotelAdditionalPrice::get();
 
-        return view('admin.markups.index', compact('titles', 'markups', 'deleteRouteName','additionalPrices' ,'hotelmarkups' , 'hoteladditionalPrices'));
+        return view('admin.markups.index', compact('titles',  'deleteRouteName' ,'hotelmarkups' , 'hoteladditionalPrices'));
     }
 
         /**
@@ -182,7 +193,25 @@ class MarkUpsController extends Controller
         $MarkUp->fee_amount = $request->fee_amount;
         $MarkUp->status = $request->status;
         $MarkUp->save();
-        Cache::forget('HotelMarkUpPrice');
+        Cache::forget('HotelMarkUpPrice'.$MarkUp->user_id);
+
+        //masteragent info
+        $masterAgentInfo = User::find($MarkUp->user_id);
+
+        $subAgents = User::where(['is_agent' => 1 , 'agency_id' => $masterAgentInfo->agency_id])->get();
+        
+        foreach($subAgents as $subAgent){
+            $subAgentMarkups = HotelMarkUp::where(['user_id' => $subAgent->id])->first();
+            if($subAgentMarkups){
+                $subAgentMarkups->fee_type = $request->fee_type;
+                $subAgentMarkups->fee_value = $request->fee_value;
+                $subAgentMarkups->fee_amount = $request->fee_amount;
+                $subAgentMarkups->save();
+
+                $cachename = "HotelMarkUpPrice".$subAgentMarkups->user_id;
+                Cache::forget($cachename);
+            }
+        }
         return redirect()->route('markups.index')->with('success', 'Updated Successfully');
     }
 

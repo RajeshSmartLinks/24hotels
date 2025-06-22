@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use App\Models\FlightBooking;
-use App\Models\FlightBookingTravelsInfo;
+use App\Models\Agency;
 use App\Models\GuestUser;
+use App\Models\HotelBooking;
+use Illuminate\Http\Request;
+use App\Models\FlightBooking;
+use App\Http\Controllers\Controller;
+use App\Models\FlightBookingTravelsInfo;
 
 class HomeController extends Controller
 {
@@ -35,28 +37,43 @@ class HomeController extends Controller
 
         // $bookings = FlightBooking::with('User')->whereIn('booking_status',['booking_completed','payment_successful','payment_failure','payment_exipre','travelport_failure'])->orderBy('id')->get();
 
-        if (!auth()->user()->can('booking-view')) {
-            $bookings = [];
-        }
-        else{
-            $bookings = FlightBooking::with('TravelersInfo','Customercountry','searchRequest')->whereDate('created_at', '=', date('Y-m-d'))->orderBy('id','DESC')->get();
-        }
+        // if (!auth()->user()->can('booking-view')) {
+        //     $bookings = [];
+        // }
+        // else{
+        //     $bookings = FlightBooking::with('TravelersInfo','Customercountry','searchRequest')->whereDate('created_at', '=', date('Y-m-d'))->orderBy('id','DESC')->get();
+        // }
 
+        $hotelBookings = HotelBooking::with('Customercountry','TravelersInfo')->whereDate('created_at', '=', date('Y-m-d'))->orderBy('hotel_bookings.id','DESC')->get();
+
+        $totalBookings = HotelBooking::whereIn('booking_status',['booking_completed','payment_successful'])->count();
+
+        $confirmedBookings = HotelBooking::whereIn('booking_status',['booking_completed'])->count();
+
+        $agencies = Agency::count();
+        $agents = User::where('is_agent' , 1)->count();
+
+        $totalSales = HotelBooking::whereIn('booking_status',['booking_completed'])->sum('total_amount');
        
 
 
         $dashboardDetails = array(
-            'appCustomers' => $appCustomers,
-            'webCustomers' => $webCustomers,
-            'guestCustomers' => $guestCustomers,
+            // 'appCustomers' => $appCustomers,
+            // 'webCustomers' => $webCustomers,
+            // 'guestCustomers' => $guestCustomers,
             'totalCustomers' => $totalCustomers,
             'totalBookings' => $totalBookings,
             'confirmedBookings' => $confirmedBookings,
             'canceled' => 0,
-            'websales' => $websales,
-            'appsales' => $appsales,
-            'totalSales' => $totalSales,
-            'bookings' => $bookings
+            // 'websales' => $websales,
+            // 'appsales' => $appsales,
+            // 'totalSales' => $totalSales,
+            //'bookings' => $bookings,
+            'hotelBookings' => $hotelBookings,
+
+            'agencies' => $agencies,
+            'agents' => $agents,
+            'totalSales' => $totalSales
         );
 
 

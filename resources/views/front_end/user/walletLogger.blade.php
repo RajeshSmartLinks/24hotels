@@ -7,7 +7,7 @@
   <div class="container">
     <div class="row align-items-center">
       <div class="col-md-8">
-        <h1>Wallet History</h1>
+        <h1> Wallet History</h1>
       </div>
       <div class="col-md-4">
         <ul class="breadcrumb justify-content-start justify-content-md-end mb-0">
@@ -33,7 +33,7 @@
                 <div class="row g-0">
                   <div class="col text-center text-sm-start">
                     <div class="">
-                      <h5 class="text-3 text-body pb-2">{{__('lang.wallet')}}</h5>
+                      <h5 class="text-3 text-body pb-2">Agency Wallet</h5>
                       <div class="card-text">
                           <dl class="row">
                               <dt class="col-sm-2 col-2" style = "font-size: small">{{__('lang.total_recharge')}} :</dt>

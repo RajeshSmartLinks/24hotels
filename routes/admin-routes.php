@@ -79,6 +79,8 @@ Route::group([
     Route::resource('popup', \App\Http\Controllers\Admin\PopUpController::class);//popup
     Route::resource('agency', \App\Http\Controllers\Admin\AgencyController::class);//agency
 
+    Route::post('agency/addAgencyWalletBalance/{id}', [\App\Http\Controllers\Admin\AgencyController::class, 'addAgencyWalletBalance'])->name('addAgencyWalletBalance');
+    Route::post('agency/markup/{id}', [\App\Http\Controllers\Admin\AgencyController::class, 'updateMarkUp'])->name('agencyUpdateMarkUp');
 
 });
 

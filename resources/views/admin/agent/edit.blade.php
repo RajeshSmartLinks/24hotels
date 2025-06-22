@@ -122,7 +122,7 @@
                                                     <div class= "col-md-6 col-12">
                                                         <div class="form-group">
                                                             <label for="valid_from">Agency</label>
-                                                            <select name="agency_id" class="form-control @error('agency_id') is-invalid @enderror" id="basicSelect">
+                                                            <select name="agency_id" class="form-control @error('agency_id') is-invalid @enderror" id="basicSelect" disabled>
                                                                 <option value="">--select agency_id --</option>
                                                                 @foreach($agencies as $agency)
                                                                     <option value="{{$agency->id}}" @if (old('agency_id' , $editagent->agency_id) == $agency->id) {{ 'selected' }} @endif>{{$agency->name}}</option>
@@ -212,7 +212,7 @@
                         </div>
                     </div>
                 </section>
-                @can('agent-add-credit')
+                {{-- @can('agent-add-credit')
                 <section id="multiple-column-form" class="input-validation">
                     <div class="row match-height">
                         <div class="col-12">
@@ -223,7 +223,6 @@
                                 <div class="card-content">
                                     <div class="card-body">
                                         <hr>
-                                        {{-- <x-admin-error-list-show></x-admin-error-list-show> --}}
                                         <form class="form-horizontal" action="{{route('addWalletBalance' , $editagent->id)}}" method="post"
                                               enctype="multipart/form-data" novalidate>
                                             @csrf
@@ -274,7 +273,7 @@
                         </div>
                     </div>
                 </section>
-                @endcan
+                @endcan --}}
 
                 {{-- <section id="multiple-column-form" class="input-validation">
                     <div class="row match-height">

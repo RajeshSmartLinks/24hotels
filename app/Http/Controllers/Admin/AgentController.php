@@ -34,9 +34,8 @@ class AgentController extends Controller
         }
 
 
-        $agents = User::with('agentMarkup','agentHotelMarkup')->where('is_agent', 1)->get();
-        // dd(route($agentMarkUpRoute, ":id"));
-        // dd($agents);
+        $agents = User::with('agentMarkup','agentHotelMarkup','agency')->where('is_agent', 1)->get();
+
         $noImage = asset(Config::get('constants.NO_USER_IMG'));
        
 
@@ -83,13 +82,6 @@ class AgentController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8|confirmed',
             'status' => 'required',
-            'wallet_balance' => 'required',
-            'fee_type' => 'required',
-            'fee_value' => 'required',
-            'fee_amount' => 'required|numeric',
-            'hotel_fee_type' => 'required',
-            'hotel_fee_value' => 'required',
-            'hotel_fee_amount' => 'required|numeric',
             'agency_id' => 'required',
         ]);
         $data = array();
@@ -102,43 +94,22 @@ class AgentController extends Controller
         $user->password = Hash::make($request->password);
         $user->status = $request->status;
         $user->is_agent = 1 ;
-        $user->wallet_balance = $request->wallet_balance;
+        // $user->wallet_balance = $request->wallet_balance;
         $user->mobile = $request->mobile;
         $user->agency_id = $request->agency_id;
         $user->save();
 
-        //adding in adding wallet balance in wallet logger
-        if( $request->wallet_balance > 0){
-            $walletLogger = new WalletLogger;
-            $walletLogger->user_id = $user->id;
-            $walletLogger->amount = $request->wallet_balance;
-            $walletLogger->remaining_amount = $request->wallet_balance ;
-            $walletLogger->amount_description = $request->wallet_balance." Add Wallet Balance";
-            $walletLogger->action = 'added';
-            $walletLogger->status = 'Active';
-            $walletLogger->reference_id = $user->id;
-            $walletLogger->reference_type = 'user';
-            $walletLogger->date_of_transaction = now();
-            $walletLogger->save();
-            $walletLogger->unique_id = 'WL'.str_pad($walletLogger->id, 7, '0', STR_PAD_LEFT);
-            $walletLogger->save();
-        }
+        $agencyMasterInfo = User::where(['is_master_agent' =>1 , 'agency_id' => $request->agency_id ])->first();
 
-        //adding in flight markups
-        $markup = new MarkUp;
-        $markup->user_id = $user->id;
-        $markup->fee_type = $request->fee_type; 
-        $markup->fee_value = $request->fee_value;
-        $markup->fee_amount = $request->fee_amount;
-        $markup->status = 'Active';
-        $markup->save();
+        //getting markups from master agent
+        $hotelMartkUp = HotelMarkUp::where('user_id', $agencyMasterInfo->id)->first();
 
         //adding in hotel markups
         $hotelMarkup = new HotelMarkUp;
         $hotelMarkup->user_id = $user->id;
-        $hotelMarkup->fee_type = $request->hotel_fee_type; 
-        $hotelMarkup->fee_value = $request->hotel_fee_value;
-        $hotelMarkup->fee_amount = $request->hotel_fee_amount;
+        $hotelMarkup->fee_type = $hotelMartkUp->fee_type; 
+        $hotelMarkup->fee_value = $hotelMartkUp->fee_value;
+        $hotelMarkup->fee_amount = $hotelMartkUp->fee_amount;
         $hotelMarkup->status = 'Active';
         $hotelMarkup->save();
  
@@ -210,7 +181,7 @@ class AgentController extends Controller
         $user->email = $request->email;
         $user->status = $request->status;
         $user->mobile = $request->mobile;
-        $user->agency_id = $request->agency_id;
+        //$user->agency_id = $request->agency_id;
         $user->save();
 
         return redirect()->route('agents.index')->with('success', 'Agent update Successfully');

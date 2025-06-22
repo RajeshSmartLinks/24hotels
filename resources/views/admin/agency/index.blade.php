@@ -64,6 +64,23 @@
                                                                        data-target="#deleteModal" id="deleteBtn"><i
                                                                             class="feather icon-trash"></i> Delete</a>
                                                                 @endcan
+
+                                                                @can('agent-add-credit')
+                                                                | <a href="javascript:" class="text-warning addFundsBtn"
+                                                                    onclick="addFundsToWallet({{$agency->id??''}} , '{{$agency->name ?? ''}}')"
+                                                                    data-id="{{$agency->id}}"
+                                                                    data-toggle="modal"
+                                                                    data-target="#addFunds" id="addFundsBtn"><i
+                                                                        class="feather icon-briefcase"></i> Add Funds</a> 
+                                                                @endcan
+                                                                @can('markups-edit')
+                                                                | <a href="javascript:" class="text-info agentMarkUpBtn"
+                                                                    onclick="agencyMarkUpUpdate( '{{$agency->name}}' , {{$agency->masterAgent->agencyMasterAgentHotelmarkups->id ?? ''}} , '{{$agency->masterAgent->agencyMasterAgentHotelmarkups->fee_amount ?? 0}}' , '{{$agency->masterAgent->agencyMasterAgentHotelmarkups->fee_value ?? ''}}','{{$agency->masterAgent->agencyMasterAgentHotelmarkups->fee_type ?? ''}}' )"
+                                                                    
+                                                                    data-toggle="modal"
+                                                                    data-target="#agentMarkUp" id="agentMarkUpBtn"><i
+                                                                        class="feather icon-dollar-sign"></i> MarkUps</a> 
+                                                                @endcan
                                                             </td>
                                                         </tr>
                                                     @endforeach
@@ -87,6 +104,8 @@
         </div>
     </div>
     <x-admin-delete-modal :routename="$deleteRouteName"></x-admin-delete-modal>
+    <x-add-agency-funds :routename="$addingFunds"></x-add-agency-funds>
+    <x-agency-markup :routename="$agencyMarkUpRoute"></x-agency-markup>
 
 @endsection
 
@@ -113,5 +132,29 @@
             $("#deleteForm").attr('action', url);
             $("#delete_id").val(delId);
         }
+         function addFundsToWallet(agencyId,agencyName){
+            let url = '{{ route("addAgencyWalletBalance", ":id") }}';
+            url = url.replace(':id', agencyId);
+            $("#addFundsForm").attr('action', url);
+            $("#agency_name").html(agencyName);
+        }
+
+        function agencyMarkUpUpdate(agencyname,hotelMarkupid,hotelFeeAmount,hotelFeeValue,hotelFeeType){
+            let agencyMarkUpRoute = @json(route($agencyMarkUpRoute, ':id'));
+            let url = agencyMarkUpRoute.replace(':id', hotelMarkupid);
+            url = url.replace(':id', hotelMarkupid);
+            $("#agencyAgentMarkUpForm").attr('action', url);
+            $("#markup_agency_name").html(agencyname);
+
+            // Populate form fields with the provided data hotel
+            $('#hotel_markup_id').val(hotelMarkupid);
+            $('#hotel_fee_amount').val(hotelFeeAmount);
+            $('select[name="hotel_fee_value"]').val(hotelFeeValue);
+            $('select[name="hotel_fee_type"]').val(hotelFeeType);
+
+
+        }
+
+      
     </script>
 @endsection

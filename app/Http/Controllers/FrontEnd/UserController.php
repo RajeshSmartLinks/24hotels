@@ -5,6 +5,7 @@ namespace App\Http\Controllers\FrontEnd;
 use App\Models\Role;
 use App\Models\User;
 use App\Models\Country;
+use App\Models\HotelMarkUp;
 use App\Models\HotelBooking;
 use App\Models\WalletLogger;
 use Illuminate\Http\Request;
@@ -264,6 +265,16 @@ class UserController extends Controller
             return view('front_end.error',compact('titles','data'));
         }
 
+        $userid = [];
+        if(Auth::user()->is_master_agent ==1){
+            User::where(['agency_id' => Auth::user()->agency_id])->get();
+            foreach (User::where(['agency_id' => Auth::user()->agency_id])->get() as $key => $value) {
+                $userid[] = $value->id;
+            }
+        }else{
+            $userid[] = Auth::user()->id;
+        }
+
         $walletLogger = DB::table('wallet_loggers')
         ->leftJoin('flight_bookings', function ($join) {
             $join->on('wallet_loggers.reference_id', '=', 'flight_bookings.id')
@@ -272,7 +283,9 @@ class UserController extends Controller
         ->leftJoin('hotel_bookings', function ($join) {
             $join->on('wallet_loggers.reference_id', '=', 'hotel_bookings.id')
                  ->where('wallet_loggers.reference_type', '=', 'hotel');
-        })->where("wallet_loggers.user_id" , Auth::user()->id)->orderBy('wallet_loggers.id',"desc")
+        })->whereIn('wallet_loggers.user_id', $userid)
+        //->where("wallet_loggers.user_id" , Auth::user()->id)
+        ->orderBy('wallet_loggers.id',"desc")
         ->select(
             'wallet_loggers.*',
             'flight_bookings.from as booking_from',
@@ -285,12 +298,12 @@ class UserController extends Controller
 
         
         //wallet
-        $availableWalletBalance = Auth::user()->wallet_balance ; 
+        $availableWalletBalance = Auth::user()->agency->wallet_balance ; 
         $totalRecharge = WalletLogger::where(['reference_id' => auth()->user()->id,'reference_type' => 'user','action' => 'added'])->sum('amount');
         //we need to add both flight and hotel
-        $totalflight = FlightBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
-        $totalHotel = HotelBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
-        $totalUse = ($totalflight + $totalHotel);
+        //$totalflight = FlightBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
+        $totalHotel = HotelBooking::where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereIn('user_id', $userid)->sum('sub_total');
+        $totalUse = ($totalHotel);
 
 
         $info['availableWalletBalance'] = $availableWalletBalance;
@@ -413,5 +426,59 @@ class UserController extends Controller
  
 
         return view('front_end.agent.hotelBooking',compact('titles' , 'hotelbookings'));
+    }
+
+    public function addSubAgent(){
+        if(Auth::user()->is_master_agent != 1){
+            return view('errors.500');
+        }
+        $titles = [
+            'title' => "Add Sub Agent",
+        ];
+
+        $countries = Country::select('id','country_code','name','phone_code')->orderBy('name','ASC')->get();
+        $noImage = asset(Config::get('constants.NO_IMG_ADMIN'));
+
+        return view('front_end.agent.addSubAgent',compact('titles' , 'countries','noImage'));
+    }
+
+    public function storeAgent(Request $request){
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'mobile' => 'required',
+            'title' => 'required|string|max:255',
+            'country_id' => 'required',
+        ]);
+
+        $user = new User();
+
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->status = 'Active';
+        $user->is_agent = 1 ;
+        $user->mobile = $request->mobile;
+        $user->agency_id =  Auth::user()->agency_id ;
+        $user->save();
+
+        //getting markups from master agent
+        $hotelMartkUp = HotelMarkUp::where('user_id', Auth::user()->id)->first();
+
+        //adding in hotel markups
+        $hotelMarkup = new HotelMarkUp;
+        $hotelMarkup->user_id = $user->id;
+        $hotelMarkup->fee_type = $hotelMartkUp->fee_type; 
+        $hotelMarkup->fee_value = $hotelMartkUp->fee_value;
+        $hotelMarkup->fee_amount = $hotelMartkUp->fee_amount;
+        $hotelMarkup->status = 'Active';
+        $hotelMarkup->save();
+
+        return redirect()->route('profile')->with('success','Agent Added Successfully');
+
+ 
     }
 }

@@ -90,6 +90,9 @@ Route::group([
         Route::get('/agent-dashboard', [App\Http\Controllers\FrontEnd\UserController::class, 'agentDashboard'])->name('agent-dashboard');
         Route::get('/agent-flight-booking', [App\Http\Controllers\FrontEnd\UserController::class, 'agentFlightBooking'])->name('agent-flight-booking');
         Route::get('/agent-hotel-booking', [App\Http\Controllers\FrontEnd\UserController::class, 'agentHotelBooking'])->name('agent-hotel-booking');
+        Route::get('addSubAgent', [App\Http\Controllers\FrontEnd\UserController::class, 'addSubAgent'])->name('add-sub-agent');
+        Route::post('storeSubAgent', [App\Http\Controllers\FrontEnd\UserController::class, 'storeAgent'])->name('store-sub-agent');
+        
         
 });
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
@@ -173,5 +176,9 @@ Route::post('agentHotelpaymentGateWay', [App\Http\Controllers\FrontEnd\Hotel\Web
 
 
 Route::get('agentbookHotelRooms/{hotelbookingId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'bookHotelRooms'])->name('agentbookHotelRooms');
+
+
+
+
 
 Route::get('hotelTest', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'test']);

@@ -18,10 +18,10 @@
             @endcan
             {{-- <li class=" navigation-header"><span>Apps</span>
             </li> --}}
-            @can('booking-view')
+            {{-- @can('booking-view')
             <li class=" nav-item {{Request::segment(2) == 'bookings' ? 'active' : '' }}"><a href="{{route('admin.bookingsList')}}"><i class="feather icon-message-square"></i><span class="menu-title" data-i18n="Booking">Flight Booking</span></a>
             </li>
-            @endcan
+            @endcan --}}
             @can('hotel-booking-view')
             <li class=" nav-item {{Request::segment(2) == 'hotelBookings' ? 'active' : '' }}"><a href="{{route('admin.hotelbookingsList')}}"><i class="feather icon-message-square"></i><span class="menu-title" data-i18n="Booking">Hotel Booking</span></a>
             </li>
@@ -30,7 +30,7 @@
             @can('customer-view')
             <li class=" nav-item {{Request::segment(2) == 'customer' ? 'active' : '' }}"><a href="{{route('admin.customerList')}}"><i class="feather icon-mail"></i><span class="menu-title" data-i18n="Customers">Customers</span></a>
             @endcan
-            @can('user-view')
+            {{-- @can('user-view')
             <li class=" nav-item {{Request::segment(2) == 'user' ? 'active' : '' }}"><a href="{{route('admin.userList')}}"><i class="feather icon-message-square"></i><span class="menu-title" data-i18n="Users">Users</span></a>
             </li>
             @endcan
@@ -54,7 +54,7 @@
             @can('destination-view')
             <li class=" nav-item {{Request::segment(2) == 'destinations' ? 'active' : '' }}"><a href="{{route('destinations.index')}}"><i class="feather icon-check-square"></i><span class="menu-title" data-i18n="Destinations">Destinations</span></a>
             </li>
-            @endcan
+            @endcan --}}
              @can('agency-view')
             <li class=" nav-item {{Request::segment(2) == 'agency' ? 'active' : '' }}"><a href="{{route('agency.index')}}"><i class="feather icon-users"></i><span class="menu-title" data-i18n="Agencies">Agencies</span></a>
             </li>

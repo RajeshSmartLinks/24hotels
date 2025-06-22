@@ -29,7 +29,7 @@
                 <section id="basic-datatable">
                     <div class="row">
                         <div class="col-12">
-                            <div class="card">
+                            {{-- <div class="card">
                                 <div class="card-header">
                                     <h4 class="card-title">Flights MarkUps</h4>
                                 </div>
@@ -120,7 +120,7 @@
                                     </div>
                                 </div>
                                 
-                            </div>
+                            </div> --}}
 
                             <div class="card">
                                 <div class="card-header">
@@ -132,6 +132,7 @@
                                             <table class="table zero-configuration">
                                                 <thead>
                                                 <tr>
+                                                    <th>Agency Name</th>
                                                     <th>{{__('admin.fee_type')}}</th>
                                                     <th>{{__('admin.fee_value')}}</th>
                                                     <th>{{__('admin.fee_amount')}}</th>
@@ -143,6 +144,7 @@
                                                 @if(count($hotelmarkups) > 0)
                                                     @foreach($hotelmarkups as $hotelmarkup)
                                                         <tr>
+                                                            <td>{{ucfirst($hotelmarkup->AgencyName)}} </td>
                                                             <td>{{ucfirst($hotelmarkup->fee_type)}} </td>
                                                             <td>{{ucfirst($hotelmarkup->fee_value)}} </td>
                                                             <td>{{$hotelmarkup->fee_amount}} </td>

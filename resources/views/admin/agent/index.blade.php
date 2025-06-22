@@ -29,7 +29,9 @@
                                                 <thead>
                                                 <tr>
                                                     <th>Name</th>
-                                                    <th>Wallet</th>
+                                                    {{-- <th>Wallet</th> --}}
+                                                    <th>Agency</th>
+                                                    
                                                     <th>Email</th>
                                                     <th>Action</th>
                                                 </tr>
@@ -40,7 +42,7 @@
                                                     @foreach($agents as $agent)
                                                         <tr>
                                                             <td>{{$agent->first_name}} {{$agent->last_name}} </td>
-                                                            <td>{{$agent->wallet_balance}}</td>
+                                                            <td>{{$agent->agency->name ?? ''}}</td>
                                                             <td>{{$agent->email}}</td>
                                                             <td>
                                                                 
@@ -61,22 +63,22 @@
                                                                        data-target="#deleteModal" id="deleteBtn"><i
                                                                             class="feather icon-trash"></i> Delete</a>
                                                                 @endcan
-                                                                @can('agent-add-credit')
+                                                               {{-- @can('agent-add-credit')
                                                                 | <a href="javascript:" class="text-warning addFundsBtn"
                                                                     onclick="addFundsToWallet({{$agent->id}} , '{{$agent->first_name . ' ' . $agent->last_name}}')"
                                                                     data-id="{{$agent->id}}"
                                                                     data-toggle="modal"
                                                                     data-target="#addFunds" id="addFundsBtn"><i
                                                                         class="feather icon-briefcase"></i> Add Funds</a> 
-                                                                @endcan
-                                                                @can('markups-edit')
+                                                                @endcan --}}
+                                                                 {{-- @can('markups-edit')
                                                                 | <a href="javascript:" class="text-info agentMarkUpBtn"
                                                                     onclick="agentMarkUpUpdate({{$agent->agentMarkup->id ?? ''}} , '{{$agent->first_name . ' ' . $agent->last_name}}' ,'{{$agent->agentMarkup->fee_amount ?? 0}}' , '{{$agent->agentMarkup->fee_value ?? ''}}','{{$agent->agentMarkup->fee_type ?? ''}}' , {{$agent->agentHotelMarkup->id ?? ''}} , '{{$agent->agentHotelMarkup->fee_amount ?? 0}}' , '{{$agent->agentHotelMarkup->fee_value ?? ''}}','{{$agent->agentHotelMarkup->fee_type ?? ''}}' )"
                                                                     data-id="{{$agent->id}}"
                                                                     data-toggle="modal"
                                                                     data-target="#agentMarkUp" id="agentMarkUpBtn"><i
                                                                         class="feather icon-dollar-sign"></i> MarkUps</a> 
-                                                                @endcan
+                                                                @endcan --}}
                                                             </td>
                                                         </tr>
                                                     @endforeach

@@ -12,7 +12,7 @@
             <section id="dashboard-analytics">
                 <div class="row match-height ">
                     <!-- Description lists horizontal -->
-                    <div class="col-sm-12 col-md-3">
+                    {{-- <div class="col-sm-12 col-md-3">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">{{__('lang.total_customer')}}</h4>
@@ -37,7 +37,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
                     <!--/ Description lists horizontal-->
                     <!-- Description lists horizontal -->
                     <div class="col-sm-12 col-md-3">
@@ -68,7 +68,7 @@
                     </div>
                     <!--/ Description lists horizontal-->
                     <!-- Description lists horizontal -->
-                    <div class="col-sm-12 col-md-3">
+                    {{-- <div class="col-sm-12 col-md-3">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">{{__('lang.total_sales')}} </h4>
@@ -93,7 +93,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
                     <!--/ Description lists horizontal-->
                     <!-- Description lists horizontal -->
                     <div class="col-sm-12 col-md-3">
@@ -105,12 +105,12 @@
                                 <div class="card-body">
                                     <div class="card-text">
                                         <dl class="row">
-                                            <dt class="col-sm-7 col-4"> {{__('lang.customers')}} :</dt>
-                                            <dd class="col-sm-5 col-8"> {{$dashboardDetails['totalCustomers']}} </dd>
+                                            <dt class="col-sm-7 col-4">Agencies :</dt>
+                                            <dd class="col-sm-5 col-8"> {{$dashboardDetails['agencies']}} </dd>
                                         </dl>
                                         <dl class="row">
-                                            <dt class="col-sm-7 col-4">{{__('lang.booking')}} :</dt>
-                                            <dd class="col-sm-5 col-8"> {{$dashboardDetails['totalBookings']}} </dd>
+                                            <dt class="col-sm-7 col-4">Agents :</dt>
+                                            <dd class="col-sm-5 col-8"> {{$dashboardDetails['agents']}} </dd>
                                         </dl>
                                         <dl class="row">
                                             <dt class="col-sm-7 col-4">{{__('lang.sales')}} :</dt>
@@ -133,7 +133,7 @@
                             <div class="card-content">
                                 <div class="card-body card-dashboard">
                                     <div class="table-responsive">
-                                        <table class="table zero-configuration">
+                                        {{-- <table class="table zero-configuration">
                                             <thead>
                                             <tr>
                                                 <th>Sr</th>
@@ -222,7 +222,65 @@
                                             @endif
 
                                             </tbody>
-                                        </table>
+                                        </table> --}}
+                                         <table class="table zero-configuration nowrap scroll-horizontal-vertical">
+                                                <thead>
+                                                <tr>
+                                                    <th>#</th>
+                                                    <th>Refrence Id</th>
+                                                    <th>Hotel Name</th>
+                                                    {{-- <th>Hotel City</th> --}}
+                                                    <th>Customer</th>
+                                                    <th>Phone No</th>
+                                                    <th>Total Price</th>
+                                                    <th>Confirmation Number</th>
+                                                    <th>Status</th>
+                                                    <th>Created at</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+    
+                                                @if(count($dashboardDetails['hotelBookings']) > 0)
+                                                    @foreach($dashboardDetails['hotelBookings'] as $booking)
+                                                        <tr>
+                                                            
+                                                            <td>{{$loop->iteration}} </td>
+                                                            <td>{{$booking->booking_ref_id}} </td>
+                                                            <td>{{$booking->hotel_name}} </td>
+
+
+                                                            <td>{{$booking->TravelersInfo[0]->first_name ?? '' }}&nbsp;{{$booking->TravelersInfo[0]->last_name ?? '' }} </td>
+                                                            <td>{{$booking->Customercountry->phone_code ?? ''}}{{$booking->mobile}} </td>
+                                                          
+                                                            <td>{{$booking->currency_code}}&nbsp; {{$booking->total_amount}} </td>
+                                                            <td>{{$booking->confirmation_number}} </td>
+                                                            
+                                                            <td>{{str_replace("_"," ",$booking->booking_status) }}</td>
+                                                            <td>{{$booking->created_at->format('d/m/Y')}} </td>
+                                                            <td>
+                                                                @if(!empty($booking->hotel_room_booking_path))
+                                                                <a  href = "{{asset($booking->hotel_room_booking_path)}}" download data-bs-toggle="tooltip" title="Download Ticket"><i class="fa fa-download"></i></a> | 
+                                                                @endif
+                                                                
+                                                                {{-- @can('booking-cancel')
+                                                                @if($booking->ticket_status == 1 && ($booking->booking_status == "booking_completed" || $booking->booking_status == "cancellation_initiated") && $booking->is_cancel != 1)
+                                                                <a  href = "javascript:"  onclick="cancle({{$booking->id}})" data-id="{{$booking->id}}"data-bs-toggle="tooltip" title="Cancle / Reschedule" data-toggle="modal" data-target="#cancleModel" id="canclebtn"><i class="fa fa-times-circle"></i></a>
+                                                                @endif
+                                                                @endcan --}}
+                                                            </td>
+                                                           
+                                                        </tr>
+                                                    @endforeach
+                                                @else
+                                                    <tr align="center" class="alert alert-danger">
+                                                        <td colspan="10">No Record(s)</td>
+                                                    </tr>
+                                                @endif
+    
+                                                </tbody>
+                                            </table>
+
                                     </div>
                                 </div>
                             </div>

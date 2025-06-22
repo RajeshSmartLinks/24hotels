@@ -60,7 +60,9 @@
                     @foreach($result['hotelDeatils']['images'] as $k=>$image)
                       @if($k<15)
                       <div class="item"><a href="#">
-                        <img class="img-fluid" src="{{$image}}" alt="Hotel photo" onError="this.onerror=null;this.src='{{ asset('frontEnd/images/no-hotel-image.png') }}';"/></a>
+                        <img class="img-fluid lazy-image" data-src="{{$image}}" alt="Hotel photo" onError="this.onerror=null;this.src='{{ asset('frontEnd/images/no-hotel-image.png') }}';" src="{{ asset('frontEnd/images/no-hotel-image.png') }}"/></a>
+
+                       
                       </div>
                       @endif
                     @endforeach
@@ -270,45 +272,7 @@
               <!-- Choose Room ============================================= -->
               <h2 id="choose-room" class="text-6 mb-4 mt-2">{{__('lang.choose_room')}}</h2>
               @if(!empty($result['availablerooms']))
-              @foreach($result['availablerooms'] as $r=>$roomDetails)
-                {{-- <div class="row g-4">
-                    <div class="col-12">
-                        <div class="row">
-                            <div class="col-md-10 col-8 mt-2">
-                                <h5 class="text-3">{{$roomDetails['name']}}</h5>
-                            </div>
-                        </div>
-                    <div class="row text-1 mb-3">
-                      @if(isset($roomDetails['Inclusion']) && !empty($roomDetails['Inclusion']))
-                        @foreach(explode("," , $roomDetails['Inclusion']) as $inclusive)
-                        <div class="col-6 col-xl-4"><span class="text-success me-1"><i class="fas fa-check"></i></span>{{$inclusive}}</div>
-                        @endforeach
-                      @endif   
-                    </div>
-                    @if(!empty($roomDetails['supplment_charges']))
-                    <p>{{__('lang.supplement_charges')}} - {{$roomDetails['supplment_charges']}} {{__('lang.need_to_pay_at_hotel')}}</p>
-                    @endif
-                    <div class="row">
-                      <div class="d-flex align-items-center col-md-10 col-8 ">
-                        <div class="text-dark text-4 lh-1 fw-500 me-2 me-lg-3"> {{$roomDetails['markups']['totalPrice']['currency_code'] }} 
-                          &nbsp; {{$roomDetails['markups']['totalPrice']['value'] }}</div>
-                          <span class="text-black-50 me-2 me-lg-3">{{$result['searchRequest']->no_of_rooms}} {{__('lang.room')}}/ {{$result['searchRequest']->no_of_nights}} {{__('lang.night')}}</span>
-                          <a href="#" data-bs-toggle="modal" data-bs-target="#cancellation-policy{{$r}}">{{__('lang.cancellation_policy')}}</a> 
-                        </div>
-                        <div class="d-flex align-items-center col-md-2 col-4"> 
-                          
-                          <a href="{{route('PreBookingRoom',['hotelCode'=>encrypt($result['hotelDeatils']['hotel_code']) , 'searchId' =>encrypt($result['searchRequest']->id) , 'bookingCode' => encrypt($roomDetails['bookingCode'])])}}" class="btn btn-sm btn-outline-primary shadow-none gButton"><span class="gButtonloader"></span>Book</a>
-                        </div>
-                      </div>
-                    
-                    </div>
-                    <div class="row text-1 mt-2">
-                      <div class="col-6 col-xl-4"><span class="text-success me-1"></span>{{$roomDetails['roomPromotion']}}</div>
-                    </div>
-                </div> --}}
-                {{-- <hr class="my-4"> --}}
               
-              @endforeach
               <div class="table-responsive">
                 <table class="table">
                   <thead>
@@ -426,6 +390,7 @@
   
 @endsection
 @section('extraScripts')
+<script type="text/javascript" src="{{asset('frontEnd/js/lazy.min.js')}}"></script>
 <script>
    var start = moment("{{$result['searchRequest']->check_in}}");
     $('#hotelsCheckIn').daterangepicker({
@@ -482,6 +447,9 @@
       $("#searchbutton").find('span').append( '<i class="fa fa-spinner fa-spin"></i>' );
     });//submit
   });//document ready
+    $(function() {
+        $('.lazy-image').lazy();
+    });
   </script>
 <script src='{{ asset('frontEnd/js/hotel.js') }}'></script>
 @endsection
