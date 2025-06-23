@@ -17,7 +17,7 @@
                             <div class="card">
                                 <div class="card-header">
                                     <h4 class="card-title">{{$titles['listTitle']}}</h4>
-                                    @can('destination-add')
+                                    @can('agent-add')
                                     <a href="{{route('agents.create')}}" class="btn btn-primary btn-print mb-1 mb-md-0 waves-effect waves-light"><i class="feather icon-plus-circle"></i>&nbsp;Add Agent</a>
                                     @endcan
                                 </div>

@@ -163,7 +163,7 @@ class AgentController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!auth()->user()->can('destination-edit')) {
+        if (!auth()->user()->can('agent-edit')) {
             return view('admin.abort');
         }
 
@@ -195,22 +195,22 @@ class AgentController extends Controller
      */
     public function destroy($id ,Request $request)
     {
-        if (!auth()->user()->can('destination-delete')) {
+        if (!auth()->user()->can('agent-delete')) {
             return view('admin.abort');
         }
 
         $deleteId = $request->delete_id;
-        $Destination = Destination::find($deleteId);
+        $user = User::find($deleteId);
 
         if ($deleteId) {
 
             // Delete the previous image
-            deleteImage(Destination::$imagePath, $Destination->image);
+            deleteImage(User::$imagePath, $user->image);
           
 
-            $Destination->delete();
+            $user->delete();
 
-            return redirect()->route('destinations.index')->with('success', 'Deleted Successfully');
+            return redirect()->route('agents.index')->with('success', 'Deleted Successfully');
 
         }
     }

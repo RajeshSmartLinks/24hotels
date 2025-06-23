@@ -233,7 +233,7 @@ class AgencyController extends Controller
          $this->validate($request, [
             'name' => 'required',
             'address' => 'required',
-            'logo' => 'image|required|mimes:jpeg,png,jpg,svg,gif|max:2048',
+            'logo' => 'image|mimes:jpeg,png,jpg,svg,gif|max:2048',
             'status' => 'required',
             'phone_number' => 'required',
             'country_id' => 'required'

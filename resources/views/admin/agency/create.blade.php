@@ -17,8 +17,8 @@
                     <div class="row">
                         <fieldset class="col-12 col-md-5 mb-1 mb-md-0">&nbsp;</fieldset>
                         <div class="col-12 col-md-7 d-flex flex-column flex-md-row justify-content-end">
-                            @can('offer-view')
-                            <a href="{{route('packages.index')}}" class="btn btn-primary btn-print mb-1 mb-md-0"><i
+                            @can('agency-view')
+                            <a href="{{route('agency.index')}}" class="btn btn-primary btn-print mb-1 mb-md-0"><i
                                     class="feather icon-list"></i>&nbsp;Go to List</a>
                             </a>
                             @endcan
@@ -30,14 +30,14 @@
                 <section id="multiple-column-form" class="input-validation">
                     <div class="row match-height">
                         {{-- @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul class="mb-0">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif --}}
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif --}}
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header">
