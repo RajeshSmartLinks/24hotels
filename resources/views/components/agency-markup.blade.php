@@ -21,7 +21,7 @@
                     <div class="row">
                         <div class="col-12">
                             <label for="first-name-column">{{__('admin.fee_type')}}</label>
-                            <select name="hotel_fee_type" class="form-control @error('hotel_fee_type') is-invalid @enderror">
+                            <select name="hotel_fee_type" class="form-control @error('hotel_fee_type') is-invalid @enderror" required>
                                 <option value=""> select Fee type</option>
                                 <option value="addition" >{{ucfirst('addition')}}</option>
                                 <option value="subtraction" >{{ucfirst('subtraction')}}</option>
@@ -30,7 +30,7 @@
                      
                         <div class="col-6">
                             <label for="first-name-column">{{__('admin.fee_value')}}</label>
-                            <select name="hotel_fee_value" class="form-control @error('hotel_fee_value') is-invalid @enderror">
+                            <select name="hotel_fee_value" class="form-control @error('hotel_fee_value') is-invalid @enderror" required>
                                 <option value=""> select Fee Value</option>
                                 <option value="fixed" >{{ucfirst('fixed')}}</option>
                                 <option value="percentage" >{{ucfirst('percentage')}}</option>
@@ -39,7 +39,7 @@
 
                         <div class="col-6">
                             <label for="first-name-column">{{__('admin.fee_amount')}}</label>
-                            <input type="number" id="hotel_fee_amount" class="form-control @error('hotel_fee_amount') is-invalid @enderror" placeholder="Hotel Fee Amount" name="hotel_fee_amount"  autocomplete="off" value="">
+                            <input type="number" id="hotel_fee_amount" class="form-control @error('hotel_fee_amount') is-invalid @enderror" placeholder="Hotel Fee Amount" name="hotel_fee_amount"  autocomplete="off" value="" required>
                         </div>
                     </div>
 

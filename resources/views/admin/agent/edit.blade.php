@@ -40,7 +40,7 @@
 
 
                                         <form class="form-horizontal" action="{{route('agents.update', $editagent->id)}}" method="post"
-                                              enctype="multipart/form-data" novalidate>
+                                              enctype="multipart/form-data" >
                                             @csrf
                                             @method('PUT')
                                             <div class="form-body">
@@ -76,7 +76,7 @@
                                                         <div class="form-group">
                                                             <label for="email">Email</label>
                                                             
-                                                            <input type="email"   class="form-control @error('email') is-invalid @enderror" placeholder="Email" name="email" value="{{old('email', $editagent->email)}}">
+                                                            <input type="email"   class="form-control @error('email') is-invalid @enderror" placeholder="Email" name="email" value="{{old('email', $editagent->email)}}" required>
                                                             @error('email')
                                                                 <span class="invalid-feedback" role="alert">
                                                                     <strong>{{ $message }}</strong>
@@ -90,7 +90,7 @@
                                                             <div class="form-group">
                                                                 <label for="mobile">Mobile</label>
                                                     
-                                                                <input type="number"   class="form-control @error('mobile') is-invalid @enderror" placeholder="Mobile" name="mobile"  value="{{old('mobile', $editagent->mobile)}}">
+                                                                <input type="number"   class="form-control @error('mobile') is-invalid @enderror" placeholder="Mobile" name="mobile"  value="{{old('mobile', $editagent->mobile)}}" required>
                                                                 @error('mobile')
                                                                     <span class="invalid-feedback" role="alert">
                                                                         <strong>{{ $message }}</strong>
@@ -107,7 +107,7 @@
                                                     <div class= "col-md-6 col-12">
                                                         <div class="form-group">
                                                             <label for="valid_from">Status</label>
-                                                            <select name="status" class="form-control @error('status') is-invalid @enderror" id="basicSelect">
+                                                            <select name="status" class="form-control @error('status') is-invalid @enderror" id="basicSelect" required>
                                                                 <option value="">--select status --</option>
                                                                 <option value="Active" {{(old('status', $editagent->status) == "Active")?"selected":""}}>Active</option>
                                                                 <option value="InActive" {{(old('status', $editagent->status) == "InActive")?"selected":""}}>InActive</option>

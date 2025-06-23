@@ -86,7 +86,7 @@
                                                     @endforeach
                                                 @else
                                                     <tr align="center" class="alert alert-danger">
-                                                        <td colspan="4">No Record(s)</td>
+                                                        <td colspan="5">No Record(s)</td>
                                                     </tr>
                                                 @endif
 

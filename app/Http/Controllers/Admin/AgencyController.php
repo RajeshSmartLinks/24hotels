@@ -26,7 +26,7 @@ class AgencyController extends Controller
     {
        
         $titles = ['title' => "Agency", 'subTitle' => "Agency", 'listTitle' => "Agency Listing"];
-        if (!auth()->user()->can('package-view')) {
+        if (!auth()->user()->can('agency-view')) {
             return view('admin.abort', compact('titles'));
         }
         $deleteRouteName = "agency.destroy";
@@ -75,7 +75,7 @@ class AgencyController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->can('package-add')) {
+        if (!auth()->user()->can('agency-add')) {
             return view('admin.abort');
         }
         // if (!auth()->user()->can('supplier-update')) {
@@ -94,7 +94,6 @@ class AgencyController extends Controller
             'last_name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8|confirmed',
-            'status' => 'required',
             'wallet_balance' => 'required',
           
             'hotel_fee_type' => 'required',
@@ -145,7 +144,7 @@ class AgencyController extends Controller
         $user->last_name = $request->last_name;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
-        $user->status = $request->status;
+        $user->status = "Active";
         $user->is_agent = 1 ;
         $user->is_master_agent = 1 ;
         $user->mobile = $request->mobile;
@@ -224,7 +223,7 @@ class AgencyController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (!auth()->user()->can('package-edit')) {
+        if (!auth()->user()->can('agency-edit')) {
             return view('admin.abort');
         }
         // if (!auth()->user()->can('supplier-update')) {
@@ -305,7 +304,7 @@ class AgencyController extends Controller
 
             $agency->delete();
 
-            return redirect()->route('agencys.index')->with('success', 'Deleted Successfully');
+            return redirect()->route('agency.index')->with('success', 'Deleted Successfully');
 
         }
     }

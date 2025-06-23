@@ -46,7 +46,7 @@
 
 
                                         <form class="form-horizontal" action="{{route('agents.store')}}" method="post"
-                                              enctype="multipart/form-data" novalidate>
+                                              enctype="multipart/form-data" >
                                             @csrf
                                             <div class="form-body">
                                                 <div class="row">
@@ -80,7 +80,7 @@
                                                         <div class="form-group">
                                                             <label for="email">Email</label>
                                                             
-                                                            <input type="email"   class="form-control @error('email') is-invalid @enderror" placeholder="Email" name="email" value="{{old('email')}}">
+                                                            <input type="email"   class="form-control @error('email') is-invalid @enderror" placeholder="Email" name="email" value="{{old('email')}}" required>
                                                             @error('email')
                                                                 <span class="invalid-feedback" role="alert">
                                                                     <strong>{{ $message }}</strong>
@@ -94,7 +94,7 @@
                                                             <div class="form-group">
                                                                 <label for="mobile">Mobile</label>
                                                     
-                                                                <input type="number"   class="form-control @error('mobile') is-invalid @enderror" placeholder="Mobile" name="mobile" value="{{old('mobile')}}">
+                                                                <input type="number"   class="form-control @error('mobile') is-invalid @enderror" placeholder="Mobile" name="mobile" value="{{old('mobile')}}" required>
                                                                 @error('mobile')
                                                                     <span class="invalid-feedback" role="alert">
                                                                         <strong>{{ $message }}</strong>
@@ -108,7 +108,7 @@
                                                     <div class="col-md-6 col-12">
                                                         <label for="first-name-column">Password</label>
                                                         <div class="form-label-group">
-                                                            <input type="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="Password" name="password" value="" autocomplete="off">
+                                                            <input type="password" id="password" class="form-control @error('password') is-invalid @enderror" placeholder="Password" name="password" value="" autocomplete="off" required>
                                                             @error('password')
                                                                 <span class="invalid-feedback" role="alert">
                                                                     <strong>{{ $message }}</strong>
@@ -120,7 +120,7 @@
                                                     <div class="col-md-6 col-12">
                                                         <label for="first-name-column">Confirm Password</label>
                                                         <div class="form-label-group">
-                                                            <input type="password" id="Confirm Password" class="form-control" placeholder="Confirm Password" name="password_confirmation" value="" autocomplete="off">
+                                                            <input type="password" id="Confirm Password" class="form-control" placeholder="Confirm Password" name="password_confirmation" value="" autocomplete="off" required>
                                                             
                                                             
                                                         </div>
@@ -130,7 +130,7 @@
                                                     <div class= "col-md-6 col-12">
                                                         <div class="form-group">
                                                             <label for="valid_from">Status</label>
-                                                            <select name="status" class="form-control @error('status') is-invalid @enderror" id="basicSelect">
+                                                            <select name="status" class="form-control @error('status') is-invalid @enderror" id="basicSelect" required>
                                                                 <option value="">--select status --</option>
                                                                 <option value="Active" @if (old('status') == "Active") {{ 'selected' }} @endif>Active</option>
                                                                 <option value="InActive" @if (old('status') == "InActive") {{ 'selected' }} @endif>InActive</option>
@@ -145,7 +145,7 @@
                                                     <div class= "col-md-6 col-12">
                                                         <div class="form-group">
                                                             <label for="valid_from">Agency</label>
-                                                            <select name="agency_id" class="form-control @error('agency_id') is-invalid @enderror" id="basicSelect">
+                                                            <select name="agency_id" class="form-control @error('agency_id') is-invalid @enderror" id="basicSelect" required>
                                                                 <option value="">--select agency_id --</option>
                                                                 @foreach($agencies as $agency)
                                                                     <option value="{{$agency->id}}" @if (old('agency_id') == $agency->id) {{ 'selected' }} @endif>{{$agency->name}}</option>
