@@ -15,7 +15,8 @@
 
         @if(Auth::user()->is_master_agent == 1)
 
-        <li class="nav-item"><a class="nav-link {{Request::segment(1) == 'add-sub-agent' ? 'active' : '' }}" href="{{route('add-sub-agent')}}"><span class="me-2"><i class="fas fa-user"></i></span>Add Sub Agent</a></li>
+        {{-- <li class="nav-item"><a class="nav-link {{Request::segment(1) == 'add-sub-agent' ? 'active' : '' }}" href="{{route('add-sub-agent')}}"><span class="me-2"><i class="fas fa-user"></i></span>Add Sub Agent</a></li> --}}
+         <li class="nav-item"><a class="nav-link {{Request::segment(1) == 'agent-list' ? 'active' : '' }}" href="{{route('agent-list')}}"><span class="me-2"><i class="fas fa-user"></i></span>Agent</a></li>
 
         @endif
 

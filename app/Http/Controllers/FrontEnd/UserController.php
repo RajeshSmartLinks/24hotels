@@ -443,6 +443,12 @@ class UserController extends Controller
     }
 
     public function storeAgent(Request $request){
+        if(Auth::user()->is_master_agent != 1){
+            return view('errors.500');
+        }
+        $titles = [
+            'title' => "Add Sub Agent",
+        ];
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -477,8 +483,19 @@ class UserController extends Controller
         $hotelMarkup->status = 'Active';
         $hotelMarkup->save();
 
-        return redirect()->route('profile')->with('success','Agent Added Successfully');
+        return redirect()->route('agent-list')->with('success','Agent Added Successfully');
+    }
 
- 
+    public function agentList(){
+        if(Auth::user()->is_master_agent != 1){
+            return view('errors.500');
+        }
+        $titles = [
+            'title' => "Agent List"
+        ];
+
+        $agents = User::where('is_agent',1)->where('is_master_agent',0)->where('agency_id',Auth::user()->agency_id)->orderBy('id','DESC')->paginate(15);;
+        return view('front_end.agent.agentList',compact('titles','agents'));
+
     }
 }

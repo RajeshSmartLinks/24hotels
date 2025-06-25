@@ -92,6 +92,7 @@ Route::group([
         Route::get('/agent-hotel-booking', [App\Http\Controllers\FrontEnd\UserController::class, 'agentHotelBooking'])->name('agent-hotel-booking');
         Route::get('addSubAgent', [App\Http\Controllers\FrontEnd\UserController::class, 'addSubAgent'])->name('add-sub-agent');
         Route::post('storeSubAgent', [App\Http\Controllers\FrontEnd\UserController::class, 'storeAgent'])->name('store-sub-agent');
+        Route::get('agent-list', [App\Http\Controllers\FrontEnd\UserController::class, 'agentList'])->name('agent-list');
         
         
 });

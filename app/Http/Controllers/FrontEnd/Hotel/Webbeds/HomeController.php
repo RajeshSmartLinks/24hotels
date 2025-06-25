@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\FrontEnd\Hotel\Webbeds;
 
+use PDF;
 use stdClass;
 use DOMDocument;
 use App\Models\User;
+use App\Models\Agency;
 use App\Models\Coupon;
 use App\Models\Country;
 use App\Models\TboHotel;
-use PDF;
 use App\Models\GuestUser;
 use App\Models\HotelSearch;
 use App\Models\SeoSettings;
@@ -447,6 +448,7 @@ class HomeController extends Controller
             //     $result['availablerooms'][$r]['roomPromotion'] = isset($result['availablerooms'][$r]['RoomPromotion']) ? $result['availablerooms'][$r]['RoomPromotion'] :[];
             // }
         }
+        dd($result['availablerooms']);
 
         //searchRequest 
 
@@ -985,12 +987,15 @@ class HomeController extends Controller
         {
             if($hotelbookingdetails->type_of_payment == 'wallet'){
                 //checking wallet balance
-                if(auth()->user()->wallet_balance >= $hotelbookingdetails->sub_total){
+                if(auth()->user()->agency->wallet_balance >= $hotelbookingdetails->sub_total){
                     //debit from wallet
-                    $wallet = auth()->user()->wallet_balance - $hotelbookingdetails->sub_total;
+                    $wallet = auth()->user()->agency->wallet_balance - $hotelbookingdetails->sub_total;
                     $user = User::find(auth()->user()->id);
-                    $user->wallet_balance = $wallet;
-                    $user->save();
+                    // $user->wallet_balance = $wallet;
+                    // $user->save();
+                    $agency = Agency::find(auth()->user()->agency_id);
+                    $agency->wallet_balance = $wallet;
+                    $agency->save();
                     $walletDetails = WalletLogger::create([
                         'user_id' => auth()->user()->id,
                         'reference_id' => $hotelbookingdetails->id,
@@ -1137,12 +1142,15 @@ class HomeController extends Controller
         $hotelBookingdetails->save();
     
         if($hotelBookingdetails->type_of_payment == 'wallet'){
-            $wallet = auth()->user()->wallet_balance + $hotelBookingdetails->sub_total;
-            auth()->user()->update(['wallet_balance' => $wallet]);
-            // dd($hotelBookingdetails);
+            $wallet = auth()->user()->agency->wallet_balance + $hotelBookingdetails->sub_total;
+          
+            $agency = Agency::find(auth()->user()->agency_id);
+            $agency->wallet_balance = $wallet;
+            $agency->save();
+     
             $walletDetails = WalletLogger::create([
                 'user_id' => auth()->user()->id,
-                'reference_id' => $hotelbookingdetails->id,
+                'reference_id' => $hotelBookingdetails->id,
                 'reference_type' => 'hotel',
                 'amount' => $hotelBookingdetails->sub_total,
                 'remaining_amount' => $wallet,
