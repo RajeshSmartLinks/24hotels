@@ -448,7 +448,7 @@ class HomeController extends Controller
             //     $result['availablerooms'][$r]['roomPromotion'] = isset($result['availablerooms'][$r]['RoomPromotion']) ? $result['availablerooms'][$r]['RoomPromotion'] :[];
             // }
         }
-        dd($result['availablerooms']);
+
 
         //searchRequest 
 
