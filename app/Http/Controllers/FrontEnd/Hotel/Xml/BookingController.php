@@ -162,8 +162,6 @@ class BookingController extends Controller
                 $groupedTravelers[$traveler->room_no][] = $traveler;
             }
             $groupedTravelers = array_values($groupedTravelers);
-      
-
             foreach ($groupedTravelers as $roomIndex => $roomTravelers) 
             {
                 $adults = 0;
@@ -171,7 +169,7 @@ class BookingController extends Controller
                 $childrenAges = [];
 
                 foreach ($roomTravelers as $traveler) {
-                    if ($traveler->travel_type == 'CNN') {
+                    if ($traveler->traveler_type == 'CNN') {
                         $children++;
                         $childrenAges[] = $traveler->age;
                     } else {
@@ -258,5 +256,39 @@ class BookingController extends Controller
             'xml_request_id' => $data['hotelRequest']->id ?? null
         ];
 
+    }
+
+    public function RoomBookingDetails($data){
+        $booking_code = $data['booking_code'];
+        $booking_status = $data['booking_status'];
+        $searchId = $data['search_id'];
+        
+        $xml = <<<EOM
+                <customer>
+                    <username>{$this->WebbedsUsername}</username>
+                    <password>{$this->WebbedsPassword}</password>
+                    <id>{$this->WebbedsCompanyCode}</id>
+                    <source>1</source>
+                    <product>hotel</product>
+                    <request command="getbookingdetails">
+                        <bookingDetails>
+                            <bookingType>{$booking_status}</bookingType>
+                            <bookingCode>{$booking_code}</bookingCode>
+                        </bookingDetails>
+                    </request>
+                </customer>        
+                EOM;
+
+        $data = array(
+            'xml' => $xml,
+            'request_type' => 'getbookingdetails',
+            'searchId' => $searchId
+        );
+        $data = $this->WebbedsApi($data);
+        return [
+            'roomBookingInfo' =>  $data,
+            'success' => $data['hotelResponse']['successful'] ?? false,
+            'xml_request_id' => $data['hotelRequest']->id ?? null
+        ];
     }
 }

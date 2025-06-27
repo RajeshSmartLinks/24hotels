@@ -26,6 +26,7 @@ use App\Models\WebbedsHotelSearch;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
+use App\Models\HotelRoomBookingInfo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Models\HotelBookingTravelsInfo;
@@ -335,6 +336,8 @@ class HomeController extends Controller
 
         $result = [];
         $result['countries'] = WebbedsCountry::get();
+        $result['searchRequest'] = WebbedsHotelSearch::find($searchId);
+        $noOfRooms = $result['searchRequest']->no_of_rooms;
 
         $result['hotelDeatils'] = [] ;
         if(!empty($hotelDetailsAndRooms['hotelDetails']))
@@ -348,65 +351,140 @@ class HomeController extends Controller
             $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'] = nodeConvertion($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room']);
 
             foreach($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'] as $rk => $room){
+                $roomNumber = ($rk+1);
+                $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$rk]['roomNumber'] = $roomNumber;
                 $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$rk]['roomType'] = nodeConvertion($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$rk]['roomType']);
                 foreach($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$rk]['roomType'] as $rtk => $roomType){
                     $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis'] = nodeConvertion($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis']);
                 }
             }
+            //dd($hotelDetailsAndRooms['allRooms']['hotel']['rooms']);
             //after node convertion
             //room formation to single pricing
 
             foreach ($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'] as $rk => $room) {
+                if($rk == 1){
+                    break;
+                }
                 foreach ($room['roomType'] as $rtk => $roomType) {
+                   
                     foreach ($roomType['rateBases']['rateBasis'] as $rbk => $rateBasis) {
                         $roomTypeCode = $roomType['@attributes']['roomtypecode'];
                         $rateBasisId = $rateBasis['@attributes']['id'];
-                        $key = $roomTypeCode . '_' . $rateBasisId;
+                        $roomName = $roomType['name'];
+                        // $key = $roomTypeCode . '_' . $rateBasisId.'_'.$room['roomNumber'];
 
-                        // Prepare allocation detail
+                        // // Prepare allocation detail
 
-                        $allocationDetail = $rateBasis['allocationDetails'];
-                        if (!isset( $result['availablerooms'][$key])) {
-                            // First time adding this combination
-                             $result['availablerooms'][$key] = [
-                                'name' => $roomType['name'],
-                                'roomPromotion' => $rateBasis['@attributes']['description'],
-                                'boardbasis' => $rateBasis['@attributes']['description'],
-                                'roomTypeCode' => $roomTypeCode,
-                                'rateBasisId' => $rateBasisId,
-                                'total' => $rateBasis['total'],
-                                'roomPrice' => [$rateBasis['total']],
-                                'allocationDetails' => [$allocationDetail],
-                                'formatedBookingCode' => [['allocationDetails' => $allocationDetail , 'roomTypeCode' => $roomTypeCode , 'rateBasisId' => $rateBasisId]]
-                            ];
-                        } else {
-                            // Already exists — add to total and append allocationDetails
-                            $result['availablerooms'][$key]['roomPrice'][] = $rateBasis['total'];
-                            $result['availablerooms'][$key]['total'] += $rateBasis['total'];
-                            if (!in_array($allocationDetail,  $result['availablerooms'][$key]['allocationDetails'])) {
-                                $result['availablerooms'][$key]['allocationDetails'][] = $allocationDetail;
-                                $result['availablerooms'][$key]['formatedBookingCode'][] = $result['availablerooms'][$key]['formatedBookingCode'][0];
+                        // $allocationDetail = $rateBasis['allocationDetails'];
+                        // if($noOfRooms == 1){
+                          
+                        //         $result['availablerooms'][] = [
+                        //             'name' => $roomType['name'],
+                        //             'roomPromotion' => $rateBasis['@attributes']['description'],
+                        //             'boardbasis' => $rateBasis['@attributes']['description'],
+                        //             'roomTypeCode' => $roomTypeCode,
+                        //             'rateBasisId' => $rateBasisId,
+                        //             'total' => $rateBasis['total'],
+                        //             'roomPrice' => [$rateBasis['total']],
+                        //             'allocationDetails' => [$allocationDetail],
+                        //             'formatedBookingCode' => [['allocationDetails' => $allocationDetail , 'roomTypeCode' => $roomTypeCode , 'rateBasisId' => $rateBasisId]]
+                        //         ];
+                        // }else{
+                        //     if (!isset( $result['availablerooms'][$key])) {
+                        //         // First time adding this combination
+                        //         $result['availablerooms'][$key] = [
+                        //             'name' => $roomType['name'],
+                        //             'roomPromotion' => $rateBasis['@attributes']['description'],
+                        //             'boardbasis' => $rateBasis['@attributes']['description'],
+                        //             'roomTypeCode' => $roomTypeCode,
+                        //             'rateBasisId' => $rateBasisId,
+                        //             'total' => $rateBasis['total'],
+                        //             'roomPrice' => [$rateBasis['total']],
+                        //             'allocationDetails' => [$allocationDetail],
+                        //             'formatedBookingCode' => [['allocationDetails' => $allocationDetail , 'roomTypeCode' => $roomTypeCode , 'rateBasisId' => $rateBasisId]]
+                        //         ];
+                        //     } else {
+                        //         // Already exists — add to total and append allocationDetails
+                        //         $result['availablerooms'][$key]['roomPrice'][] = $rateBasis['total'];
+                        //         $result['availablerooms'][$key]['total'] += $rateBasis['total'];
+                        //         if (!in_array($allocationDetail,  $result['availablerooms'][$key]['allocationDetails'])) {
+                        //             $result['availablerooms'][$key]['allocationDetails'][] = $allocationDetail;
+                        //             $result['availablerooms'][$key]['formatedBookingCode'][] = $result['availablerooms'][$key]['formatedBookingCode'][0];
+                        //         }
+                        //     }
+
+                        // }
+                        $bookingAllocation = null;
+                        $allocationDetails = null;
+                        $formatedBookingCode = null;
+                        $roomPrice = null;
+                        $total = 0;
+                      
+                        for($i=0;$i<$noOfRooms;$i++){
+
+                            if($i == 0){
+                                // print_r($i);
+                                // print_r($rtk);
+                                // print_r($rbk);
+                                // echo"<br>";
+                                $bookingAllocation = $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$i]['roomType'][$rtk]['rateBases']['rateBasis'][$rbk]['allocationDetails'];
+                                $allocationDetails[] = $bookingAllocation;
+                                $formatedBookingCode[] = ['allocationDetails' => $bookingAllocation , 'roomTypeCode' => $roomTypeCode , 'rateBasisId' => $rateBasisId];
+                                $roomPrice[] = $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$i]['roomType'][$rtk]['rateBases']['rateBasis'][$rbk]['total'];
+                            }else{
+                              
+                                $roomTypeKey = array_search($roomName,array_column($hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$i]['roomType'],'name'));
+                                if(is_numeric($roomTypeKey) && isset( $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$i]['roomType'][$roomTypeKey]['rateBases']['rateBasis'][$rbk])){
+
+                                    $bookingAllocation = $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$i]['roomType'][$roomTypeKey]['rateBases']['rateBasis'][$rbk]['allocationDetails'];
+                                    
+                                    $allocationDetails[] = $bookingAllocation;
+                                    $formatedBookingCode[] = ['allocationDetails' => $bookingAllocation , 'roomTypeCode' => $roomTypeCode , 'rateBasisId' => $rateBasisId];
+                                    $roomPrice[] = $hotelDetailsAndRooms['allRooms']['hotel']['rooms']['room'][$i]['roomType'][$roomTypeKey]['rateBases']['rateBasis'][$rbk]['total'];
+                                    
+                                } 
                             }
                         }
+                        $result['availablerooms'][]  =  [
+                            'name' => $roomType['name'],
+                            'roomPromotion' => $rateBasis['@attributes']['description'],
+                            'boardbasis' => $rateBasis['@attributes']['description'],
+                            'roomTypeCode' => $roomTypeCode,
+                            'rateBasisId' => $rateBasisId,
+                            'total' => array_sum($roomPrice),
+                            'roomPrice' => $roomPrice,
+                            'allocationDetails' => $allocationDetails,
+                            'formatedBookingCode' => $formatedBookingCode
+                        ];
                     }
                 }
 
+                
+
             }
+            // dd($result['availablerooms']);
 
             $result['availablerooms'] = array_values($result['availablerooms']);
             foreach($result['availablerooms'] as $r=>$room){
-                foreach($room['roomPrice'] as $rp => $fbc){
-                    $result['availablerooms'][$r]['roomPrice'][$rp] = hotelMarkUpPrice(array('totalPrice' =>  $fbc , 'currencyCode' => 'KWD' , 'totalTax' =>  0));
+                if(count($room['roomPrice']) == $noOfRooms){
+                    foreach($room['roomPrice'] as $rp => $fbc){
+                        $result['availablerooms'][$r]['roomPrice'][$rp] = hotelMarkUpPrice(array('totalPrice' =>  $fbc , 'currencyCode' => 'KWD' , 'totalTax' =>  0));
+                    }
+
+                    $result['availablerooms'][$r]['markups'] = hotelMarkUpPrice(array('totalPrice' =>  $room['total'] , 'currencyCode' => 'KWD' , 'totalTax' =>  0));
+                    $result['availablerooms'][$r]['allocationDetails'] = json_encode($result['availablerooms'][$r]['allocationDetails']);
+                    $bookingCode  = [ 'allocationDetails' => $result['availablerooms'][$r]['allocationDetails'] , 'code' => $result['availablerooms'][$r]['roomTypeCode'] , 'selectedRateBasis' => $result['availablerooms'][$r]['rateBasisId']];
+                    $result['availablerooms'][$r]['bookingCode'] = json_encode($bookingCode);
+
+                    // $result['availablerooms'][$r]['roomPromotion'] = [];
+                    $result['availablerooms'][$r]['CancelPolicies'] = [];   
+                }else{
+                    unset($result['availablerooms'][$r]);
                 }
-
-                $result['availablerooms'][$r]['markups'] = hotelMarkUpPrice(array('totalPrice' =>  $room['total'] , 'currencyCode' => 'KWD' , 'totalTax' =>  0));
-                $result['availablerooms'][$r]['allocationDetails'] = json_encode($result['availablerooms'][$r]['allocationDetails']);
-                $bookingCode  = [ 'allocationDetails' => $result['availablerooms'][$r]['allocationDetails'] , 'code' => $result['availablerooms'][$r]['roomTypeCode'] , 'selectedRateBasis' => $result['availablerooms'][$r]['rateBasisId']];
-                $result['availablerooms'][$r]['bookingCode'] = json_encode($bookingCode);
-
-                // $result['availablerooms'][$r]['roomPromotion'] = [];
-                $result['availablerooms'][$r]['CancelPolicies'] = [];
+                
             }
+            $result['availablerooms'] = array_values($result['availablerooms']);
             // foreach($result['availablerooms'] as $r=>$room){
             //     if(isset($room['Supplements']))
             //     {
@@ -452,7 +530,7 @@ class HomeController extends Controller
 
         //searchRequest 
 
-        $result['searchRequest'] = WebbedsHotelSearch::find($searchId);
+        
         // $result['searchRequest'] = !empty($result['searchId']) ?  WebbedsHotelSearch::find($searchId)->toArray() : [];
         $result['hotelCode'] = $hotelCode;
 
@@ -508,45 +586,67 @@ class HomeController extends Controller
             }
             //after node convertion
             //room formation to single pricing
+            $bookingAllocation = null;
+            $allocationDetails = null;
+            $formatedBookingCode = null;
+            $roomPrice = null;
+            $total = 0;
 
             foreach ($prebookingDeatails['preBooking']['hotelResponse']['hotel']['rooms']['room'] as $rk => $room) {
                 foreach ($room['roomType'] as $rtk => $roomType) {
                     foreach ($roomType['rateBases']['rateBasis'] as $rbk => $rateBasis) {
                         $roomTypeCode = $roomType['@attributes']['roomtypecode'];
                         $rateBasisId = $rateBasis['@attributes']['id'];
+                        $name = $roomType['name'];
+                        $roomPromotion = $rateBasis['@attributes']['description'];
                         $key = $roomTypeCode . '_' . $rateBasisId;
 
                         // Prepare allocation detail
 
                         if($rateBasis['status'] == 'checked'){
                             $allocationDetail = $rateBasis['allocationDetails'];
-                            if (!isset( $result['roomDetails'][$key])) {
-                                // First time adding this combination
-                                $result['roomDetails'][$key] = [
-                                    'Name' => $roomType['name'],
-                                    'roomPromotion' => $rateBasis['@attributes']['description'],
-                                    'roomTypeCode' => $roomTypeCode,
-                                    'rateBasisId' => $rateBasisId,
-                                    'total' => $rateBasis['total'],
-                                    'roomPrice' => [$rateBasis['total']],
-                                    'allocationDetails' => [$allocationDetail],
-                                    'formatedBookingCode' => [['allocationDetails' => $allocationDetail , 'roomTypeCode' => $roomTypeCode , 'rateBasisId' => $rateBasisId]],
-                                    'Inclusion' => [],
-                                    'supplment_charges' => []
-                                ];
-                            } else {
-                                // Already exists — add to total and append allocationDetails
-                                $result['roomDetails'][$key]['roomPrice'][] = $rateBasis['total'];
-                                $result['roomDetails'][$key]['total'] += $rateBasis['total'];
-                                if (!in_array($allocationDetail,  $result['roomDetails'][$key]['allocationDetails'])) {
-                                    $result['roomDetails'][$key]['allocationDetails'][] = $allocationDetail;
-                                    $result['roomDetails'][$key]['formatedBookingCode'][] = $result['roomDetails'][$key]['formatedBookingCode'][0];
-                                }
-                            }
+                            // if (!isset( $result['roomDetails'][$key])) {
+                            //     // First time adding this combination
+                            //     $result['roomDetails'][$key] = [
+                            //         'Name' => $roomType['name'],
+                            //         'roomPromotion' => $rateBasis['@attributes']['description'],
+                            //         'roomTypeCode' => $roomTypeCode,
+                            //         'rateBasisId' => $rateBasisId,
+                            //         'total' => $rateBasis['total'],
+                            //         'roomPrice' => [$rateBasis['total']],
+                            //         'allocationDetails' => [$allocationDetail],
+                            //         'formatedBookingCode' => [['allocationDetails' => $allocationDetail , 'roomTypeCode' => $roomTypeCode , 'rateBasisId' => $rateBasisId]],
+                            //         'Inclusion' => [],
+                            //         'supplment_charges' => []
+                            //     ];
+                            // } else {
+                            //     // Already exists — add to total and append allocationDetails
+                            //     $result['roomDetails'][$key]['roomPrice'][] = $rateBasis['total'];
+                            //     $result['roomDetails'][$key]['total'] += $rateBasis['total'];
+                            //     if (!in_array($allocationDetail,  $result['roomDetails'][$key]['allocationDetails'])) {
+                            //         $result['roomDetails'][$key]['allocationDetails'][] = $allocationDetail;
+                            //         $result['roomDetails'][$key]['formatedBookingCode'][] = $result['roomDetails'][$key]['formatedBookingCode'][0];
+                            //     }
+                            // }
+                            $allocationDetails[] = $allocationDetail;
+                            $formatedBookingCode[] = ['allocationDetails' => $allocationDetail , 'roomTypeCode' => $roomTypeCode , 'rateBasisId' => $rateBasisId];
+                            $roomPrice[] = $rateBasis['total'];
                         }
                     }
                 }
             }
+             $result['roomDetails'][] = [
+                                    'Name' => $name,
+                                    'roomPromotion' => $roomPromotion,
+                                    'roomTypeCode' => $roomTypeCode,
+                                    'rateBasisId' => $rateBasisId,
+                                    'total' => array_sum($roomPrice),
+                                    'roomPrice' => $roomPrice,
+                                    'allocationDetails' => $allocationDetails,
+                                    'formatedBookingCode' => $formatedBookingCode,
+                                    'Inclusion' => [],
+                                    'supplment_charges' => []
+                                ];
             $result['roomDetails'] = array_values($result['roomDetails']);
             foreach($result['roomDetails'] as $r=>$room){
                 $result['roomDetails'][$r]['markups'] = hotelMarkUpPrice(array('totalPrice' =>  $room['total'] , 'currencyCode' => 'KWD' , 'totalTax' =>  0));
@@ -715,47 +815,74 @@ class HomeController extends Controller
             //after node convertion
             //room formation to single pricing
 
+            $bookingAllocation = null;
+            $allocationDetails = null;
+            $formatedBookingCode = null;
+            $roomPrice = null;
+            $total = 0;
+
             foreach ($prebookingDeatails['hotel']['rooms']['room'] as $rk => $room) {
                 foreach ($room['roomType'] as $rtk => $roomType) {
                     foreach ($roomType['rateBases']['rateBasis'] as $rbk => $rateBasis) {
                         $roomTypeCode = $roomType['@attributes']['roomtypecode'];
                         $rateBasisId = $rateBasis['@attributes']['id'];
+                        $name = $roomType['name'];
+                        $roomPromotion = $rateBasis['@attributes']['description'];
                         $key = $roomTypeCode . '_' . $rateBasisId;
 
                         // Prepare allocation detail
 
                         if($rateBasis['status'] == 'checked'){
                             $allocationDetail = $rateBasis['allocationDetails'];
-                            if (!isset( $result['roomDetails'][$key])) {
-                                // First time adding this combination
-                                $result['roomDetails'][$key] = [
-                                    'Name' => $roomType['name'],
-                                    'roomPromotion' => $rateBasis['@attributes']['description'],
-                                    'roomTypeCode' => $roomTypeCode,
-                                    'rateBasisId' => $rateBasisId,
-                                    'total' => $rateBasis['total'],
-                                    'roomPrice' => [$rateBasis['total']],
-                                    'allocationDetails' => [$allocationDetail],
-                                    'formatedBookingCode' => ['allocationDetails' => $allocationDetail , 'roomTypeCode' => $roomTypeCode , 'rateBasisId' => $rateBasisId],
-                                    'Inclusion' => [],
-                                    'supplment_charges' => []
-                                ];
-                            } else {
-                                // Already exists — add to total and append allocationDetails
-                                $result['roomDetails'][$key]['roomPrice'][] = $rateBasis['total'];
-                                $result['roomDetails'][$key]['total'] += $rateBasis['total'];
-                                if (!in_array($allocationDetail,  $result['roomDetails'][$key]['allocationDetails'])) {
-                                    $result['roomDetails'][$key]['allocationDetails'][] = $allocationDetail;
-                                    $result['roomDetails'][$key]['formatedBookingCode'][] = $result['roomDetails'][$key]['formatedBookingCode'][0];
+                            // if (!isset( $result['roomDetails'][$key])) {
+                            //     // First time adding this combination
+                            //     $result['roomDetails'][$key] = [
+                            //         'Name' => $roomType['name'],
+                            //         'roomPromotion' => $rateBasis['@attributes']['description'],
+                            //         'roomTypeCode' => $roomTypeCode,
+                            //         'rateBasisId' => $rateBasisId,
+                            //         'total' => $rateBasis['total'],
+                            //         'roomPrice' => [$rateBasis['total']],
+                            //         'allocationDetails' => [$allocationDetail],
+                            //         'formatedBookingCode' => ['allocationDetails' => $allocationDetail , 'roomTypeCode' => $roomTypeCode , 'rateBasisId' => $rateBasisId],
+                            //         'Inclusion' => [],
+                            //         'supplment_charges' => []
+                            //     ];
+                            // } else {
+                            //     // Already exists — add to total and append allocationDetails
+                            //     $result['roomDetails'][$key]['roomPrice'][] = $rateBasis['total'];
+                            //     $result['roomDetails'][$key]['total'] += $rateBasis['total'];
+                            //     if (!in_array($allocationDetail,  $result['roomDetails'][$key]['allocationDetails'])) {
+                            //         $result['roomDetails'][$key]['allocationDetails'][] = $allocationDetail;
+                            //         $result['roomDetails'][$key]['formatedBookingCode'][] = $result['roomDetails'][$key]['formatedBookingCode'][0];
                                     
                                     
-                                }
-                            }
+                            //     }
+                            // }
+                           
+                                    
+                                $allocationDetails[] = $allocationDetail;
+                                $formatedBookingCode[] = ['allocationDetails' => $allocationDetail , 'roomTypeCode' => $roomTypeCode , 'rateBasisId' => $rateBasisId];
+                                $roomPrice[] = $rateBasis['total'];
+                               
                         }
                     }
                 }
                 
             }
+            //dd($allocationDetails,$formatedBookingCode,$roomPrice);
+            $result['roomDetails'][] = [
+                                    'Name' => $name,
+                                    'roomPromotion' => $roomPromotion,
+                                    'roomTypeCode' => $roomTypeCode,
+                                    'rateBasisId' => $rateBasisId,
+                                    'total' => array_sum($roomPrice),
+                                    'roomPrice' => $roomPrice,
+                                    'allocationDetails' => $allocationDetails,
+                                    'formatedBookingCode' => $formatedBookingCode,
+                                    'Inclusion' => [],
+                                    'supplment_charges' => []
+                                ];
             $result['roomDetails'] = array_values($result['roomDetails']);
             foreach($result['roomDetails'] as $r=>$room){
                 $result['roomDetails'][$r]['markups'] = hotelMarkUpPrice(array('totalPrice' =>  $room['total'] , 'currencyCode' => 'KWD' , 'totalTax' =>  0));
@@ -765,6 +892,7 @@ class HomeController extends Controller
                 $result['roomDetails'][$r]['formatedBookingCode'] = json_encode($room['formatedBookingCode']);
                 $result['roomDetails'][$r]['CancelPolicies'] = [];
             }
+            //dd($result['roomDetails']);
         }
         $result['roomDetails'] = $result['roomDetails'][0];
 
@@ -852,6 +980,9 @@ class HomeController extends Controller
         }
      
         $hotelRoomBooking->save();
+        $result['searchRequest'] = WebbedsHotelSearch::find($searchId);
+        $jsonRoomRequest = json_decode($result['searchRequest']['rooms_request'] , true);
+        // [{"Adults":"2","Children":"1","ChildrenAges":["11"]}]
 
         //rooms loop
         foreach($request->input('room') as $r=>$room){
@@ -890,6 +1021,7 @@ class HomeController extends Controller
                     $HotelBookingTravelers->traveler_type = 'CNN';
                     $HotelBookingTravelers->hotel_booking_id = $hotelRoomBooking->id;
                     $HotelBookingTravelers->webbeds_code = $webbeds_code;
+                    $HotelBookingTravelers->age = $jsonRoomRequest[$r]['ChildrenAges'][$key];
                     $HotelBookingTravelers->save();
                 }
             }
@@ -902,7 +1034,7 @@ class HomeController extends Controller
 
         $result['hotelDetails'] = $hotelDetails;
         $result['hotelDetails']['image'] = $hotelDetails['thumbnail'];
-        $result['searchRequest'] = WebbedsHotelSearch::find($searchId);
+       
 
         return view('front_end.hotel.webbeds.preview',compact('titles','result'));
 
@@ -1056,26 +1188,67 @@ class HomeController extends Controller
                     $confirmBooking = new BookingController();
                     $confirmBookingDetails = $confirmBooking->Booking(['booking_id' => $hotelBookingId]);
                     $hotelbookingdetails->webbeds_booking_request_id = $confirmBookingDetails['xml_request_id'] ?? null;
-                   
-
+                    $booking_status = 'booking_pending';
                     if($confirmBookingDetails['success'])
                     {
-                        //dd($confirmBookingDetails);
-                        //booking successfull
-                        if($confirmBookingDetails['bookingInfo']['hotelResponse']['bookings']['booking']['bookingStatus'] == 2){
-                            //confirmed
-                            $hotelbookingdetails->booking_status = 'booking_completed';
-                        }else{
-                            //pending
-                             $hotelbookingdetails->booking_status = 'booking_pending';
+                        $booking_status = 'booking_completed';
+                        $confirmBookingDetails['bookingInfo']['hotelResponse']['bookings']['booking'] = nodeConvertion($confirmBookingDetails['bookingInfo']['hotelResponse']['bookings']['booking']);
+                        $confirmationHtml = null;
+                        
+                        foreach($confirmBookingDetails['bookingInfo']['hotelResponse']['bookings']['booking'] as $rm=>$bookingResponse){
+                            $hotelroomBookingInfo = new HotelRoomBookingInfo();
+                            
+                            $hotelroomBookingInfo->hotel_booking_id = $hotelbookingdetails->id;
+                            $hotelroomBookingInfo->room_no = $rm+1;
+                            $hotelroomBookingInfo->booking_code = $bookingResponse['bookingCode'];
+                            $hotelroomBookingInfo->booking_reference_no = $bookingResponse['bookingReferenceNumber'];
+                            $hotelroomBookingInfo->status = ($bookingResponse['bookingStatus'] == 2) ? 'confirmed' : 'pending';
+                            $hotelroomBookingInfo->save();
+                            $roomBookingDetails = new BookingController();
+                            $roomBookingInformation = $roomBookingDetails->RoomBookingDetails(['booking_code' => $bookingResponse['bookingCode'] ,'booking_status' => 1 , 'search_id' => $hotelbookingdetails->search_id]);
+                            // dd($roomBookingInformation);
+                            if($roomBookingInformation['success']){
+                                
+                                $hotelroomBookingInfo->room_name = $roomBookingInformation['roomBookingInfo']['hotelResponse']['product']['roomName'];
+                                $hotelroomBookingInfo->room_rate_basis = $roomBookingInformation['roomBookingInfo']['hotelResponse']['product']['rateBasis'];
+                                // $hotelroomBookingInfo->itinerary_code = $bookingResponse['roomType'];
+                                $hotelroomBookingInfo->save();
+                            }
+                            if($bookingResponse['bookingStatus'] != 2){
+                                $booking_status = 'booking_partially_completed';
+                            }
+                            $confirmationHtml .= $roomBookingInformation['roomBookingInfo']['hotelResponse']['voucher_htmls'][0] ?? null;
+                            //dd($confirmationHtml);
                         }
-                        //bookingCode
-                        $hotelbookingdetails->confirmation_number = $confirmBookingDetails['bookingInfo']['hotelResponse']['bookings']['booking']['bookingCode'] ?? null;
-                        $hotelbookingdetails->booking_reference_number = $confirmBookingDetails['bookingInfo']['hotelResponse']['bookings']['booking']['bookingReferenceNumber']?? null;
+
+                        $hotelbookingdetails->booking_status = $booking_status;
+
+                        // //booking successfull
+                        // if($confirmBookingDetails['bookingInfo']['hotelResponse']['bookings']['booking']['bookingStatus'] == 2){
+                        //     //confirmed
+                        //     $hotelbookingdetails->booking_status = 'booking_completed';
+                        // }else{
+                        //     //pending
+                        //      $hotelbookingdetails->booking_status = 'booking_pending';
+                        // }
+                        // //bookingCode
+                        // $hotelbookingdetails->confirmation_number = $confirmBookingDetails['bookingInfo']['hotelResponse']['bookings']['booking']['bookingCode'] ?? null;
+                        // $hotelbookingdetails->booking_reference_number = $confirmBookingDetails['bookingInfo']['hotelResponse']['bookings']['booking']['bookingReferenceNumber']?? null;
                         $hotelbookingdetails->save();
                         $result = [];
                         $result['hotelbookingdetails'] = $hotelbookingdetails;
-                        $result['confirmationHtml'] = $confirmBookingDetails['bookingInfo']['hotelResponse']['voucher_htmls'][0] ?? null;
+                        //$result['confirmationHtml'] = $confirmBookingDetails['bookingInfo']['hotelResponse']['voucher_htmls'][0] ?? null;
+                        $result['confirmationHtml'] = $confirmationHtml ?? null ;
+                        $address = auth()->user()->agency->address;
+                        if(!empty($result['confirmationHtml']) && !empty(auth()->user()->agency->logo)){
+                            $newImgUrl =  asset('uploads/agency/'.$agency->logo);
+                            $result['confirmationHtml'] = preg_replace(
+                                '/<img src="[^"]*"/',
+                                '<img src="' . $newImgUrl . '" height="150px"',
+                                $result['confirmationHtml']
+                            );
+                        }
+                       
 
                         $filename = "Reservation_".$hotelbookingdetails->booking_ref_id.".pdf";
                         $pdf = PDF::loadView('front_end.hotel.webbeds.email_templates.reservation', compact('titles','result'));
@@ -1269,55 +1442,55 @@ class HomeController extends Controller
     //     $result['confirmationText_raw'] = $confirmationTextNodes->item(0)->nodeValue;
     // }
 
-    // public function test(){
-    //     $jsonString = file_get_contents(public_path('roomsinfo.json'));
-    //     $decodedJson = json_decode($jsonString, true); // decode as array
+    public function test(){
+        $jsonString = file_get_contents(public_path('roomsinfo.json'));
+        $decodedJson = json_decode($jsonString, true); // decode as array
 
-    //     $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
+        $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
 
             
 
 
-    //     $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
+        $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
         
-    //         $mergedRoomData = [];
+            $mergedRoomData = [];
 
-    //         foreach ($allRooms as $roomIndex => $room) {
-    //             foreach ($room['roomType'] as $roomType) {
-    //                 $roomTypeCode = $roomType['_roomtypecode'];
-    //                 $roomName = $roomType['name'];
+            foreach ($allRooms as $roomIndex => $room) {
+                foreach ($room['roomType'] as $roomType) {
+                    $roomTypeCode = $roomType['_roomtypecode'];
+                    $roomName = $roomType['name'];
 
-    //                 foreach ($roomType['rateBases']['rateBasis'] as $rateBasis) {
-    //                     $rateBasisId = $rateBasis['_id'];
-    //                     $allocationDetails = $rateBasis['allocationDetails'];
-    //                     $totalPrice = floatval($rateBasis['total']['__text']);
+                    foreach ($roomType['rateBases']['rateBasis'] as $rateBasis) {
+                        $rateBasisId = $rateBasis['_id'];
+                        $allocationDetails = $rateBasis['allocationDetails'];
+                        $totalPrice = floatval($rateBasis['total']['__text']);
 
-    //                     $key = $roomTypeCode . '_' . $rateBasisId;
+                        $key = $roomTypeCode . '_' . $rateBasisId;
 
-    //                     if (!isset($mergedRoomData[$key])) {
-    //                         $mergedRoomData[$key] = [
-    //                             'roomTypeCode' => $roomTypeCode,
-    //                             'roomName' => $roomName,
-    //                             'rateBasisId' => $rateBasisId,
-    //                             'total' => 0,
-    //                             'allocationDetails' => [],
-    //                             'roomCount' => 0
-    //                         ];
-    //                     }
+                        if (!isset($mergedRoomData[$key])) {
+                            $mergedRoomData[$key] = [
+                                'roomTypeCode' => $roomTypeCode,
+                                'roomName' => $roomName,
+                                'rateBasisId' => $rateBasisId,
+                                'total' => 0,
+                                'allocationDetails' => [],
+                                'roomCount' => 0
+                            ];
+                        }
 
-    //                     // Merge totals and allocationDetails
-    //                     $mergedRoomData[$key]['total'] += $totalPrice;
-    //                     $mergedRoomData[$key]['allocationDetails'][] = $allocationDetails;
-    //                     $mergedRoomData[$key]['roomCount'] += 1;
-    //                 }
-    //             }
-    //         }
+                        // Merge totals and allocationDetails
+                        $mergedRoomData[$key]['total'] += $totalPrice;
+                        $mergedRoomData[$key]['allocationDetails'][] = $allocationDetails;
+                        $mergedRoomData[$key]['roomCount'] += 1;
+                    }
+                }
+            }
 
-    //         $result = $mergedRoomData;
+            $result = $mergedRoomData;
 
-    //     dd($result) ;
+        dd($result) ;
 
     
    
-    // }
+    }
 }

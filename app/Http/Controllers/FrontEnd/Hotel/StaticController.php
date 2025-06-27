@@ -29,7 +29,6 @@ class StaticController extends Controller
             foreach($countryList as $country)
             {
                 $cityListUrl = env('TBO_HOTEL_URL') . "CityList";
-                dd($country);
                 $postArray = array('CountryCode' => $country['Code']);
                 $cities = $this->TBOApi($cityListUrl, 'post' , $postArray);
                 if($cities['Status']['Code'] == 200)
@@ -44,7 +43,6 @@ class StaticController extends Controller
                         $postArray = [];
                         $postArray = array('CityCode' => $country['Code'] , "IsDetailedResponse" => "false");
                         $hotelsCodes = $this->TBOApi($hotelCodeUrl, 'post' , $postArray);
-                        dd($hotelsCodes);
                         if($hotelsCodes['Status']['Code'] == 200)
                         {
                             echo '<pre>';

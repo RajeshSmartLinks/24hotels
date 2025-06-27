@@ -44,7 +44,8 @@ class CreateHotelBookingsTable extends Migration
 
 
             $table->text('booking_code')->nullable();
-            $table->enum('booking_status',['booking_initiated','payment_initiated','payment_successful','payment_failure','payment_exipre','booking_failure','booking_completed','refund_initiated','refund_completed','cancellation_initiated','canceled','booking_pending'])->nullable();
+            $table->enum('booking_status',['booking_initiated','payment_initiated','payment_successful','payment_failure','payment_exipre','booking_failure','booking_completed','refund_initiated','refund_completed','cancellation_initiated','canceled','booking_pending','booking_partially_completed'])->nullable();
+
 
             $table->string('confirmation_number')->nullable();
            

@@ -196,7 +196,6 @@ class SearchController extends Controller
             'request_type' => 'search',
             'searchId' => $hotelSearch->id
         );
-        //dd($xml);
         $data = $this->WebbedsApi($data);
         $data['searchId'] = $hotelSearch->id;
         return $data;             
@@ -284,12 +283,11 @@ class SearchController extends Controller
                 );
                  $HotelsInfo = $this->XmlRequestWithoutLog($data);
                 // $HotelsInfo = $this->WebbedsApi($data);
-                //  dd($HotelsInfo);
                 if($HotelsInfo['success'])
                 {
+                    $HotelsInfo['hotels']['hotel'] = nodeConvertion($HotelsInfo['hotels']['hotel']);
                     foreach($HotelsInfo['hotels']['hotel'] as $hotelInfo)
                     {
-                        // print_r($hotelInfo);
                         $staticController = new StaticController();
                         $staticController->storeHotel($hotelInfo);
                     }

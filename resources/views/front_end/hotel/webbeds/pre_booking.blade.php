@@ -208,9 +208,17 @@
                         {{-- <option value="Master">Master</option>
                         <option value="Miss">Miss</option> --}}
                     
-                        <option value = "Miss">Miss</option>
-                        
-                        <option value = "Child">Child</option>
+                 
+                        <option value = "Mr">Mr</option>
+                        <option value = "Ms">Ms</option>
+                        <option value = "Mrs">Mrs</option>
+                        <option value = "Dr">Dr</option>
+                        <option value = "Madame">Madame</option>
+                        <option value = "Sir">Sir</option>
+                        <option value = "Sir/Madam">Sir/Madam</option>
+                        <option value = "Messrs">Messrs</option>
+                        <option value = "Monsieur">Monsieur</option>
+                        <option value = "Mademoiselle">Mademoiselle</option>
                        
                       </select>
                     
@@ -309,7 +317,7 @@
                     @endif
                     <div class="mb-2">
                       <label>{{__('lang.payment_type')}}</label><br>
-                      <div class="form-check form-check-inline col-3 text-center ">
+                      {{-- <div class="form-check form-check-inline col-3 text-center ">
                         <input  name="type_of_payment" class="form-check-input" checked="" required="" type="radio" value="k_net" style="margin-top: 26px;">
                         <label class="form-check-label center" >{{__('lang.k_net')}}<span><br><img src="{{asset('frontEnd/images/payment/knet-logo.png')}}"></span></label>
                       </div>
@@ -319,19 +327,19 @@
                           <img src="{{asset('frontEnd/images/payment/visa.png')}}">
                           <img src="{{asset('frontEnd/images/payment/mastercard.png')}}">
                         </span></label>
-                      </div>
+                      </div> --}}
                       @if (auth()->check() && auth()->user()->is_agent == 1)
                         <div class="form-check form-check-inline text-center ">
-                          <input name="type_of_payment" class="form-check-input" required="" type="radio" value="wallet" style="margin-top: 26px;">
+                          <input name="type_of_payment" class="form-check-input" required="" checked type="radio" value="wallet" style="margin-top: 26px;">
                           <label class="form-check-label center">{{__('lang.wallet')}}<span><br>
                             <img src="{{asset('frontEnd/images/payment/wallet.png')}}" style="height: 37px;width: 34px;">
                           </span></label>
                         </div>
                       @endif
-                      <div class="form-check form-check-inline col-3 text-center ">
+                      {{-- <div class="form-check form-check-inline col-3 text-center ">
                         <input  name="type_of_payment" class="form-check-input"  required="" type="radio" value="credit_card" style="margin-top: 26px;">
                         <label class="form-check-label center" >{{__('lang.apple_pay')}}<span><br><img src="{{asset('frontEnd/images/payment/apple-pay.png')}}"></span></label>
-                      </div>
+                      </div> --}}
                     </div>
                     <div class="d-grid">
                       <button class="btn btn-primary" type="submit" id ="paymentButton"><span></span>{{__('lang.proceed_to_payment')}} </button>

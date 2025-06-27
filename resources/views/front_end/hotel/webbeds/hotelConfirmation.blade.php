@@ -7,13 +7,26 @@
     <div class="container">
       <div class="row align-items-center">
         <div class="col-md-8">
-          <h1>Pending</h1>
+          <h1>@if($result['hotelbookingdetails']->booking_status == "booking_completed")
+              Booking Completed
+              @elseif($result['hotelbookingdetails']->booking_status == "booking_partially_completed")
+              Booking Partially Completed
+              @elseif($result['hotelbookingdetails']->booking_status == "booking_pending")
+              Booking Pending
+              @endif
+          </h1>
         </div>
         <div class="col-md-4">
           <ul class="breadcrumb justify-content-start justify-content-md-end mb-0">
             <li><a href="{{url('/')}}">Home</a></li>
             <li class="{{url('/')}}">Hotel Booking</li>
-            <li class="#">Pending</li>
+            <li class="#">@if($result['hotelbookingdetails']->booking_status == "booking_completed")
+              Booking Completed
+              @elseif($result['hotelbookingdetails']->booking_status == "booking_partially_completed")
+              Booking Partially Completed
+              @elseif($result['hotelbookingdetails']->booking_status == "booking_pending")
+              Booking Pending
+              @endif</li>
           </ul>
         </div>
       </div>
@@ -29,7 +42,7 @@
     <section class="section">
       <div class="container text-center">
         @if(!empty($result['confirmationHtml']))
-            @if($result['hotelbookingdetails']->booking_status == "booking_completed")
+            @if($result['hotelbookingdetails']->booking_status == "booking_completed" || $result['hotelbookingdetails']->booking_status == "booking_partially_completed")
                 <div>{!! $result['confirmationHtml'] !!}</div>
             @elseif($result['hotelbookingdetails']->booking_status == "booking_pending")   
                 <h2 class="text-8 fw-600 mb-3">Hotel Booking is in progress</h2>

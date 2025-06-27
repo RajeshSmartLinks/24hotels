@@ -19,7 +19,7 @@ class CreateHotelXmlRequestsTable extends Migration
             $table->longtext('response_xml');
             $table->integer('hotel_search_id')->nullable();
             $table->string('ip_address');
-            $table->enum('request_type',['search','getRooms' ,'getRoomsWithBlocking' ,'confirmBooking','cancelBooking'])->nullable();
+            $table->enum('request_type',['search','getRooms' ,'getRoomsWithBlocking' ,'confirmBooking','cancelBooking','getbookingdetails'])->nullable();
             $table->enum('supplier',['Webbeds'])->default('Webbeds')->nullable();
             $table->timestamps();
         });

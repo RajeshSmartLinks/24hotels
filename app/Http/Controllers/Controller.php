@@ -832,7 +832,7 @@ class Controller extends BaseController
             
             $clientrsp = $client->request('POST', $this->WebbedsUrl, $requestData);
             $response = $clientrsp->getBody()->getContents();
-            if(isset($request['request_type']) && $request['request_type'] == 'confirmBooking'){
+            if(isset($request['request_type']) && ($request['request_type'] == 'confirmBooking' || $request['request_type'] == 'getbookingdetails')){
                $array =  XmlToArrayWithHTML($response);
             }else{
                 $xml = simplexml_load_string($response);
