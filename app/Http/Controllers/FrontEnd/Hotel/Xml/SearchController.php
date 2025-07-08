@@ -386,7 +386,7 @@ class SearchController extends Controller
         return [
             'hotelDetails' => $hotelDetails ,
             'allRooms' =>  $data['hotelResponse'],
-            'success' => $data['hotelResponse']['successful'],
+            'success' => isset($data['hotelResponse']['successful']) ?   $data['hotelResponse']['successful'] : false,
             'searchId' => $searchId
         ];
 

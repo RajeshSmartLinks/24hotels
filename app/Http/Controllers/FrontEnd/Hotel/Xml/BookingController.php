@@ -179,23 +179,50 @@ class BookingController extends Controller
                 $allocationDetailsValue = $bookingCode[$roomIndex]['allocationDetails'];
                 $rateBasisIds = $bookingCode[$roomIndex]['rateBasisId'];
                 $roomTypeCodes = $bookingCode[$roomIndex]['roomTypeCode'];
+                $validForOccupancyDetails = $bookingCode[$roomIndex]['validForOccupancyDetails'] ?? [];
+                $adultsCode = $adults;
+                $actualAdults = $adults;
+                $extrabeds = 0;
+                if(!empty($validForOccupancyDetails)){
+                    $adultsCode = $validForOccupancyDetails['adults'];
+                    $extrabeds = $validForOccupancyDetails['extraBed'];
+                    if(isset($validForOccupancyDetails['children'])){
+                        $occupencyChildren = $validForOccupancyDetails['children'];
+                        $occupencyChildrenAges = explode("," ,$validForOccupancyDetails['childrenAges']);
+                    }
+                    
+                }
 
                 $xml .= <<<EOM
                             <room runno="{$roomIndex}">
                                 <roomTypeCode>{$roomTypeCodes}</roomTypeCode>
                                 <selectedRateBasis>{$rateBasisIds}</selectedRateBasis>
                                 <allocationDetails>{$allocationDetailsValue}</allocationDetails>
-                                <adultsCode>{$adults}</adultsCode>
-                                <actualAdults>{$adults}</actualAdults>
-            EOM;
+                                <adultsCode>{$adultsCode}</adultsCode>
+                                <actualAdults>{$actualAdults}</actualAdults>
+                EOM;
 
                 // Children
+            
                 if ($children > 0) {
-                    $xml .= "<children no=\"{$children}\">";
-                    foreach ($childrenAges as $index => $age) {
-                        $xml .= "<child runno=\"{$index}\">{$age}</child>";
+
+                    //with validForOccupancyDetails changing this tag values
+                    if(isset($occupencyChildren)){
+                         $xml .= "<children no=\"{$occupencyChildren}\">";
+                        foreach ($occupencyChildrenAges as $index => $age) {
+                             
+                            $xml .= "<child runno=\"{$index}\">{$age}</child>";
+                            
+                        }
+                        $xml .= "</children>";
+                    }else{
+                        $xml .= "<children no=\"{$children}\">";
+                        foreach ($childrenAges as $index => $age) {
+                            $xml .= "<child runno=\"{$index}\">{$age}</child>";
+                        }
+                        $xml .= "</children>";
                     }
-                    $xml .= "</children>";
+                    
 
                     $xml .= "<actualChildren no=\"{$children}\">";
                     foreach ($childrenAges as $index => $age) {
@@ -208,11 +235,11 @@ class BookingController extends Controller
                 }
 
                 $xml .= <<<EOM
-                                <extraBed>0</extraBed>
+                                <extraBed>$extrabeds</extraBed>
                                 <passengerNationality>{$nationality}</passengerNationality>
                                 <passengerCountryOfResidence>{$residency}</passengerCountryOfResidence>
                                 <passengersDetails>
-            EOM;
+                EOM;
 
                 foreach ($roomTravelers as $index => $traveler) {
                     $leading = $index == 0 ? "yes" : "no";
@@ -226,8 +253,8 @@ class BookingController extends Controller
                                         <firstName>{$firstName}</firstName>
                                         <lastName>{$lastName}</lastName>
                                     </passenger>
-            EOM;
-                }
+                EOM;
+            }
 
                 $xml .= <<<EOM
                                 </passengersDetails>

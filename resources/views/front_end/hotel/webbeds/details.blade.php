@@ -292,7 +292,8 @@
                           <th scope="row">{{$loop->iteration}}</th>
                           <td>{{$roomDetails['name']}}</td>
                           <td>{{$roomDetails['boardbasis']}}</td>
-                          <td><a href="#" data-bs-toggle="modal" data-bs-target="#cancellation-policy{{$r}}">{{__('lang.cancellation_policy')}}</a>
+                          <td>
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#cancellation-policy{{$r}}">{{__('lang.cancellation_policy')}}</a>
                             <div id="cancellation-policy{{$r}}" class="modal fade" role="dialog" aria-hidden="true">
                               <div class="modal-dialog modal-dialog-centered" role="document">
                                 <div class="modal-content">
@@ -303,7 +304,32 @@
                                   <div class="modal-body">
                                     <ul>
                                       @foreach($roomDetails['CancelPolicies'] as $policy)
-                                      <li>{{$policy}}</li>
+
+                                      <li>
+                                        @if(!empty($policy['noShow']))
+                                            <strong>No-show Policy:</strong>
+                                        @endif
+
+                                        @if(!empty($policy['fromDate']))
+                                            From: {{ $policy['fromDate'] }}
+                                        @endif
+
+                                        @if(!empty($policy['toDate']))
+                                            To: {{ $policy['toDate'] }}
+                                        @endif
+
+                                        @if(!empty($policy['charge']))
+                                            Charge: {{ $policy['charge'] }}
+                                        @endif
+
+                                        @if(!empty($policy['amendRestricted']))
+                                            <span class="text-danger">Amendments not allowed</span>
+                                        @endif
+
+                                        @if(!empty($policy['cancelRestricted']))
+                                            <span class="text-danger">Cancellations not allowed</span>
+                                        @endif
+                                      </li>
                                       @endforeach
                                       <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@24flights.com">booking@24Flights.com</a></strong></li>
                                       <li>{{__('lang.cancellation_policy_2')}}</li>
@@ -314,11 +340,27 @@
                             </div>
                           </td>
                           <td>KWD {{number_format($roomDetails['markups']['totalPrice']['value']/($result['searchRequest']->no_of_rooms*$result['searchRequest']->no_of_nights))}}</td>
-                          <td>{{$result['searchRequest']->no_of_rooms}} {{__('lang.room')}}/ {{$result['searchRequest']->no_of_nights}} {{__('lang.night')}}</td>
+                          <td>
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#tariffNotes{{$r}}"><i class="fa fa-info-circle"></i></a>
+                            <div id="tariffNotes{{$r}}" class="modal fade" role="dialog" aria-hidden="true">
+                              <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title">Tariff Notes</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                  </div>
+                                  <div class="modal-body">
+                                    {!! $roomDetails['tariffNotes'] !!}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+
+                          </td>
+                          {{-- <td>{{$result['searchRequest']->no_of_rooms}} {{__('lang.room')}}/ {{$result['searchRequest']->no_of_nights}} {{__('lang.night')}}</td> --}}
                           <td style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">{{$roomDetails['markups']['totalPrice']['currency_code'] }}&nbsp; {{$roomDetails['markups']['totalPrice']['value'] }} 
                             <span><a href="#" data-bs-toggle="modal" data-bs-target="#roomInfo{{$r}}"><i class="fa fa-info-circle"></i></a></span> 
-                            <span> <a href="{{route('PreBookingRoom',['hotelCode'=>encrypt($result['hotelDeatils']['hotel_code']) , 'searchId' =>encrypt($result['searchRequest']->id) , 'bookingCode' => encrypt($roomDetails['bookingCode'])])}}" class="btn btn-sm btn-outline-primary shadow-none gButton"><span class="gButtonloader"></span>Book</a> </span>
-
                             <div id="roomInfo{{$r}}" class="modal fade" role="dialog" aria-hidden="true">
                               <div class="modal-dialog modal-dialog-centered" role="document">
                                 <div class="modal-content">
@@ -328,8 +370,13 @@
                                   </div>
                                   <div class="modal-body">
                                     <ul>
-                                      @foreach($roomDetails['roomPrice'] as $roomPrice)
-                                      <li>Room {{$loop->iteration}} : {{$roomPrice['totalPrice']['currency_code']}} &nbsp; {{$roomPrice['totalPrice']['value']}}</li>
+                                      @foreach($roomDetails['roomPrice'] as $rnum =>$roomPrice)
+                                      <li>Room {{$loop->iteration}} : {{$roomPrice['totalPrice']['currency_code']}} &nbsp; {{$roomPrice['totalPrice']['value']}} 
+                                        @if(isset($roomDetails['validForOccupancy'][$rnum]))
+                                        &nbsp;
+                                        <a data-toggle="popover" data-title="{{$roomDetails['validForOccupancy'][$rnum]}}" role="button" data-original-title="{{$roomDetails['validForOccupancy'][$rnum]}}" title="{{$roomDetails['validForOccupancy'][$rnum]}}" ><i class="fa fa-bed"></i></a>
+                                        @endif
+                                      </li>
                                       @endforeach
                                       {{-- <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@24  flights.com">booking@24Flights.com</a></strong></li>
                                       <li>{{__('lang.cancellation_policy_2')}}</li> --}}
@@ -338,6 +385,37 @@
                                 </div>
                               </div>
                             </div>
+                           
+                            @if(!empty($roomDetails['specialPromotion']))
+                             <span>  <a href="#" data-bs-toggle="modal" data-bs-target="#specialPromotion{{$r}}"><i class="fa fa-tags"></i></a></span> 
+                              <div id="specialPromotion{{$r}}" class="modal fade" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                  <div class="modal-content">
+                                    <div class="modal-header">
+                                      <h5 class="modal-title">Special Promotion</h5>
+                                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                      <ul>
+                                        @foreach($roomDetails['specialPromotion'] as $policy)
+                                        <li>
+                                          {{$policy}}
+                                        </li>
+                                        @endforeach
+                                      <ul>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                            @endif
+                           
+                             @if( $result['searchRequest']->no_of_rooms == 1 && isset($roomDetails['validForOccupancy'][0]))
+                              <a   title="{{$roomDetails['validForOccupancy'][0]}}" ><i class="fa fa-bed"></i></a>
+                              @endif
+                            <span> <a href="{{route('PreBookingRoom',['hotelCode'=>encrypt($result['hotelDeatils']['hotel_code']) , 'searchId' =>encrypt($result['searchRequest']->id) , 'bookingCode' => encrypt($roomDetails['bookingCode'])])}}" class="btn btn-sm btn-outline-primary shadow-none gButton"><span class="gButtonloader"></span>Book</a> </span>
+
+                            
                           
                           
                           </td>

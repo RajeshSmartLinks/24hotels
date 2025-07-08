@@ -822,17 +822,20 @@ class Controller extends BaseController
 
     public function WebbedsApi($request)
     {
+        //dd($request);
         set_time_limit(400); 
         try {
             $headers = array(
                 "Accept"=> "application/xml",
+                "Accept-Encoding" => "gzip, deflate"
             );
             $client = new Client();
             $requestData = ['headers' => $headers,'body' => $request['xml'],'verify' => false];
             
             $clientrsp = $client->request('POST', $this->WebbedsUrl, $requestData);
             $response = $clientrsp->getBody()->getContents();
-            if(isset($request['request_type']) && ($request['request_type'] == 'confirmBooking' || $request['request_type'] == 'getbookingdetails')){
+            if(isset($request['request_type']) && ($request['request_type'] == 'confirmBooking' || $request['request_type'] == 'getbookingdetails' || $request['request_type'] == 'getRooms'|| $request['request_type'] == 'getRoomsWithBlocking')){
+
                $array =  XmlToArrayWithHTML($response);
             }else{
                 $xml = simplexml_load_string($response);
@@ -841,7 +844,7 @@ class Controller extends BaseController
         
 
             // // Now you can use it like a normal array
-            // dd($array);
+            //   dd($array);
 
 
             // $responseArray = XmlToArray::convert($response, $outputRoot = false);

@@ -1331,31 +1331,222 @@ if(! function_exists('webbedsSalutationsIds')){
 
 
 if(! function_exists('XmlToArrayWithHTML')){
-    function XmlToArrayWithHTML($response) {
-        $dom = new DOMDocument();
-        libxml_use_internal_errors(true); // suppress warnings
-        $dom->loadXML($response);
+    // function XmlToArrayWithHTML($response) {
+    //     $dom = new DOMDocument();
+    //     libxml_use_internal_errors(true); // suppress warnings
+    //     $dom->loadXML($response);
 
-        // Convert to array
-        $simpleXml = simplexml_import_dom($dom);
-        $result = json_decode(json_encode($simpleXml), true);
+    //     // Convert to array
+    //     $simpleXml = simplexml_import_dom($dom);
+    //     $result = json_decode(json_encode($simpleXml), true);
 
-        // Manually extract raw HTML CDATA
-        $confirmationTextNode = $dom->getElementsByTagName('confirmationText')->item(0);
-        if ($confirmationTextNode) {
-            $result['confirmationText_html'] = $confirmationTextNode->nodeValue;
-        }
+    //     // Manually extract raw HTML CDATA
+    //     $confirmationTextNode = $dom->getElementsByTagName('confirmationText')->item(0);
+    //     if ($confirmationTextNode) {
+    //         $result['confirmationText_html'] = $confirmationTextNode->nodeValue;
+    //     }
 
-        // Extract <voucher> for each booking
-        $voucherHTMLs = [];
-        foreach ($dom->getElementsByTagName('voucher') as $voucherNode) {
-            $voucherHTMLs[] = $voucherNode->nodeValue;
-        }
+    //     // Extract <voucher> for each booking
+    //     $voucherHTMLs = [];
+    //     foreach ($dom->getElementsByTagName('voucher') as $voucherNode) {
+    //         $voucherHTMLs[] = $voucherNode->nodeValue;
+    //     }
+    //     $result['voucher_htmls'] = $voucherHTMLs;
+
+    //     return $result;
+    // }
+
+    // function XmlToArrayWithHTML(string $response): array
+    // {
+    //     $dom = new DOMDocument();
+    //     libxml_use_internal_errors(true);
+    //     $loaded = $dom->loadXML($response);
+    //     libxml_clear_errors();
+
+    //     if (!$loaded) {
+    //         return ['error' => 'Invalid XML format'];
+    //     }
+
+    //     // Convert XML to array
+    //     $simpleXml = simplexml_import_dom($dom);
+    //     $result = json_decode(json_encode($simpleXml), true);
+
+    //     // Extract confirmationText
+    //     $confirmationNode = $dom->getElementsByTagName('confirmationText')->item(0);
+    //     if ($confirmationNode) {
+    //         $result['confirmationText_html'] = trim($confirmationNode->nodeValue);
+    //     }
+
+    //     // Extract voucher HTMLs
+    //     $voucherHTMLs = [];
+    //     foreach ($dom->getElementsByTagName('voucher') as $node) {
+    //         $voucherHTMLs[] = trim($node->nodeValue);
+    //     }
+    //     if (!empty($voucherHTMLs)) {
+    //         $result['voucher_htmls'] = $voucherHTMLs;
+    //     }
+
+    //     // ✅ Inject tariff_notes_html inline in each rateBasis
+    //     foreach ($dom->getElementsByTagName('rateBasis') as $domRateBasis) {
+    //         $rateId = $domRateBasis->getAttribute('id');
+    //         $runno = $domRateBasis->getAttribute('runno');
+    //         $tariffNode = $domRateBasis->getElementsByTagName('tariffNotes')->item(0);
+    //         $tariffText = $tariffNode ? trim($tariffNode->nodeValue) : null;
+
+    //         // Inject into decoded result structure
+    //         foreach ($result['hotel']['rooms']['room'] as &$room) {
+    //             $roomTypes = is_assoc($room['roomType']) ? [$room['roomType']] : $room['roomType'];
+
+    //             foreach ($roomTypes as &$roomType) {
+    //                 $rateBases = is_assoc($roomType['rateBases']['rateBasis']) ? [$roomType['rateBases']['rateBasis']] : $roomType['rateBases']['rateBasis'];
+
+    //                 foreach ($rateBases as &$rateBasis) {
+    //                     if (
+    //                         isset($rateBasis['@attributes']['id'], $rateBasis['@attributes']['runno']) &&
+    //                         $rateBasis['@attributes']['id'] == $rateId &&
+    //                         $rateBasis['@attributes']['runno'] == $runno
+    //                     ) {
+    //                         $rateBasis['tariff_notes_html'] = $tariffText;
+    //                     }
+    //                 }
+
+    //                 $roomType['rateBases']['rateBasis'] = is_assoc($roomType['rateBases']['rateBasis'])
+    //                     ? $rateBases[0]
+    //                     : $rateBases;
+    //             }
+
+    //             $room['roomType'] = is_assoc($room['roomType']) ? $roomTypes[0] : $roomTypes;
+    //         }
+    //     }
+
+    //     return $result;
+    // }
+    function XmlToArrayWithHTML(string $response): array
+{
+    $dom = new DOMDocument();
+    libxml_use_internal_errors(true);
+    $loaded = $dom->loadXML($response);
+    libxml_clear_errors();
+
+    if (!$loaded) {
+        return ['error' => 'Invalid XML format'];
+    }
+
+    // Convert XML to array
+    $simpleXml = simplexml_import_dom($dom);
+    $result = json_decode(json_encode($simpleXml), true);
+
+    // Extract confirmationText
+    $confirmationNode = $dom->getElementsByTagName('confirmationText')->item(0);
+    if ($confirmationNode) {
+        $result['confirmationText_html'] = trim($confirmationNode->nodeValue);
+    }
+
+    // Extract voucher HTMLs
+    $voucherHTMLs = [];
+    foreach ($dom->getElementsByTagName('voucher') as $node) {
+        $voucherHTMLs[] = trim($node->nodeValue);
+    }
+    if (!empty($voucherHTMLs)) {
         $result['voucher_htmls'] = $voucherHTMLs;
+    }
 
+    // Normalize rooms array
+    if (!isset($result['hotel']['rooms']['room'])) {
         return $result;
     }
+
+    $rooms = is_assoc($result['hotel']['rooms']['room'])
+        ? [$result['hotel']['rooms']['room']]
+        : $result['hotel']['rooms']['room'];
+
+    foreach ($dom->getElementsByTagName('rateBasis') as $domRateBasis) {
+        $rateId = $domRateBasis->getAttribute('id');
+        $runno = $domRateBasis->getAttribute('runno');
+        $tariffNode = $domRateBasis->getElementsByTagName('tariffNotes')->item(0);
+        $tariffText = $tariffNode ? trim($tariffNode->nodeValue) : null;
+
+        foreach ($rooms as &$room) {
+            if (!isset($room['roomType'])) continue;
+
+            $roomTypes = is_assoc($room['roomType'])
+                ? [$room['roomType']]
+                : $room['roomType'];
+
+            foreach ($roomTypes as &$roomType) {
+                if (!isset($roomType['rateBases']['rateBasis'])) continue;
+
+                $rateBases = is_assoc($roomType['rateBases']['rateBasis'])
+                    ? [$roomType['rateBases']['rateBasis']]
+                    : $roomType['rateBases']['rateBasis'];
+
+                foreach ($rateBases as &$rateBasis) {
+                    if (
+                        isset($rateBasis['@attributes']['id'], $rateBasis['@attributes']['runno']) &&
+                        (string)$rateBasis['@attributes']['id'] === (string)$rateId &&
+                        (string)$rateBasis['@attributes']['runno'] === (string)$runno
+                    ) {
+                        $rateBasis['tariff_notes_html'] = $tariffText;
+                    }
+                }
+
+                $roomType['rateBases']['rateBasis'] = is_assoc($roomType['rateBases']['rateBasis'])
+                    ? $rateBases[0]
+                    : $rateBases;
+            }
+
+            $room['roomType'] = is_assoc($room['roomType']) ? $roomTypes[0] : $roomTypes;
+        }
+    }
+
+    // Final normalized output
+    $result['hotel']['rooms']['room'] = is_assoc($result['hotel']['rooms']['room'])
+        ? $rooms[0]
+        : $rooms;
+
+    return $result;
 }
+
+
+// Helper function to check if array is associative
+
+
+   
+
+
+
+
+
+
+
+
+}
+function is_assoc(array $array): bool
+{
+    return array_keys($array) !== range(0, count($array) - 1);
+}
+ function formatCancellationRules($cancellationRules): array
+    {
+        if (!$cancellationRules || !isset($cancellationRules['rule'])) {
+            return [];
+        }
+
+        $rules = is_assoc($cancellationRules['rule']) ? [$cancellationRules['rule']] : $cancellationRules['rule'];
+        $output = [];
+
+        foreach ($rules as $rule) {
+            $output[] = [
+                'fromDate' => $rule['fromDate'] ?? null,
+                'toDate' => $rule['toDate'] ?? null,
+                'noShow' => isset($rule['noShowPolicy']),
+                'amendRestricted' => isset($rule['amendRestricted']),
+                'cancelRestricted' => isset($rule['cancelRestricted']),
+                'charge' => $rule['charge']['formatted'] ?? ($rule['charge']['__text'] ?? null),
+            ];
+        }
+
+        return $output;
+    }
 
 if (!function_exists('clean_string')) {
     function clean_string($string, $keepSpaces = true) {
