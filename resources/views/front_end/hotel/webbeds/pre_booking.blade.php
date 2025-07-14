@@ -402,6 +402,12 @@
                     <li class="mb-2 fw-500"> {{__('lang.coupon_amount')}}<span class="float-end text-4 fw-500 text-dark">{{$result['roomDetails']['markups']['coupon']['currency_code']}} &nbsp; <span id ="couponCodeAmount" data-couponCodeAmount = "0">0</span></span></li>
                     </ul>
                     <div class="text-dark bg-light-4 text-3 fw-600 p-3 mb-3"> {{__('lang.total_amount')}} <span class="float-end text-6">  {{$result['roomDetails']['markups']['totalPrice']['currency_code']}} <span id ="totalamount" data-initialtotalamount = {{$result['roomDetails']['markups']['totalPrice']['value']}}>{{$result['roomDetails']['markups']['totalPrice']['value']}}</span></span> </div>
+                    @if(!empty($result['roomDetails']['extraFee']))
+                    <ul class="list-unstyled">
+                    <li class="mb-2 fw-500">Taxes & Fees (not included in Price)<span class="float-end text-4 fw-500 text-dark">{{$result['roomDetails']['extraFee']}}</li>
+                    <ul>
+                    @endif
+                    
                     <span id ="standedamount" data-initialstandedamount = {{$result['roomDetails']['markups']['standed_price']['value']}}></span>
 
                     @if(Auth::guard('web')->check())

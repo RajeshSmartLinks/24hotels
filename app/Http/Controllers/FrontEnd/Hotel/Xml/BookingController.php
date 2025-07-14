@@ -51,7 +51,7 @@ class BookingController extends Controller
                     <fromDate>{$checkIn}</fromDate>
                     <toDate>{$checkOut}</toDate>
                     <currency>769</currency>
-                    <rooms>
+                    <rooms no="{$noOfRooms}">
         EOM;
       
         for ($i = 0; $i < $noOfRooms; $i++) {

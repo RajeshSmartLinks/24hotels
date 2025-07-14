@@ -40,7 +40,7 @@
     <!-- 404
     ============================================= -->
     <section class="section">
-      <div class="container text-center">
+      <div class="container ">
         @if(!empty($result['confirmationHtml']))
             @if($result['hotelbookingdetails']->booking_status == "booking_completed" || $result['hotelbookingdetails']->booking_status == "booking_partially_completed")
                 <div>{!! $result['confirmationHtml'] !!}</div>

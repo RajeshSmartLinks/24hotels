@@ -363,7 +363,7 @@ class UserController extends Controller
         $totalSalesCount = $totalFlightSalesCount + $totalHotelSalesCount;
 
         $userbookings  = FlightBooking::with('fromAirport','toAirport')->where("user_id" , Auth::user()->id)->orderBy('id',"desc")->whereDate('created_at', today())->paginate(5, ['*'], 'flight-tab');
-        $hotelbookings  = HotelBooking::with('hotelReservation')->where("user_id" , Auth::user()->id)->orderBy('id',"desc")->whereDate('created_at', today())->paginate(1, ['*'], 'hotel-tab');
+        $hotelbookings  = HotelBooking::with('hotelReservation')->where("user_id" , Auth::user()->id)->orderBy('id',"desc")->whereDate('created_at', today())->paginate(10, ['*'], 'hotel-tab');
 
         $info = [
             'totaltodaySalesAmount' => $totaltodaySalesAmount,
@@ -497,5 +497,55 @@ class UserController extends Controller
         $agents = User::where('is_agent',1)->where('is_master_agent',0)->where('agency_id',Auth::user()->agency_id)->orderBy('id','DESC')->paginate(15);;
         return view('front_end.agent.agentList',compact('titles','agents'));
 
+    }
+     public function hotelBookingcancellation( Request $request)
+    {
+        $bookingId = $request->input('bookingId');
+        $HotelBooking = HotelBooking::find($bookingId);
+        if($HotelBooking->booking_status == "booking_completed")
+        {
+            $HotelBooking->booking_status ="cancellation_initiated";
+            $HotelBooking->save();
+
+            // $user = $FlightBooking->User->first_name." ".$FlightBooking->User->last_name;
+
+            //email sending to user
+
+
+            // $emails =  explode(',',env('ADMINMAILS'));
+            // //print_r($emails);
+            // $emails[] = $FlightBooking->email;
+            // dd($emails);
+
+        //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) use($FlightBooking) {
+        //          $message->to($FlightBooking->email)
+        //         //$message->to([$FlightBooking->email])
+        //         //amr@masilagroup.com,ghunaim@masilagroup.com,acc@masilagroup.com
+        //                 ->subject('your request for Cancel / ReSchedule the ticket is intiated');
+        //     });
+        //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) {
+        //         $message->to('amr@masilagroup.com')
+        //        //$message->to([$FlightBooking->email])
+        //        //amr@masilagroup.com,ghunaim@masilagroup.com,acc@masilagroup.com
+        //                ->subject('your request for Cancel / ReSchedule the ticket is intiated');
+        //    });
+        //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) {
+        //          $message->to('ghunaim@masilagroup.com')
+        //         //$message->to([$FlightBooking->email])
+        //         //amr@masilagroup.com,ghunaim@masilagroup.com,acc@masilagroup.com
+        //                 ->subject('your request for Cancel / ReSchedule the ticket is intiated');
+        //     });
+        //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) {
+        //         $message->to('acc@masilagroup.com')
+        //        //$message->to([$FlightBooking->email])
+        //        //amr@masilagroup.com,ghunaim@masilagroup.com,acc@masilagroup.com
+        //                ->subject('your request for Cancel / ReSchedule the ticket is intiated');
+        //    });
+
+            return redirect()->back()->with('success', 'Cancellation initiated successfully'); 
+        }
+        else{
+            return redirect()->back()->with('error', 'Something went wrong'); 
+        }
     }
 }

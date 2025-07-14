@@ -1422,90 +1422,112 @@ if(! function_exists('XmlToArrayWithHTML')){
     //     return $result;
     // }
     function XmlToArrayWithHTML(string $response): array
-{
-    $dom = new DOMDocument();
-    libxml_use_internal_errors(true);
-    $loaded = $dom->loadXML($response);
-    libxml_clear_errors();
+    {
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $loaded = $dom->loadXML($response);
+        libxml_clear_errors();
 
-    if (!$loaded) {
-        return ['error' => 'Invalid XML format'];
-    }
+        if (!$loaded) {
+            return ['error' => 'Invalid XML format'];
+        }
 
-    // Convert XML to array
-    $simpleXml = simplexml_import_dom($dom);
-    $result = json_decode(json_encode($simpleXml), true);
+        // Convert XML to PHP array
+        $simpleXml = simplexml_import_dom($dom);
+        $result = json_decode(json_encode($simpleXml), true);
 
-    // Extract confirmationText
-    $confirmationNode = $dom->getElementsByTagName('confirmationText')->item(0);
-    if ($confirmationNode) {
-        $result['confirmationText_html'] = trim($confirmationNode->nodeValue);
-    }
+        // Extract confirmationText if exists
+        $confirmationNode = $dom->getElementsByTagName('confirmationText')->item(0);
+        if ($confirmationNode) {
+            $result['confirmationText_html'] = trim($confirmationNode->nodeValue);
+        }
 
-    // Extract voucher HTMLs
-    $voucherHTMLs = [];
-    foreach ($dom->getElementsByTagName('voucher') as $node) {
-        $voucherHTMLs[] = trim($node->nodeValue);
-    }
-    if (!empty($voucherHTMLs)) {
-        $result['voucher_htmls'] = $voucherHTMLs;
-    }
+        // Extract voucher HTMLs
+        $voucherHTMLs = [];
+        foreach ($dom->getElementsByTagName('voucher') as $node) {
+            $voucherHTMLs[] = trim($node->nodeValue);
+        }
+        if (!empty($voucherHTMLs)) {
+            $result['voucher_htmls'] = $voucherHTMLs;
+        }
 
-    // Normalize rooms array
-    if (!isset($result['hotel']['rooms']['room'])) {
+        // Normalize rooms array
+        if (!isset($result['hotel']['rooms']['room'])) {
+            return $result;
+        }
+
+        $rooms = is_assoc($result['hotel']['rooms']['room'])
+            ? [$result['hotel']['rooms']['room']]
+            : $result['hotel']['rooms']['room'];
+
+        foreach ($dom->getElementsByTagName('rateBasis') as $domRateBasis) {
+            $rateId = $domRateBasis->getAttribute('id');
+            $runno = $domRateBasis->getAttribute('runno');
+            $tariffNode = $domRateBasis->getElementsByTagName('tariffNotes')->item(0);
+            $tariffText = $tariffNode ? trim($tariffNode->nodeValue) : null;
+
+            // Extract propertyFees for this rateBasis
+            $fees = [];
+            foreach ($domRateBasis->getElementsByTagName('propertyFee') as $feeNode) {
+                $feeData = [];
+                foreach ($feeNode->attributes as $attr) {
+                    $feeData[$attr->name] = $attr->value;
+                }
+                $feeData['value'] = trim($feeNode->childNodes[0]->nodeValue ?? '');
+                $formatted = $feeNode->getElementsByTagName('formatted')->item(0);
+                if ($formatted) {
+                    $feeData['formatted'] = trim($formatted->nodeValue);
+                }
+                $fees[] = $feeData;
+            }
+
+            foreach ($rooms as &$room) {
+                if (!isset($room['roomType'])) continue;
+
+                $roomTypes = is_assoc($room['roomType'])
+                    ? [$room['roomType']]
+                    : $room['roomType'];
+
+                foreach ($roomTypes as &$roomType) {
+                    if (!isset($roomType['rateBases']['rateBasis'])) continue;
+
+                    $rateBases = is_assoc($roomType['rateBases']['rateBasis'])
+                        ? [$roomType['rateBases']['rateBasis']]
+                        : $roomType['rateBases']['rateBasis'];
+
+                    foreach ($rateBases as &$rateBasis) {
+                        if (
+                            isset($rateBasis['@attributes']['id'], $rateBasis['@attributes']['runno']) &&
+                            (string)$rateBasis['@attributes']['id'] === (string)$rateId &&
+                            (string)$rateBasis['@attributes']['runno'] === (string)$runno
+                        ) {
+                            if ($tariffText) {
+                                $rateBasis['tariff_notes_html'] = $tariffText;
+                            }
+
+                            if (!empty($fees)) {
+                                $rateBasis['property_fees'] = $fees;
+                            }
+                        }
+                    }
+
+                    $roomType['rateBases']['rateBasis'] = is_assoc($roomType['rateBases']['rateBasis'])
+                        ? $rateBases[0]
+                        : $rateBases;
+                }
+
+                $room['roomType'] = is_assoc($room['roomType']) ? $roomTypes[0] : $roomTypes;
+            }
+        }
+
+        // Assign final structure back
+        $result['hotel']['rooms']['room'] = is_assoc($result['hotel']['rooms']['room'])
+            ? $rooms[0]
+            : $rooms;
+
         return $result;
     }
 
-    $rooms = is_assoc($result['hotel']['rooms']['room'])
-        ? [$result['hotel']['rooms']['room']]
-        : $result['hotel']['rooms']['room'];
-
-    foreach ($dom->getElementsByTagName('rateBasis') as $domRateBasis) {
-        $rateId = $domRateBasis->getAttribute('id');
-        $runno = $domRateBasis->getAttribute('runno');
-        $tariffNode = $domRateBasis->getElementsByTagName('tariffNotes')->item(0);
-        $tariffText = $tariffNode ? trim($tariffNode->nodeValue) : null;
-
-        foreach ($rooms as &$room) {
-            if (!isset($room['roomType'])) continue;
-
-            $roomTypes = is_assoc($room['roomType'])
-                ? [$room['roomType']]
-                : $room['roomType'];
-
-            foreach ($roomTypes as &$roomType) {
-                if (!isset($roomType['rateBases']['rateBasis'])) continue;
-
-                $rateBases = is_assoc($roomType['rateBases']['rateBasis'])
-                    ? [$roomType['rateBases']['rateBasis']]
-                    : $roomType['rateBases']['rateBasis'];
-
-                foreach ($rateBases as &$rateBasis) {
-                    if (
-                        isset($rateBasis['@attributes']['id'], $rateBasis['@attributes']['runno']) &&
-                        (string)$rateBasis['@attributes']['id'] === (string)$rateId &&
-                        (string)$rateBasis['@attributes']['runno'] === (string)$runno
-                    ) {
-                        $rateBasis['tariff_notes_html'] = $tariffText;
-                    }
-                }
-
-                $roomType['rateBases']['rateBasis'] = is_assoc($roomType['rateBases']['rateBasis'])
-                    ? $rateBases[0]
-                    : $rateBases;
-            }
-
-            $room['roomType'] = is_assoc($room['roomType']) ? $roomTypes[0] : $roomTypes;
-        }
-    }
-
-    // Final normalized output
-    $result['hotel']['rooms']['room'] = is_assoc($result['hotel']['rooms']['room'])
-        ? $rooms[0]
-        : $rooms;
-
-    return $result;
-}
 
 
 // Helper function to check if array is associative
@@ -1541,7 +1563,7 @@ function is_assoc(array $array): bool
                 'noShow' => isset($rule['noShowPolicy']),
                 'amendRestricted' => isset($rule['amendRestricted']),
                 'cancelRestricted' => isset($rule['cancelRestricted']),
-                'charge' => $rule['charge']['formatted'] ?? ($rule['charge']['__text'] ?? null),
+                'charge' => $rule['charge'] ?? ($rule['charge'] ?? null),
             ];
         }
 

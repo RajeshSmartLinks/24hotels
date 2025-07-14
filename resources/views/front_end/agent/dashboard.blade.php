@@ -257,6 +257,11 @@
                           @if(!empty($hoteldetails->hotel_room_booking_path))
                           <a  href = "{{asset($hoteldetails->hotel_room_booking_path)}}" download data-bs-toggle="tooltip" title="Download"><i class="fas fa-download"></i></a>
                           @endif
+                           @if(!empty($hoteldetails->booking_status == 'booking_completed'))
+                          {{-- <a   class="fas fa-times-circle text-4 text-danger" data-bs-toggle="tooltip" title="Cancle / change Booking"  onclick="confirmCancel()" href="javascript:void(0);" ></a> --}}
+                          <a  href = "#" onclick="togglePopup({{$hoteldetails->id}})" data-bs-toggle="tooltip" title="Cancle / change Booking"><i class="fas fa-times-circle"></i></a>
+                          
+                          @endif
                           {{-- @if(!empty($hoteldetails->invoice_path))
                           <a  href = "{{asset($hoteldetails->invoice_path)}}" download data-bs-toggle="tooltip" title="Download Invoice"><i class="fas fa-file-invoice"></i></a>
                           @endif --}}
@@ -293,7 +298,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="    width: 33%;">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">{{__('lang.cancel_Reschedule')}}</h5>
+          <h5 class="modal-title">Cancle / change Booking</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -302,8 +307,8 @@
             <div class="col-12">
               <div class="text-5 fw-500 text-center mb-4">
                 <div class="mb-1">{{__('lang.i_want_to_request_you_to')}}</div>
-                <div class="mb-1">{{__('lang.cancel_Reschedule')}}</div>
-                <div class="mb-1">{{__('lang.my_flight_ticket')}}</div>
+                <div class="mb-1">Cancle / change Booking</div>
+                <div class="mb-1">My Hotel Booking</div>
               </div>
 
               <div class="text-2 fw-300 text-center mb-4 text-muted">
@@ -315,7 +320,7 @@
               
               <div class="text-center"> 
                 {{-- <a href="#" onclick="cancle()" class="btn btn-primary rounded-pill"><i class="fas fa-shopping-cart d-block d-lg-none"></i> <span class="d-none d-lg-block">Confirm</span></a> --}}
-                <form  method="post" action="{{url('cancelBooking')}}" id ="cancellationForm">
+                <form  method="post" action="{{url('hotelBookingcancellation')}}" id ="cancellationForm">
                   @csrf
                   <input type="hidden" id="bookingId" name="bookingId">
                   <div class="d-grid my-4">

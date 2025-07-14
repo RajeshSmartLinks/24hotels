@@ -93,7 +93,7 @@ Route::group([
         Route::get('addSubAgent', [App\Http\Controllers\FrontEnd\UserController::class, 'addSubAgent'])->name('add-sub-agent');
         Route::post('storeSubAgent', [App\Http\Controllers\FrontEnd\UserController::class, 'storeAgent'])->name('store-sub-agent');
         Route::get('agent-list', [App\Http\Controllers\FrontEnd\UserController::class, 'agentList'])->name('agent-list');
-        
+        Route::post('/hotelBookingcancellation', [App\Http\Controllers\FrontEnd\UserController::class, 'hotelBookingcancellation'])->name('cancle-hotel-booking');
         
 });
 // Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

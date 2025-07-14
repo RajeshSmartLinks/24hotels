@@ -297,6 +297,9 @@
                         @csrf
         
                         <div style="padding: 10px 0px;"> {{__('lang.converted_total_amount')}} {{$result['roomDetails']['markups']['FatoorahPaymentAmount']['currency_code'].' '.$result['roomDetails']['markups']['FatoorahPaymentAmount']['value']}}</div>
+                        @if(!empty($result['roomDetails']['extraFee']))
+                        <div style="padding: 10px 0px;"> Taxes & Fees (not included in Price)  <span style="float: right;">{{$result['roomDetails']['extraFee']}}</span></div>
+                        @endif
                         
                         <input type="hidden" value = "{{encrypt($result['bookingDetails']->id)}}" name="booking_id">
                         <div class="form-check text-3 my-1">
