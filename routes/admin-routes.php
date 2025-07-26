@@ -67,6 +67,8 @@ Route::group([
     Route::get('/hoteladditionalPrice/edit/{id}', [App\Http\Controllers\Admin\MarkUpsController::class, 'hoteladditionalPriceedit'])->name('hoteladditionalPriceedit');
     Route::post('/hoteladditionalPrice/update/{id}', [App\Http\Controllers\Admin\MarkUpsController::class, 'hotelupdateadditionalPrice'])->name('hotelupdateadditionalPrice');
 
+    Route::post('/hotelcancleBooking', [App\Http\Controllers\Admin\BookingController::class, 'hotelcancleBooking'])->name('admin.hotel.cancleBooking');
+
     Route::get('/appAds/add', [App\Http\Controllers\Admin\AppController::class, 'create'])->name('appads.create');
     Route::post('/appAds/add', [App\Http\Controllers\Admin\AppController::class, 'storeAds'])->name('appads.store');
     Route::get('/appAds/edit/{id}', [App\Http\Controllers\Admin\AppController::class, 'editAds'])->name('appads.edit');

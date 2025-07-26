@@ -146,7 +146,7 @@ class SearchController extends Controller
                     <fromDate>{$checkIn}</fromDate>
                     <toDate>{$checkOut}</toDate>
                     <currency>769</currency>
-                    <rooms>
+                    <rooms no = "{$noOfRooms}">
         EOM;
 
         for ($i = 1; $i <= $noOfRooms; $i++) {

@@ -54,6 +54,8 @@ class HomeController extends Controller
         $agents = User::where('is_agent' , 1)->count();
 
         $totalSales = HotelBooking::whereIn('booking_status',['booking_completed'])->sum('total_amount');
+
+        $HotelCancellationRequests = HotelBooking::with('confirmations')->where('booking_status','cancellation_initiated')->get();
        
 
 
@@ -73,7 +75,8 @@ class HomeController extends Controller
 
             'agencies' => $agencies,
             'agents' => $agents,
-            'totalSales' => $totalSales
+            'totalSales' => $totalSales,
+            'hotelCancellationRequests' => $HotelCancellationRequests
         );
 
 

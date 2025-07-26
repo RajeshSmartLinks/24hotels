@@ -85,4 +85,26 @@ class BookingController extends Controller
         return view('admin.booking.hotel_index',compact('titles','bookings'));
 
     }
+
+    public function hotelcancleBooking(Request $request)
+    {
+        if (!auth()->user()->can('hotel-booking-cancellation')) {
+            return view('admin.abort');
+        }
+        $bookingId = $request->input('booking_id');
+
+        $HotelBooking = HotelBooking::find($bookingId);
+     
+        if($request->input('cancel_status') == 'canceled'){
+            $HotelBooking->booking_status ="canceled";
+            $HotelBooking->is_cancel = 1 ;
+            $HotelBooking->save();
+            return redirect()->back()->with('success', 'Canceled successfully');
+        }else{
+            $HotelBooking->booking_status ="cancellation_failure";
+            $HotelBooking->save();
+            return redirect()->back()->with('error', 'Cancellation failure');
+        }
+        
+    }
 }

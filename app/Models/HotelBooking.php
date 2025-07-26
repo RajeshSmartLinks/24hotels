@@ -30,4 +30,9 @@ class HotelBooking extends Model
     {
         return $this->belongsTo(Coupon::class, 'coupon_id','id');
     }
+    public function confirmations()
+    {
+        return $this->hasMany(HotelRoomBookingInfo::class, 'hotel_booking_id', 'id'); 
+        // Adjust foreign/local key names as needed
+    }
 }

@@ -116,10 +116,30 @@
                                 <h5 class="modal-title">Tariff Notes</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                               </div>
-                              <div class="modal-body">
-                               {!! html_entity_decode($result['roomDetails']['tariffNotes']) !!}
-                                
-                              </div>
+                              {{-- <div class="modal-body">
+                                @foreach($result['roomDetails']['tariffNotes'] as $tk=>$tn)
+                                  <div style="padding: 10px 0px;">
+                                    <span style="font-weight: bold">Room {{$tk+1}} &nbsp; <span>Tariff Notes</span></span>
+                                  </div>
+                                  <div>
+                                    {!! $tn !!}
+                                  </div>
+                                @endforeach
+                            </div> --}}
+                            <div class="modal-body">
+                              @foreach($result['roomDetails']['tariffNotes'] as $tk=>$tn)
+                                <div style="padding: 10px 0px;">
+                                  <span style="font-weight: bold">Room {{$tk+1}} &nbsp; <span>Tariff Notes</span></span>
+                                </div>
+                                <div>
+                                  @php
+                                  $tn = preg_replace('/•\s*(.*)/', '<li>$1</li>', nl2br(html_entity_decode($tn)));
+                                    $tn = '<ul>' . $tn . '</ul>';
+                                  @endphp
+                                  {!! $tn !!}
+                                </div>
+                              @endforeach
+                            </div>
                             </div>
                           </div>
                         </div>
@@ -156,35 +176,37 @@
                             </div>
                             <div class="modal-body">
                               <ul>
-                                @foreach($result['roomDetails']['CancelPolicies'] as $policy)
-                                
-                                <li>
-                                  @if(!empty($policy['noShow']))
-                                      <strong>No-show Policy:</strong>
-                                  @endif
+                                @foreach($result['roomDetails']['CancelPolicies'] as $ck => $cv)
+                                  @foreach($cv as $policy)
+                                  <li>
+                                    @if(!empty($policy['noShow']))
+                                        <strong>No-show Policy:</strong>
+                                    @endif
 
-                                  @if(!empty($policy['fromDate']))
-                                      From: {{ $policy['fromDate'] }}
-                                  @endif
-                                 
+                                    @if(!empty($policy['fromDate']))
+                                        From: {{ $policy['fromDate'] }}
+                                    @endif
+                                  
 
-                                  @if(!empty($policy['toDate']))
-                                      To: {{ $policy['toDate'] }}
-                                  @endif
+                                    @if(!empty($policy['toDate']))
+                                        To: {{ $policy['toDate'] }}
+                                    @endif
 
-                                  @if(!empty($policy['charge']))
-                                      Charge: {{ $policy['charge'] }}
-                                  @endif
+                                    @if(!empty($policy['charge']))
+                                        Charge: {{ $policy['charge'] }}
+                                    @endif
 
-                                  @if(!empty($policy['amendRestricted']))
-                                      <span class="text-danger">Amendments not allowed</span>
-                                  @endif
+                                    @if(!empty($policy['amendRestricted']))
+                                        <span class="text-danger">Amendments not allowed</span>
+                                    @endif
 
-                                  @if(!empty($policy['cancelRestricted']))
-                                      <span class="text-danger">Cancellations not allowed</span>
-                                  @endif
-                                </li>
+                                    @if(!empty($policy['cancelRestricted']))
+                                        <span class="text-danger">Cancellations not allowed</span>
+                                    @endif
+                                  </li>
+                                  @endforeach
                                 @endforeach
+                                
                                 <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@24flights.com">booking@24Flights.com</a></strong></li>
                                 <li>{{__('lang.cancellation_policy_2')}}</li>
                               </ul>
@@ -329,35 +351,37 @@
                             </div>
                             <div class="modal-body">
                               <ul>
-                                @foreach($result['roomDetails']['CancelPolicies'] as $policy)
-                                
-                                <li>
-                                  @if(!empty($policy['noShow']))
-                                      <strong>No-show Policy:</strong>
-                                  @endif
+                                @foreach($result['roomDetails']['CancelPolicies'] as $ck=>$cv)
+                                  @foreach($cv as $policy)
+                                    <li>
+                                      @if(!empty($policy['noShow']))
+                                          <strong>No-show Policy:</strong>
+                                      @endif
 
-                                  @if(!empty($policy['fromDate']))
-                                      From: {{ $policy['fromDate'] }}
-                                  @endif
-                                 
+                                      @if(!empty($policy['fromDate']))
+                                          From: {{ $policy['fromDate'] }}
+                                      @endif
+                                    
 
-                                  @if(!empty($policy['toDate']))
-                                      To: {{ $policy['toDate'] }}
-                                  @endif
+                                      @if(!empty($policy['toDate']))
+                                          To: {{ $policy['toDate'] }}
+                                      @endif
 
-                                  @if(!empty($policy['charge']))
-                                      Charge: {{ $policy['charge'] }}
-                                  @endif
+                                      @if(!empty($policy['charge']))
+                                          Charge: {{ $policy['charge'] }}
+                                      @endif
 
-                                  @if(!empty($policy['amendRestricted']))
-                                      <span class="text-danger">Amendments not allowed</span>
-                                  @endif
+                                      @if(!empty($policy['amendRestricted']))
+                                          <span class="text-danger">Amendments not allowed</span>
+                                      @endif
 
-                                  @if(!empty($policy['cancelRestricted']))
-                                      <span class="text-danger">Cancellations not allowed</span>
-                                  @endif
-                                </li>
+                                      @if(!empty($policy['cancelRestricted']))
+                                          <span class="text-danger">Cancellations not allowed</span>
+                                      @endif
+                                    </li>
+                                  @endforeach
                                 @endforeach
+                                
                                 <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@24flights.com">booking@24Flights.com</a></strong></li>
                                 <li>{{__('lang.cancellation_policy_2')}}</li>
                               </ul>

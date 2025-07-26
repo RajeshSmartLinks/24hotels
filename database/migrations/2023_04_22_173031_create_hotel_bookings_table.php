@@ -44,7 +44,7 @@ class CreateHotelBookingsTable extends Migration
 
 
             $table->text('booking_code')->nullable();
-            $table->enum('booking_status',['booking_initiated','payment_initiated','payment_successful','payment_failure','payment_exipre','booking_failure','booking_completed','refund_initiated','refund_completed','cancellation_initiated','canceled','booking_pending','booking_partially_completed'])->nullable();
+            $table->enum('booking_status',['booking_initiated','payment_initiated','payment_successful','payment_failure','payment_exipre','booking_failure','booking_completed','refund_initiated','refund_completed','cancellation_initiated','canceled','booking_pending','booking_partially_completed','cancellation_failure'])->nullable();
 
 
             $table->string('confirmation_number')->nullable();
@@ -72,7 +72,7 @@ class CreateHotelBookingsTable extends Migration
             $table->text('hotel_name')->nullable();
             $table->string('booking_reference_number')->nullable();
             $table->string('webbeds_booking_request_id')->nullable();
-            $table->timestamps();
+            $table->tinyInteger('is_cancel')->default('0')->nullable();
         });
     }
 

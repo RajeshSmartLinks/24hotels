@@ -516,13 +516,12 @@ class UserController extends Controller
             // //print_r($emails);
             // $emails[] = $FlightBooking->email;
             // dd($emails);
+            $user = 'Ravi';
 
-        //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) use($FlightBooking) {
-        //          $message->to($FlightBooking->email)
-        //         //$message->to([$FlightBooking->email])
-        //         //amr@masilagroup.com,ghunaim@masilagroup.com,acc@masilagroup.com
-        //                 ->subject('your request for Cancel / ReSchedule the ticket is intiated');
-        //     });
+            Mail::send('front_end.hotel.webbeds.email_templates.cancellation',compact('HotelBooking'), function($message) use($HotelBooking) {
+                 $message->to('ravi@masilagroup.com')
+                        ->subject('Cancellation of the hotel booking has been requested');
+            });
         //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) {
         //         $message->to('amr@masilagroup.com')
         //        //$message->to([$FlightBooking->email])
