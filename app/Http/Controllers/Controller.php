@@ -820,62 +820,124 @@ class Controller extends BaseController
     }
     
 
-    public function WebbedsApi($request)
-    {
-        //dd($request);
-        set_time_limit(400); 
-        try {
-            $headers = array(
-                "Accept"=> "application/xml",
-                "Accept-Encoding" => "gzip, deflate"
-            );
-            $client = new Client();
-            $requestData = ['headers' => $headers,'body' => $request['xml'],'verify' => false];
+    // public function WebbedsApi($request)
+    // {
+    //     //dd($request);
+    //     set_time_limit(300); 
+    //     try {
+    //         $headers = array(
+    //             "Accept"=> "application/xml",
+    //             "Accept-Encoding" => "gzip, deflate"
+    //         );
+    //         $client = new Client();
+    //         $requestData = ['headers' => $headers,'body' => $request['xml'],'verify' => false];
             
-            $clientrsp = $client->request('POST', $this->WebbedsUrl, $requestData);
-            $response = $clientrsp->getBody()->getContents();
-            if(isset($request['request_type']) && ($request['request_type'] == 'confirmBooking' || $request['request_type'] == 'getbookingdetails' || $request['request_type'] == 'getRooms'|| $request['request_type'] == 'getRoomsWithBlocking')){
+    //         $clientrsp = $client->request('POST', $this->WebbedsUrl, $requestData);
+    //         $response = $clientrsp->getBody()->getContents();
+    //         if(isset($request['request_type']) && ($request['request_type'] == 'confirmBooking' || $request['request_type'] == 'getbookingdetails' || $request['request_type'] == 'getRooms'|| $request['request_type'] == 'getRoomsWithBlocking')){
 
-               $array =  XmlToArrayWithHTML($response);
-            }else{
-                $xml = simplexml_load_string($response);
-                $array = json_decode(json_encode($xml), true);
-            }
+    //            $array =  XmlToArrayWithHTML($response);
+    //         }else{
+    //             $xml = simplexml_load_string($response);
+    //             $array = json_decode(json_encode($xml), true);
+    //         }
         
 
-            // // Now you can use it like a normal array
-            //   dd($array);
+    //         // // Now you can use it like a normal array
+    //         //   dd($array);
 
 
-            // $responseArray = XmlToArray::convert($response, $outputRoot = false);
+    //         // $responseArray = XmlToArray::convert($response, $outputRoot = false);
            
-            //    SimpleXMLElement 
+    //         //    SimpleXMLElement 
 
-            //TravelportRequest data insert
+    //         //TravelportRequest data insert
+    //         $HotelXmlRequest = new HotelXmlRequest;
+    //         $HotelXmlRequest->request_xml    = $request['xml'];
+    //         $HotelXmlRequest->response_xml = $response;
+    //         $HotelXmlRequest->ip_address = $_SERVER['REMOTE_ADDR'];
+    //         $HotelXmlRequest->request_type = $request['request_type'] ??null;
+    //         $HotelXmlRequest->supplier = 'webbeds';
+    //         $HotelXmlRequest->hotel_search_id = $request['searchId']??null;
+
+    //         $HotelXmlRequest->save();
+         
+    //         return $hotelResponse = [
+    //             'hotelResponse' => $array,
+    //             'hotelRequest' => $HotelXmlRequest
+    //         ];
+
+    //       } catch (\Exception $e) {
+
+    //         return $hotelResponse = [
+    //             'hotelResponse' => [],
+    //             'hotelRequest' => []
+    //         ];
+    //       }
+
+
+    // }
+    public function WebbedsApi(array $request)
+    {
+        set_time_limit(400);
+
+        try {
+            // Prepare request headers
+            $headers = [
+                'Accept'          => 'application/xml',
+                'Accept-Encoding' => 'gzip, deflate'
+            ];
+
+            // Initialize Guzzle client and send request
+            $client = new Client();
+            $clientResponse = $client->request('POST', $this->WebbedsUrl, [
+                'headers'         => $headers,
+                'body'            => $request['xml'] ?? '',
+                'verify'          => false,
+                'timeout'         => 60, // Set 60 seconds timeout
+                'connect_timeout' => 10  // Optional: 10 sec max to establish connection
+            ]);
+
+            $responseContent = $clientResponse->getBody()->getContents();
+
+            // Parse response based on request type
+            $specialRequestTypes = ['confirmBooking', 'getbookingdetails', 'getRooms', 'getRoomsWithBlocking'];
+            if (!empty($request['request_type']) && in_array($request['request_type'], $specialRequestTypes, true)) {
+                $parsedResponse = XmlToArrayWithHTML($responseContent);
+            } else {
+                $xml = simplexml_load_string($responseContent);
+                $parsedResponse = json_decode(json_encode($xml), true);
+            }
+           
+
+            // Log request & response to database
             $HotelXmlRequest = new HotelXmlRequest;
             $HotelXmlRequest->request_xml    = $request['xml'];
-            $HotelXmlRequest->response_xml = $response;
-            $HotelXmlRequest->ip_address = $_SERVER['REMOTE_ADDR'];
+            $HotelXmlRequest->response_xml = $responseContent;
+            $HotelXmlRequest->ip_address = $_SERVER['REMOTE_ADDR'] ?? null;
             $HotelXmlRequest->request_type = $request['request_type'] ??null;
             $HotelXmlRequest->supplier = 'webbeds';
             $HotelXmlRequest->hotel_search_id = $request['searchId']??null;
-
             $HotelXmlRequest->save();
-         
-            return $hotelResponse = [
-                'hotelResponse' => $array,
-                'hotelRequest' => $HotelXmlRequest
+             // End time
+            // $endTime = microtime(true);
+            // $executionTime = $endTime - $startTime; // seconds
+            // dd($executionTime);
+            
+
+            return [
+                'hotelResponse' => $parsedResponse,
+                'hotelRequest'  => $HotelXmlRequest
             ];
+        } catch (\Throwable $e) {
+            // Log the exception if required
+            // Log::error('Webbeds API Error: '.$e->getMessage());
 
-          } catch (\Exception $e) {
-
-            return $hotelResponse = [
+            return [
                 'hotelResponse' => [],
-                'hotelRequest' => []
+                'hotelRequest'  => []
             ];
-          }
-
-
+        }
     }
 
 
