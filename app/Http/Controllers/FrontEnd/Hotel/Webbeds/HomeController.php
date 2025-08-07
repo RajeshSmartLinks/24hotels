@@ -1216,6 +1216,13 @@ class HomeController extends Controller
                             $cleanedHtml
                         );
 
+                        // 4. Replace AL-MASILA GROUP intl with your label
+                        $cleanedHtml = str_replace(
+                            'AL-MASILA GROUP intl',
+                            $agentName,
+                            $cleanedHtml
+                        );
+
                         $hotelbookingdetails->booking_status = $booking_status;
 
                         // //booking successfull

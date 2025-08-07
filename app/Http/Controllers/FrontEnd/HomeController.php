@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
 use App\Http\Controllers\Controller;
+use Stevebauman\Location\Facades\Location;
+use Illuminate\Support\Facades\Config;
 
 
 class HomeController extends Controller
@@ -17,6 +19,65 @@ class HomeController extends Controller
     public function index(Request $request)
     {
         $ip = $request->ip();
+        $data = Location::get($ip);
+        if(!empty( $data))
+        {
+            if($data->countryCode == 'KW')
+            {
+                $currency = "KWD";
+                if(app()->getLocale() == 'ar')
+                {
+                    $fromDestination = array('text' => "الكويت (KWI)" , "airportCode" => "KWI");
+                }
+                else{
+                    $fromDestination = array('text' => "Kuwait (KWI)" , "airportCode" => "KWI");
+                }
+            }
+            elseif($data->countryCode == 'SA')
+            {
+                $currency = "SAR";
+                
+            }
+            elseif($data->countryCode == 'AE')
+            {
+                $currency = "AED";
+            }
+            elseif($data->countryCode == 'BH')
+            {
+                $currency = "BHD";
+            }
+            elseif($data->countryCode == 'EG')
+            {
+                $currency = "EGP";
+            }
+            elseif($data->countryCode == 'IN')
+            {
+                $currency = "INR";
+            }
+            elseif($data->countryCode == 'QA')
+            {
+                $currency = "QAR";
+            }
+            elseif(($data->countryCode == 'AT' || $data->countryCode == 'BE' || $data->countryCode == 'HR' || $data->countryCode == 'CY'|| $data->countryCode == 'EE'|| $data->countryCode == 'FI'|| $data->countryCode == 'FR'|| $data->countryCode == 'DE'|| $data->countryCode == 'GR'|| $data->countryCode == 'IE'|| $data->countryCode == 'IT'|| $data->countryCode == 'LV'|| $data->countryCode == 'LT'|| $data->countryCode == 'LU'|| $data->countryCode == 'MT' || $data->countryCode == 'PT'|| $data->countryCode == 'NL'|| $data->countryCode == 'SK'|| $data->countryCode == 'SI'|| $data->countryCode == 'ES'))
+            {
+                $currency = "EUR";
+            }
+            elseif($data->countryCode == 'US')
+            {
+                $currency = "USD";
+            }
+            else{
+                $currency = "USD";
+            }
+            session(['currency' => $currency]);
+            Config::set('app.currency' , $currency);
+        }
+        else{
+            $currency = 'USD';
+            session(['currency' => $currency]);
+            Config::set('app.currency' , $currency);
+
+        }
 
         $seoData = SeoSettings::where(['page_type' => 'static' , 'static_page_name' => 'home','status' => 'Active'])->first();
    
