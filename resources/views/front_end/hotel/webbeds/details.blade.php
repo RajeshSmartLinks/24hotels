@@ -554,5 +554,5 @@
         $('.lazy-image').lazy();
     });
   </script>
-<script src='{{ asset('frontEnd/js/hotel.js') }}'></script>
+<script src='{{ asset('frontEnd/js/hotel.js') }}?ver={{ config('app.version') }}'></script>
 @endsection

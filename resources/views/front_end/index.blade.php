@@ -951,6 +951,6 @@ $("#bookingFlight").validate({
           }
       });
 </script>
-<script src='{{ asset('frontEnd/js/hotel.js') }}'></script>
-<script src='{{ asset('frontEnd/js/flight.js') }}'></script>
+<script src='{{ asset('frontEnd/js/hotel.js') }}?ver={{ config('app.version') }}'></script>
+<script src='{{ asset('frontEnd/js/flight.js') }}?ver={{ config('app.version') }}'></script>
 @endsection

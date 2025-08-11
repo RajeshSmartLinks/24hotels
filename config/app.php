@@ -137,6 +137,7 @@ return [
     | this array to grant expanded functionality to your applications.
     |
     */
+    'version' => env('APP_VERSION', '1.0.0'),
 
     'providers' => [
 
