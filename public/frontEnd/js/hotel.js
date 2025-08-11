@@ -96,7 +96,7 @@ $(document).ready(function() {
       var number = $(this).attr("id").split("children-travellers-minus-")[1];
       var nChildId = 'children-travellers-'+number;
       var nChild = parseInt($("#children-travellers-"+number).val());
-      if(nChild != 1)
+      if(nChild > 0)
       {
         nChild = nChild - 1;
         $("#"+nChildId).val(nChild);

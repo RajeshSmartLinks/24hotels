@@ -71,6 +71,7 @@ class HomeController extends Controller
         $rating5 = 0;
 
         $result['countries'] = WebbedsCountry::get();
+        $request->merge(['search_url' => $request->fullUrl()]);
    
 
         $SearchController = new SearchController();
@@ -247,8 +248,7 @@ class HomeController extends Controller
         $result['filter']['rating']['two_star'] = $rating2;
         $result['filter']['rating']['three_star'] = $rating3;
         $result['filter']['rating']['four_star'] = $rating4;
-        $result['filter']['rating']['five_star'] = $rating5;
-        
+        $result['filter']['rating']['five_star'] = $rating5;      
         //dd($result);
         return view('front_end.hotel.webbeds.search',compact('titles','result'));
     }
@@ -310,8 +310,8 @@ class HomeController extends Controller
             $hotelSearch->ip_address = $_SERVER['REMOTE_ADDR'];
             $hotelSearch->hotel_traveller_info = $request->input('hotels-travellers-class');
             $hotelSearch->request_json = json_encode($request->input());
+            $hotelSearch->search_url = $request->fullUrl();
             $hotelSearch->save();
-
             $searchId = $hotelSearch->id;
         }
      
@@ -1007,6 +1007,8 @@ class HomeController extends Controller
 
         $result['hotelDetails'] = $hotelDetails;
         $result['hotelDetails']['image'] = $hotelDetails['thumbnail'];
+        $result['hotelCode'] = $hotelCode;
+        $result['searchId'] = $searchId;
        
 
         return view('front_end.hotel.webbeds.preview',compact('titles','result'));

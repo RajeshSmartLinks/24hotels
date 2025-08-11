@@ -16,9 +16,9 @@
         </div>
         <div class="col-md-4">
           <ul class="breadcrumb justify-content-start justify-content-md-end mb-0">
-            <li><a href="index.html">{{__('lang.home')}}</a></li>
-            <li><a href="booking-hotels.html">{{__('lang.hotels')}}</a></li>
-            <li><a href="booking-hotels-details.html">{{__('lang.hotel_detail')}}</a></li>
+            <li><a href="{{url('/')}}">{{__('lang.home')}}</a></li>
+            <li><a href="{{$result['searchRequest']->search_url}}">{{__('lang.hotels')}}</a></li>
+            <li><a href="{{route('GethotelDetails',['hotelCode'=>encrypt($result['hotelCode']) , 'searchId' =>encrypt($result['searchId'])])}}">{{__('lang.hotel_detail')}}</a></li>
             <li class="active">{{__('lang.preview_details')}}</li>
           </ul>
         </div>

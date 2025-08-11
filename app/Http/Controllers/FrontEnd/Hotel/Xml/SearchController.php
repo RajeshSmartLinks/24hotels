@@ -133,6 +133,7 @@ class SearchController extends Controller
             $hotelSearch->ip_address = $_SERVER['REMOTE_ADDR'];
             $hotelSearch->hotel_traveller_info = $request->input('hotels-travellers-class');
             $hotelSearch->request_json = json_encode($request->input());
+            $hotelSearch->search_url = $request->input('search_url');
             $hotelSearch->save();
         $xml = <<<EOM
         <customer>

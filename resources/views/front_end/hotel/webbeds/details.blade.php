@@ -31,7 +31,7 @@
         <div class="col-md-4">
           <ul class="breadcrumb justify-content-start justify-content-md-end mb-0">
             <li><a href="{{url('/')}}">{{__('lang.home')}}</a></li>
-            <li><a href="{{url('/')}}">{{__('lang.hotels')}}</a></li>
+            <li><a href="{{$result['searchRequest']->search_url}}">{{__('lang.hotels')}}</a></li>
             <li class="active">{{__('lang.hotel_detail')}}</li>
           </ul>
         </div>
