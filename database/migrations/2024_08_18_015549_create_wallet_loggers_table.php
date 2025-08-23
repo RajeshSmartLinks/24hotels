@@ -27,6 +27,9 @@ class CreateWalletLoggersTable extends Migration
             $table->enum('wallet_amount_type',['cash','cheque'])->nullable();
             $table->string('wallet_reference_id')->nullable();
             $table->dateTime('date_of_transaction')->nullable();
+            $table->string('given_currency')->nullable();
+            $table->dateTime('given_amount')->nullable();
+
             $table->timestamps();
         });
     }

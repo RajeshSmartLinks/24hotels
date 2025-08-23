@@ -67,11 +67,7 @@
 
                                                                 @can('agent-add-credit')
                                                                 | <a href="javascript:" class="text-warning addFundsBtn"
-                                                                    onclick="addFundsToWallet({{$agency->id??''}} , '{{$agency->name ?? ''}}')"
-                                                                    data-id="{{$agency->id}}"
-                                                                    data-toggle="modal"
-                                                                    data-target="#addFunds" id="addFundsBtn"><i
-                                                                        class="feather icon-briefcase"></i> Add Funds</a> 
+                                                                    onclick="addFundsToWallet({{$agency->id??''}} , '{{$agency->name ?? ''}}')" data-id="{{$agency->id}}" data-toggle="modal" data-target="#addFunds" id="addFundsBtn"><i class="feather icon-briefcase"></i> Add Funds</a> 
                                                                 @endcan
                                                                 @can('markups-edit')
                                                                 | <a href="javascript:" class="text-info agentMarkUpBtn"
@@ -132,7 +128,7 @@
             $("#deleteForm").attr('action', url);
             $("#delete_id").val(delId);
         }
-         function addFundsToWallet(agencyId,agencyName){
+        function addFundsToWallet(agencyId,agencyName){
             let url = '{{ route("addAgencyWalletBalance", ":id") }}';
             url = url.replace(':id', agencyId);
             $("#addFundsForm").attr('action', url);
@@ -154,6 +150,34 @@
 
 
         }
+
+       
+       $('#wallet_balance, #amount_type').on('change', function () {
+            let balance = $('#wallet_balance').val();
+            let currency = $('#amount_type').val();
+
+            if (balance && currency) {
+                $.ajax({
+                    url: '{{ route("currencyConverter") }}',   // ✅ Adjust this endpoint to match your Laravel route
+                    method: 'GET',               // or POST if your API expects POST
+                    data: {  amount: balance, currency: currency},
+                    success: function (response) {
+                        console.log("API Success:", response); // debug
+                        $('#equivalent_kwd').text(response.equivalent_kwd ?? "0.000");
+                        $('#wallet_balance_kwd').val(response.equivalent_kwd ?? 0.000);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("API Error:", status, error, xhr.responseText);
+                        $('#equivalent_kwd').text("0.000");
+                        $('#wallet_balance_kwd').val(0.000);
+                        
+                    }
+                });
+            } else {
+                $('#equivalent_kwd').text("0.000");
+                $('#wallet_balance_kwd').val(0.000);
+            }
+        });
 
       
     </script>

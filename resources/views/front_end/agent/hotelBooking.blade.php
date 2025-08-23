@@ -26,11 +26,33 @@
   <div class="container">
     <div class="row">
         @include('front_end.user.user_menu')
-      <div class="col-lg-9">
+      <div class="col-lg-10">
         <div class="bg-white shadow-md rounded p-4"> 
           <!-- Orders History
           ============================================= -->
-          <h4 class="mb-4">{{__('lang.hotel_booking_history')}}</h4>
+          <div class="row align-items-center">
+            <div class="col-8">
+              <h4>Hotel Booking History</h4>
+            </div>
+            
+            <div class="col-4">
+              <form>
+              <div class="input-group shadow-sm ">
+                <input class="form-control shadow-none border-0 pe-0" 
+                      type="search"  id="search-input"  placeholder="Search"  value="" name= "searchKey">
+                <span class="input-group-text bg-white border-0 p-0">
+                  <button class="btn text-muted shadow-none px-3 border-0" type="submit">
+                    <i class="fa fa-search"></i>
+                  </button>
+                </span>
+              </div>
+            </form>
+            </div>
+            
+          </div>
+
+      
+          
 		      <hr class="mx-n4">
          
          
@@ -54,21 +76,24 @@
                       <th>Booking On</th>
                       {{-- <th>Description</th> --}}
                       <th>Order ID</th>
+                      <th>Hotel</th>
+                      <th>Customer</th>
+                      <th>Agent</th>
                       <th class="text-center">Status</th>
                       <th class="text-end">Amount</th>
                       <th class="text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-
-                   
-
                     @if(count($hotelbookings) > 0)
                     @foreach($hotelbookings as $hoteldetails)
                     <tr>
                       <td class="align-middle">{{$hoteldetails->created_at->format('d/m/Y')}}</td>
                       {{-- <td class="align-middle"><img src="images/brands/operator/vodafone.jpg" class="img-thumbnail d-inline-flex me-1"> <span class="text-1 d-inline-flex">Recharge of Vodafone Mobile 9696969696</span></td> --}}
                       <td class="align-middle">{{$hoteldetails->booking_ref_id}}</td>
+                      <td class="align-middle">{{$hoteldetails->hotel_name}}</td>
+                      <td class="align-middle"> {{ $hoteldetails->TravelersInfo->first()->first_name ?? '-' }}</td>
+                       <td class="align-middle"> {{ $hoteldetails->User->first_name ?? '-' }}</td>
                       <td class="align-middle text-center">
                         @if(isset($hoteldetails->hotelReservation->reservation_status) && $hoteldetails->hotelReservation->reservation_status  == 'Confirmed')
                         <i class="fas fa-check-circle text-4 text-success" data-bs-toggle="tooltip" title="Your Hotel Reservation is Successful"></i>
@@ -100,7 +125,7 @@
                     @endforeach
                 @else
                     <tr align="center" class="alert alert-danger">
-                        <td colspan="6">{{__('lang.no_records')}}</td>
+                        <td colspan="7">{{__('lang.no_records')}}</td>
                     </tr>
                 @endif
                   </tbody>
@@ -180,6 +205,18 @@ function cancle()
 {
   $bookingId = $("#bookingId").val();
 } 
+
+  // Get URL parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchKey = urlParams.get('searchKey');
+
+  // Get input element
+  const searchInput = document.getElementById('search-input');
+
+  if (searchKey) {
+    searchInput.value = searchKey;
+  } 
+
 
 </script>
 @endsection

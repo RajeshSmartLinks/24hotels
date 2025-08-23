@@ -15,36 +15,50 @@
                 <div class="modal-body">
                     {{-- <input type="hidden" name="_id" id="agent_id" value=""/> --}}
                     <div class="row">
-                        <div class="col-12">
-                            <label for="first-name-column"> Amount</label>
-                            <div class="form-label-group">
-                                <input type="number" id="wallet_balance" class="form-control" placeholder="Wallet Balance" name="wallet_balance" value="" autocomplete="off" required>
-                                @error('wallet_balance')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
+                        <div class= "col-12">
+                            <div class = "row">
+                                <div class="col-4">
+                                    <label for="first-name-column"> Currency</label>
+                                    <div class="form-label-group">
+                                        <select name="wallet_amount_type" class="form-control " id="amount_type" required>
+                                            <option value="kwd" @if (old('type') == "kwd") {{ 'selected' }} @endif selected>KWD</option>
+                                            <option value="usd" @if (old('type') == "usd") {{ 'selected' }} @endif>USD</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-8">
+                                    <label for="first-name-column"> Amount</label>
+                                    <div class="form-label-group">
+                                        <input type="number" id="wallet_balance" class="form-control" placeholder="Wallet Balance" name="wallet_balance" value="" autocomplete="off" required>
+                                        <input type="hidden" id="wallet_balance_kwd"  name="wallet_balance_kwd" value="0.00" autocomplete="off" required>
+                                        @error('wallet_balance')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                        <p style="font-size: smaller;" > Equivalent KWD : <span id = "equivalent_kwd">0.000</span></p>
+                                    </div>
                                 
+                                </div>
+                            
                             </div>
                         </div>
-                     
-                            <div class="col-6">
-
-                                <label for="first-name-column"> Type</label>
-                                <div class="form-label-group">
-                                    <select name="wallet_amount_type" class="form-control " id="basicSelect" required>
-                                        <option value="">--select Type --</option>
-                                        <option value="cash" @if (old('type') == "cash") {{ 'selected' }} @endif>Cash</option>
-                                        <option value="cheque" @if (old('type') == "cheque") {{ 'selected' }} @endif>Cheque</option>
-                                    </select>
-                                </div>
+                        <div class="col-6">
+                            <label for="first-name-column"> Type</label>
+                            <div class="form-label-group">
+                                <select name="wallet_amount_type" class="form-control " id="basicSelect" required>
+                                    <option value="">--select Type --</option>
+                                    <option value="cash" @if (old('type') == "cash") {{ 'selected' }} @endif>Cash</option>
+                                    <option value="cheque" @if (old('type') == "cheque") {{ 'selected' }} @endif>Cheque</option>
+                                </select>
                             </div>
-                            <div class="col-6">
-                                <label for="first-name-column"> Reference Id</label>
-                                <div class="form-label-group">
-                                    <input type="text" id="wallet_reference_id" class="form-control " placeholder="Reference Id" name="reference_id" value="" autocomplete="off" required>
-                                </div>
+                        </div>
+                        <div class="col-6">
+                            <label for="first-name-column"> Reference Id</label>
+                            <div class="form-label-group">
+                                <input type="text" id="wallet_reference_id" class="form-control " placeholder="Reference Id" name="reference_id" value="" autocomplete="off" required>
                             </div>
+                        </div>
                        
                         <div class="col-12">
                             <label for="first-name-column">Description (optional)</label>

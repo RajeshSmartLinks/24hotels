@@ -196,4 +196,28 @@ class CurrencyController extends Controller
         Cache::forget('currencyList');
         echo "currencys updated";
     }
+
+   public function currencyConverter(Request $request)
+    {
+        $amount = (float) $request->input('amount', 0);
+        $currency = strtoupper($request->input('currency', 'USD'));
+
+        // Find currency in DB
+        $currencyInfo = Currency::where('currency_code_en', $currency)->first();
+
+        if (!$currencyInfo) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid currency provided',
+                'equivalent_kwd' => 0.000
+            ], 400);
+        }
+
+        $result = $amount * (1/$currencyInfo->conversion_rate);
+
+        return response()->json([
+            'success' => true,
+            'equivalent_kwd' => number_format($result, 3)
+        ]);
+    }
 }

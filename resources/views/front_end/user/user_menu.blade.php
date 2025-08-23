@@ -1,4 +1,4 @@
-<div class="col-lg-3"> 
+<div class="col-lg-2"> 
     <!-- Nav Link
     ============================================= -->
     <ul class="nav nav-pills alternate flex-lg-column mb-3 mb-lg-0 ">

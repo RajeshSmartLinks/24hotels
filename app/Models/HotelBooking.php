@@ -35,4 +35,8 @@ class HotelBooking extends Model
         return $this->hasMany(HotelRoomBookingInfo::class, 'hotel_booking_id', 'id'); 
         // Adjust foreign/local key names as needed
     }
+    public function User()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -26,7 +26,7 @@
   <div class="container">
     <div class="row">
         @include('front_end.user.user_menu')
-      <div class="col-lg-9">
+      <div class="col-lg-10">
         <div class="row g-4 pb-4">
             <div class="col-lg-3">
                 <div class="bg-white shadow-sm rounded pt-3 pb-0 px-4">
@@ -219,8 +219,9 @@
                         <th>Hotel</th>
                         <th class="text-center">Customer</th>
                         <th class="text-center">Contact No</th>
-                        <th class="text-center">Email</th>
+                        {{-- <th class="text-center">Email</th> --}}
                         <th class="text-center">Price</th>
+                        <th class="text-center">Agent</th>
                         <th class="text-center">Status</th>
                         <th class="text-center">Actions</th>
                       </tr>
@@ -236,10 +237,9 @@
                         <td class="align-middle">{{$hoteldetails->hotel_name}}</td>
                         <td class="align-middle">{{$hoteldetails->TravelersInfo[0]->first_name ?? '' }}&nbsp;{{$hoteldetails->TravelersInfo[0]->last_name ?? '' }} </td>
                         <td class="align-middle">{{$hoteldetails->Customercountry->phone_code ?? ''}} &nbsp;{{$hoteldetails->mobile}} </td>
-                        <td class="align-middle">{{$hoteldetails->email }} </td>
+                        {{-- <td class="align-middle">{{$hoteldetails->email }} </td> --}}
                         <td class="align-middle">{{$hoteldetails->currency_code ." ".$hoteldetails->total_amount }}</td>
-                
-                    
+                        <td class="align-middle"> {{ $hoteldetails->User->first_name ?? '-' }}</td>
                         <td class="align-middle text-center">
                           @if(isset($hoteldetails->hotelReservation->reservation_status) && $hoteldetails->hotelReservation->reservation_status  == 'Confirmed')
                           <i class="fas fa-check-circle text-4 text-success" data-bs-toggle="tooltip" title="Your Hotel Reservation is Successful"></i>

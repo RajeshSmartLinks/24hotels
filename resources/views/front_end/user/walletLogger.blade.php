@@ -26,7 +26,7 @@
   <div class="container">
     <div class="row">
         @include('front_end.user.user_menu')
-      <div class="col-lg-9">
+      <div class="col-lg-10">
         <div class="row g-4 pb-4">
           <div class="col-12">
               <div class="bg-white shadow-sm rounded pt-3 pb-0 px-4">

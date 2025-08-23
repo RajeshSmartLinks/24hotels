@@ -298,7 +298,8 @@ class UserController extends Controller
 
         
         //wallet
-        $availableWalletBalance = Auth::user()->agency->wallet_balance ; 
+      
+        $availableWalletBalance = Auth::user()->agency->wallet_balance ;
         $totalRecharge = WalletLogger::where(['reference_id' => auth()->user()->id,'reference_type' => 'user','action' => 'added'])->sum('amount');
         //we need to add both flight and hotel
         //$totalflight = FlightBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
@@ -324,46 +325,52 @@ class UserController extends Controller
         if(auth()->user()->is_agent != 1){
             return view('front_end.error',compact('titles','data'));
         }
+        if(auth()->user()->is_master_agent == 1){
+            $subagentsDeatils = User::where('agency_id', auth()->user()->agency_id)->pluck('id');
+            $userIds = $subagentsDeatils->toArray();
+        }else{
+            $userIds = [auth()->user()->id];
+        }
 
         $activeTab = $request->get('tab', 'flight-tab'); // Default to 'tab1' if no tab is specified
 
         //wallet
-        $availableWalletBalance = Auth::user()->wallet_balance ; 
-        $totalRecharge = WalletLogger::where(['reference_id' => auth()->user()->id,'reference_type' => 'user','action' => 'added'])->sum('amount');
+        $availableWalletBalance = Auth::user()->agency->wallet_balance ; 
+        $totalRecharge = WalletLogger::whereIn('reference_id' , $userIds)->where(['reference_type' => 'user','action' => 'added'])->sum('amount');
         //we need to add both flight and hotel
-        $totalflight = FlightBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
-        $totalHotel = HotelBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
+        $totalflight = FlightBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
+        $totalHotel = HotelBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
         $totalUse = ($totalflight + $totalHotel);
 
 
         //today sales
-        $todayFlightSalesAmount = FlightBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereDate('created_at', today())->sum('sub_total');
-        $todayHotelSalesAmount = HotelBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereDate('created_at', today())->sum('sub_total');
-        $todayFlightSalesCount = FlightBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereDate('created_at', today())->count();
-        $todayHotelSalesCount = HotelBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereDate('created_at', today())->count();
+        $todayFlightSalesAmount = FlightBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereDate('created_at', today())->sum('sub_total');
+        $todayHotelSalesAmount = HotelBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereDate('created_at', today())->sum('sub_total');
+        $todayFlightSalesCount = FlightBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereDate('created_at', today())->count();
+        $todayHotelSalesCount = HotelBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereDate('created_at', today())->count();
         $totaltodaySalesAmount = $todayFlightSalesAmount + $todayHotelSalesAmount;
         $totaltodaySalesCount = $todayFlightSalesCount + $todayHotelSalesCount;
 
 
 
         //monthly sales 
-        $monthlyFlightSalesAmount = FlightBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('sub_total');
-        $monthlyHotelSalesAmount = HotelBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('sub_total');
-        $monthlyFlightSalesCount = FlightBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
-        $monthlyHotelSalesCount = HotelBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+        $monthlyFlightSalesAmount = FlightBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('sub_total');
+        $monthlyHotelSalesAmount = HotelBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->sum('sub_total');
+        $monthlyFlightSalesCount = FlightBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
+        $monthlyHotelSalesCount = HotelBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
         $totalmonthlySalesAmount = $monthlyFlightSalesAmount + $monthlyHotelSalesAmount;
         $totalmonthlySalesCount = $monthlyFlightSalesCount + $monthlyHotelSalesCount;
 
         //total sales 
-        $totalFlightSalesAmount = FlightBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
-        $totalHotelSalesAmount = HotelBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
-        $totalFlightSalesCount = FlightBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->count();
-        $totalHotelSalesCount = HotelBooking::where(['user_id' => auth()->user()->id,'booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->count();
+        $totalFlightSalesAmount = FlightBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
+        $totalHotelSalesAmount = HotelBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
+        $totalFlightSalesCount = FlightBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->count();
+        $totalHotelSalesCount = HotelBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->count();
         $totalSalesAmount = $totalFlightSalesAmount + $totalHotelSalesAmount;
         $totalSalesCount = $totalFlightSalesCount + $totalHotelSalesCount;
 
-        $userbookings  = FlightBooking::with('fromAirport','toAirport')->where("user_id" , Auth::user()->id)->orderBy('id',"desc")->whereDate('created_at', today())->paginate(5, ['*'], 'flight-tab');
-        $hotelbookings  = HotelBooking::with('hotelReservation')->where("user_id" , Auth::user()->id)->orderBy('id',"desc")->whereDate('created_at', today())->paginate(10, ['*'], 'hotel-tab');
+        $userbookings  = FlightBooking::with('fromAirport','toAirport')->whereIn('user_id' , $userIds)->orderBy('id',"desc")->whereDate('created_at', today())->paginate(5, ['*'], 'flight-tab');
+        $hotelbookings  = HotelBooking::with('hotelReservation','User')->whereIn('user_id' , $userIds)->orderBy('id',"desc")->whereDate('created_at', today())->paginate(10, ['*'], 'hotel-tab');
 
         $info = [
             'totaltodaySalesAmount' => $totaltodaySalesAmount,
@@ -413,7 +420,8 @@ class UserController extends Controller
         return view('front_end.agent.flightBooking',compact('titles' , 'userbookings'));
     }
 
-    public function agentHotelBooking(){
+    public function agentHotelBooking(Request $request){
+        $searchKey = $request->query('searchKey'); 
         $titles = [
             'title' => "Agent hotel Booking",
         ];
@@ -421,8 +429,29 @@ class UserController extends Controller
         if(auth()->user()->is_agent != 1){
             return view('front_end.error',compact('titles','data'));
         }
+        if(Auth::user()->is_master_agent == 1){
+            $subagentsDeatils = User::where('agency_id', Auth::user()->agency_id)->pluck('id');
+            $userIds = $subagentsDeatils->toArray();
+        }else{
+            $userIds = [Auth::user()->id];
+        }
 
-        $hotelbookings  = HotelBooking::with('TravelersInfo','Customercountry')->where("user_id" , Auth::user()->id)->orderBy('id',"desc")->paginate(15);
+        $hotelbookings  = HotelBooking::with('TravelersInfo','Customercountry','User')
+            ->whereIn("user_id" , $userIds)
+            ->where(function ($query) use ($searchKey) {
+                $query->where('hotel_bookings.hotel_name', 'like', '%' . $searchKey . '%')
+                    ->orWhere('hotel_bookings.booking_ref_id', 'like', '%' . $searchKey . '%')
+                    ->orWhereHas('User', function ($q) use ($searchKey) {
+                        $q->where('first_name', 'like', '%' . $searchKey . '%')
+                            ->orWhere('last_name', 'like', '%' . $searchKey . '%');
+                    })
+                    ->orWhereHas('TravelersInfo', function ($q) use ($searchKey) {
+                        $q->where('first_name', 'like', '%' . $searchKey . '%')
+                            ->orWhere('last_name', 'like', '%' . $searchKey . '%');
+                    });
+            })
+            ->orderBy('id',"desc")->paginate(15);
+            //ddd($hotelbookings);
  
 
         return view('front_end.agent.hotelBooking',compact('titles' , 'hotelbookings'));

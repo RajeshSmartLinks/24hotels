@@ -320,15 +320,15 @@ class AgencyController extends Controller
         ]);
         $agency = Agency::with('masterAgent')->find($id);
 
-        $agency->wallet_balance = $request->wallet_balance + $agency->wallet_balance;
+        $agency->wallet_balance = $request->wallet_balance_kwd + $agency->wallet_balance;
         $agency->save();
 
         //add wallet balance to wallet logger
         $walletLogger = new WalletLogger;
         $walletLogger->user_id = $agency->masterAgent->id;
-        $walletLogger->amount = $request->wallet_balance;
-        $walletLogger->remaining_amount = $request->wallet_balance + $agency->masterAgent->wallet_balance;
-        $walletLogger->amount_description = !empty($request->description)? $request->description : $request->wallet_balance." Add Wallet Balance";
+        $walletLogger->amount = $request->wallet_balance_kwd;
+        $walletLogger->remaining_amount = $request->wallet_balance_kwd + $agency->masterAgent->wallet_balance;
+        $walletLogger->amount_description = !empty($request->description)? $request->description : $request->wallet_balance_kwd." Add Wallet Balance";
         $walletLogger->action = 'added';
         $walletLogger->status = 'Active';
         $walletLogger->date_of_transaction = now();

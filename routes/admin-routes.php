@@ -83,6 +83,7 @@ Route::group([
 
     Route::post('agency/addAgencyWalletBalance/{id}', [\App\Http\Controllers\Admin\AgencyController::class, 'addAgencyWalletBalance'])->name('addAgencyWalletBalance');
     Route::post('agency/markup/{id}', [\App\Http\Controllers\Admin\AgencyController::class, 'updateMarkUp'])->name('agencyUpdateMarkUp');
+    Route::get('currencyConverter', [\App\Http\Controllers\Admin\CurrencyController::class, 'currencyConverter'])->name('currencyConverter');
 
 });
 
