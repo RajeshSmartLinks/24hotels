@@ -170,6 +170,7 @@ Route::get('search/hotelsList', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\Hom
 Route::get('hotel/rooms/details', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'GethotelDetails'])->name('GethotelDetails');
 Route::get('hotel/preBookRoom/{hotelCode}/{bookingCode}/{searchId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'PreBooking'])->name('PreBookingRoom');
 Route::post('hotel/savePassengerDetails', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'savePassanger'])->name('hotelsavePassengerDetails');
+Route::get('hotel/holdBooking', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'holdBooking'])->name('holdHotelBooking');
 
 Route::get('hotel/bookingPreviewInfo/{bookingId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'HotelBookingPreview'])->name('HotelBookingPreviewInfo');
 
@@ -183,3 +184,7 @@ Route::get('agentbookHotelRooms/{hotelbookingId}', [App\Http\Controllers\FrontEn
 
 
 Route::get('hotelTest', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'test']);
+Route::post('customLogin', [App\Http\Controllers\Auth\CustomLoginController::class, 'login'])->name('customLogin');
+Route::post('verify2FA', [App\Http\Controllers\Auth\CustomLoginController::class, 'verify2FA'])->name('verify2FA');
+Route::post('resendOtp', [App\Http\Controllers\Auth\CustomLoginController::class, 'resendOtp'])->name('resendOtp');
+

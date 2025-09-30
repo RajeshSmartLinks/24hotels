@@ -30,6 +30,7 @@ class CreateWebbedsHotelSearchesTable extends Migration
             $table->string('ip_address');
             $table->string('hotel_traveller_info')->nullable();
             $table->text('request_json')->nullable();
+            $table->integer('user_id')->nullable();
             $table->timestamps();
         });
     }

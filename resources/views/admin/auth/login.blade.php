@@ -66,7 +66,7 @@
                                         <p class="px-2">Welcome back, please login to your account.</p>
                                         <div class="card-content">
                                             <div class="card-body pt-1">
-                                                <form action="{{url('admin/login')}}" method="post">
+                                                {{-- <form action="{{url('admin/login')}}" method="post">
                                                     @csrf
                                                     <fieldset class="form-label-group form-group position-relative has-icon-left">
                                                         <input type="text" class="form-control @error('email') is-invalid @enderror" id="user-name" placeholder="Username" required name ="email">
@@ -111,11 +111,92 @@
                                                                 </div>
                                                             </fieldset>
                                                         </div>
-                                                        {{-- <div class="text-right"><a href="auth-forgot-password.html" class="card-link">Forgot Password?</a></div> --}}
                                                     </div>
-                                                    {{-- <a href="auth-register.html" class="btn btn-outline-primary float-left btn-inline">Register</a> --}}
                                                     <button type="submit" class="btn btn-primary float-right btn-inline">Login</button>
+                                                </form> --}}
+                                                <form id="loginForm" method="POST">
+                                                    @csrf
+                                                    <!-- Login Section -->
+                                                    <div id="loginSection">
+                                                        <fieldset class="form-label-group form-group position-relative has-icon-left">
+                                                            <input type="text"
+                                                                class="form-control @error('email') is-invalid @enderror"
+                                                                id="user-name"
+                                                                placeholder="Username"
+                                                                required
+                                                                name="email">
+                                                            @error('email')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                            @enderror
+                                                            <span class="text-danger d-none" id="emailError"></span>
+                                                            <div class="form-control-position">
+                                                                <i class="feather icon-user"></i>
+                                                            </div>
+                                                            <label for="user-name">Username</label>
+                                                        </fieldset>
+
+                                                        <fieldset class="form-label-group position-relative has-icon-left">
+                                                            <input type="password"
+                                                                class="form-control @error('password') is-invalid @enderror"
+                                                                id="user-password"
+                                                                placeholder="Password"
+                                                                required
+                                                                name="password">
+                                                            @error('password')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                            @enderror
+                                                            <span class="text-danger d-none" id="passwordError"></span>
+                                                            <div class="form-control-position">
+                                                                <i class="feather icon-lock"></i>
+                                                            </div>
+                                                            <label for="user-password">Password</label>
+                                                        </fieldset>
+
+                                                        <div class="form-group d-flex justify-content-between align-items-center">
+                                                            <div class="text-left">
+                                                                <fieldset class="checkbox">
+                                                                    <div class="vs-checkbox-con vs-checkbox-primary">
+                                                                        <input class="form-check-input" type="checkbox" name="remember" id="remember"
+                                                                            {{ old('remember') ? 'checked' : '' }}>
+                                                                        <span class="vs-checkbox">
+                                                                            <span class="vs-checkbox--check">
+                                                                                <i class="vs-icon feather icon-check"></i>
+                                                                            </span>
+                                                                        </span>
+                                                                        <span class="">Remember me</span>
+                                                                    </div>
+                                                                </fieldset>
+                                                            </div>
+                                                        </div>
+
+                                                        <button type="submit" class="btn btn-primary float-right btn-inline" id="loginBtn">Login</button>
+                                                    </div>
+
+                                                    <!-- OTP Section -->
+                                                    <div id="otpSection" class="d-none">
+                                                        <fieldset class="form-label-group form-group position-relative has-icon-left">
+                                                            <input type="text"
+                                                                class="form-control"
+                                                                id="otpInput"
+                                                                name="otp"
+                                                                maxlength="6"
+                                                                placeholder="Enter OTP">
+                                                            <div class="form-control-position">
+                                                                <i class="feather icon-shield"></i>
+                                                            </div>
+                                                            <label for="otpInput">OTP</label>
+                                                            <span class="text-danger d-none" id="otpError"></span>
+                                                        </fieldset>
+
+                                                        <button type="button" class="btn btn-success btn-block mt-2" id="verifyOtpBtn">Verify OTP</button>
+                                                        <button type="button" class="btn btn-link mt-2" id="resendOtpBtn">Resend OTP</button>
+                                                    </div>
                                                 </form>
+
                                             </div>
                                         </div>
                                         <div class="login-footer">
@@ -157,6 +238,98 @@
 
     <!-- BEGIN: Page JS-->
     <!-- END: Page JS-->
+    <script>
+        $(document).ready(function () {
+            // Login form submit
+            $("#loginForm").on("submit", function (e) {
+                e.preventDefault();
+
+                $("#loginBtn").prop("disabled", true).text("Logging in...");
+
+                $.ajax({
+                    url: "{{ url('admin/login') }}",
+                    type: "POST",
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        if (response.success && response.step === "otp") {
+                            $("#loginSection").addClass("d-none");
+                            $("#otpSection").removeClass("d-none");
+                        } else if (response.success) {
+                            window.location.href = response.redirect_url;
+                        }
+                    },
+                    error: function (xhr) {
+                         console.log(xhr.responseJSON);
+                        if (xhr.status === 422) {
+                            let errors = xhr.responseJSON.errors;
+                            if (errors.email) {
+                                $("#emailError").text(errors.email[0]).removeClass("d-none");
+                            }
+                            if (errors.password) {
+                                $("#passwordError").text(errors.password[0]).removeClass("d-none");
+                            }
+                        } else {
+                            console.log(xhr.responseJSON);
+                            $("#emailError").text(xhr.responseJSON.message).removeClass("d-none");
+                            //alert(xhr.responseJSON.message || "Login failed. Try again.");
+                        }
+                    },
+                    complete: function () {
+                        $("#loginBtn").prop("disabled", false).text("Login");
+                    }
+                });
+            });
+
+            // Verify OTP
+            $("#verifyOtpBtn").on("click", function () {
+                $.ajax({
+                    url: "{{ url('admin/verify-otp') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        email: $("#user-name").val(),
+                        password: $("#user-password").val(),
+                        otp: $("#otpInput").val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            window.location.href = response.redirect_url;
+                        } else {
+                            $("#otpError").text(response.message).removeClass("d-none");
+                        }
+                    },
+                    error: function () {
+                        $("#otpError").text("OTP verification failed.").removeClass("d-none");
+                    }
+                });
+            });
+
+            // Resend OTP
+            $("#resendOtpBtn").on("click", function () {
+                $(this).prop("disabled", true).text("Resending...");
+
+                $.ajax({
+                    url: "{{ url('admin/resend-otp') }}",
+                    type: "POST",
+                    data: {
+                        _token: "{{ csrf_token() }}",
+                        email: $("#user-name").val()
+                    },
+                    success: function (response) {
+                        alert(response.message);
+                        setTimeout(function () {
+                            $("#resendOtpBtn").prop("disabled", false).text("Resend OTP");
+                        }, 30000); // 30 sec cooldown
+                    },
+                    error: function () {
+                        alert("Failed to resend OTP.");
+                        $("#resendOtpBtn").prop("disabled", false).text("Resend OTP");
+                    }
+                });
+            });
+        });
+    </script>
+
 
 </body>
 <!-- END: Body-->

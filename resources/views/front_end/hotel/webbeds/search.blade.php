@@ -25,8 +25,8 @@
   ============================================= -->
   <div id="content">
     <section class="container">
-      <form id="bookingHotels" method="get" action="{{route('webbedsSearchHotels')}}">
-        <div class="row g-3 mb-4">
+      <form id="bookingHotels" method="get" action="{{route('webbedsSearchHotels')}}" style = "position: sticky;top: 80px;z-index: 1000;padding: 15px;">
+        <div class="row g-3 pb-3" style="background: white;">
           <div class="col-md-12 col-lg-4">
             <div class="position-relative">
               <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder="{{__('lang.enter_city')}}" value="{{app('request')->input('hotelsCityName')}}">

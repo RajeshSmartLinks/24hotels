@@ -107,9 +107,9 @@
             <div class="col-lg-12">
               <?php $searchRequest = json_decode($result['searchRequest']->request_json ,true);?>
 
-              <form id="bookingHotels" method="get" action="{{route('GethotelDetails')}}">
+              <form id="bookingHotels" method="get" action="{{route('GethotelDetails')}}" style = "position: sticky;top: 80px;z-index: 1000;padding: 15px;">
                 <input type="hidden" class="form-control" id="hotelCode"  name = "hotelCode" value = "{{app('request')->input('hotelCode')}}">
-                <div class="row g-3 mb-4">
+                 <div class="row g-3 pb-3" style="background: white;">
                   <div class="col-md-12 col-lg-4">
                     <div class="position-relative">
                       <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder="{{__('lang.enter_city')}}" value="{{$searchRequest['hotelsCityName']}}" readonly>
@@ -335,7 +335,7 @@
                                       @endforeach
                                       <br>
                                       
-                                      <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@24flights.com">booking@24Flights.com</a></strong></li>
+                                      <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@masilaholidays.com<">booking@masilaholidays.com</a></strong></li>
                                       <li>{{__('lang.cancellation_policy_2')}}</li>
                                     </ul>
                                   </div>
@@ -403,7 +403,7 @@
                                         @endif
                                       </li>
                                       @endforeach
-                                      {{-- <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@24  flights.com">booking@24Flights.com</a></strong></li>
+                                      {{-- <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@24  flights.com">booking@masilaholidays.com<</a></strong></li>
                                       <li>{{__('lang.cancellation_policy_2')}}</li> --}}
                                     </ul>
                                   </div>

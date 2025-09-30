@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\Route;
 */
 Route::get('admin/login', [App\Http\Controllers\Auth\AdminLoginController::class, 'showLoginForm']);
 Route::post('admin/login', [App\Http\Controllers\Auth\AdminLoginController::class, 'login']);
+
+Route::post('admin/verify-otp', [App\Http\Controllers\Auth\AdminLoginController::class, 'verifyOtp']);
+Route::post('admin/resend-otp', [App\Http\Controllers\Auth\AdminLoginController::class, 'resendOtp']);
+
+
 Route::get('admin', function () {
     return redirect('admin/login');
 });

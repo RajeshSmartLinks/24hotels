@@ -22,8 +22,9 @@ class CreateHotelRoomBookingInfosTable extends Migration
             $table->string('booking_code')->nullable();
             $table->string('itinerary_code')->nullable();
             $table->string('booking_reference_no')->nullable();
-            $table->string('status')->nullable();
-
+            $table->enum('status',['confirmed','cancelled','cancellation_failure'])->nullable();
+            $table->tinyInteger('is_cancel')->default(0)->nullable();
+            $table->decimal('penality_amount',18,3)->nullable();
             $table->timestamps();
         });
     }

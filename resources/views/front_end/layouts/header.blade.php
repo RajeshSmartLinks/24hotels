@@ -55,7 +55,8 @@
                   <li> <a class="dropdown-item" href="{{route('changelang',['lang'=>'ar'])}}">عربى</a></li>
                   @endif --}}
                   @if(auth()->user())
-                  <li> <a class="dropdown-item" href="{{route('wallet-logs')}}">Wallet : KWD {{auth()->user()->agency->wallet_balance}}</a></li>
+                  <?php //dd(auth()->user());?>
+                  <li> <a class="dropdown-item" href="{{route('wallet-logs')}}">Wallet : KWD {{auth()->user()->agency->wallet_balance ?? 0}}</a></li>
                   @endif
                 </ul>
               </div>

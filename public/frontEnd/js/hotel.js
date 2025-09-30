@@ -19,7 +19,7 @@ $(document).ready(function() {
                 <div class="input-group-prepend">
                   <button type="button" class="btn bg-light-4" id = "adult-travellers-minus-`+roomsCount+`">-</button>
                 </div>
-                <input type="text" data-ride="spinner" class="qty-spinner form-control" id="adult-travellers-`+roomsCount+`" value="1" name = "room`+roomsCount+`[adult]" readonly>
+                <input type="text" data-ride="spinner" class="qty-spinner form-control" id="adult-travellers-`+roomsCount+`" value="2" name = "room`+roomsCount+`[adult]" readonly>
                 <div class="input-group-append">
                   <button type="button" class="btn bg-light-4" id = "adult-travellers-plus-`+roomsCount+`">+</button>
                 </div>

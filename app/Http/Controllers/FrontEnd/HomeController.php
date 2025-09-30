@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\FrontEnd;
 
 
-use App\Models\SeoSettings;
-use App\Models\WebbedsCountry;
-use App\Models\Popup;
-use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
+use App\Models\Popup;
+use App\Models\SeoSettings;
+use Illuminate\Http\Request;
+use App\Models\WebbedsCountry;
+use App\Models\WebbedsHotelSearch;
 use App\Http\Controllers\Controller;
-use Stevebauman\Location\Facades\Location;
 use Illuminate\Support\Facades\Config;
+use Stevebauman\Location\Facades\Location;
 
 
 class HomeController extends Controller
@@ -90,6 +91,14 @@ class HomeController extends Controller
         $description = 'description_' . app()->getLocale();
 
         $countries      = WebbedsCountry::get();
+
+
+        // $recentSearches = [];
+        // if(isset(auth()->user()->id)){
+        //     $recentSearches = WebbedsHotelSearch::where('user_id', auth()->user()->id)->orderBy('id', 'desc')->limit(3)->get();
+        // }
+       
+
 
         //popup info
 

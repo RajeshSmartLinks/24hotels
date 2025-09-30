@@ -33,6 +33,9 @@ class CreateUsersTable extends Migration
             $table->dateTime('deleted_at')->default(Null);
             $table->rememberToken();
             $table->timestamps();
+            $table->string('otp')->nullable();
+            $table->timestamp('otp_expires_at')->nullable();
+
         });
     }
 

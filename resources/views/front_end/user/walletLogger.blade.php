@@ -53,7 +53,7 @@
         <div class="bg-white shadow-md rounded p-4"> 
           <!-- Orders History
           ============================================= -->
-          <div class="row"> <div class="col-8"><h4 class="mb-9">Wallet Logger</h4></div>  <div class="col-4"><h5 class=""> Amount : KWD {{auth()->user()->wallet_balance}}</h5></div></div>
+      <div class="row"> <div class="col-8"><h4 class="mb-9">Wallet Logger</h4></div>  <div class="col-4"><h5 class=""> Amount : KWD {{$info['availableWalletBalance']}}</h5></div></div>
 		  <hr class="mx-n4">
          
           

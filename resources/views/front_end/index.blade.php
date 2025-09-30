@@ -130,7 +130,7 @@
                                     <div class="input-group-prepend">
                                       <button type="button" class="btn bg-light-4" id = "adult-travellers-minus-1">-</button>
                                     </div>
-                                    <input type="text" data-ride="spinner" id="adult-travellers-1" class="qty-spinner form-control" value="1" readonly name = "room1[adult]">
+                                    <input type="text" data-ride="spinner" id="adult-travellers-1" class="qty-spinner form-control" value="2" readonly name = "room1[adult]">
                                     <div class="input-group-append">
                                       <button type="button" class="btn bg-light-4" id = "adult-travellers-plus-1">+</button>
                                     </div>
@@ -210,44 +210,79 @@
             
             <div class="col-md-5 col-lg-4" >
               
-              <form id="loginForm" method="post" action ="{{ route('login') }}">
+              {{-- <form id="loginForm" method="post" action ="{{ route('login') }}">
                 @csrf
-              <div class="login-card">
-                <h4>Login to your account</h4>
-                <form>
-                    <div class="form-group">
-                        <label class = "form-label">Email </label>
-                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="emailAddress"  placeholder="{{__('lang.email')}}" name ="email" value={{ old('email') }}>
-                         @error('email')
+                <div class="login-card">
+                  <h4>Login to your account</h4>
+                  <div class="form-group">
+                      <label class = "form-label">Email </label>
+                      <input type="email" class="form-control @error('email') is-invalid @enderror" id="emailAddress"  placeholder="{{__('lang.email')}}" name ="email" value={{ old('email') }} required >
+                      @error('email')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                      @enderror
+                  </div>
+
+                  <div class="form-group mt-2">
+                      <label class ="form-label">Password</label>
+                      <div class="input-group">
+                          <input type="password" class="form-control @error('password') is-invalid @enderror" id="loginPassword"  placeholder="{{__('lang.password')}}" name="password" required >
+                          @error('password')
                           <span class="invalid-feedback" role="alert">
                               <strong>{{ $message }}</strong>
                           </span>
-                        @enderror
-                    </div>
+                          @enderror
+                      </div>
+                      <div class="text-right text-link mt-1">
+                          <a class="btn-link" href="{{route('user-forget.password.get')}}"> {{__('lang.forgot_password')}}</a>
+                      </div>
+                  </div>
 
-                    <div class="form-group mt-2">
-                        <label class ="form-label">Password</label>
-                        <div class="input-group">
-                             <input type="password" class="form-control @error('password') is-invalid @enderror" id="loginPassword"  placeholder="{{__('lang.password')}}" name="password">
-                            @error('password')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                            @enderror
-                        </div>
-                        <div class="text-right text-link mt-1">
-                            <a class="btn-link" href="{{route('user-forget.password.get')}}"> {{__('lang.forgot_password')}}</a>
-                        </div>
-                    </div>
+                  <button type="submit" class="btn btn-login btn-block mt-3">Login →</button>
 
-                    <button type="submit" class="btn btn-login btn-block mt-3">Login →</button>
+                  <div class="text-center text-link mt-3">
+                      Don’t have an account? <a href="#"><strong>Register with us</strong></a>
+                  </div>
+                </div>
+              </form> --}}
+              <form id="loginForm">
+                  @csrf
+                  <div id="loginSection" class="login-card">
+                      <h4>Login to your account</h4>
+                      <div class="form-group">
+                          <label class="form-label">Email </label>
+                          <input type="email" name="email" class="form-control" id="emailAddress" placeholder="{{__('lang.email')}}" required>
+                          <span class="text-danger d-none" id="emailError"></span>
+                      </div>
+                      <div class="form-group mt-2">
+                          <label class="form-label">Password</label>
+                          <div class="input-group">
+                              <input type="password" name="password" class="form-control" id="loginPassword" placeholder="{{__('lang.password')}}" required>
+                              <span class="text-danger d-none" id="passwordError"></span>
+                          </div>
+                      </div>
+                      <button type="submit" class="btn btn-login btn-block mt-3" id="loginBtn">Login →</button>
+                  </div>
 
-                    <div class="text-center text-link mt-3">
-                        Don’t have an account? <a href="#"><strong>Register with us</strong></a>
-                    </div>
-                </form>
-              </div>
-               </form>
+                  <!-- OTP Section -->
+                  <div id="otpSection" class="d-none">
+                      <h4>Enter OTP</h4>
+                      <span class="text-warning d-none" id="otpmessage"></span>
+                      <div class="form-group">
+                          <label>OTP</label>
+                          <input type="text" name="otp" class="form-control" id="otpInput" maxlength="6">
+                          <span class="text-danger d-none" id="otpError"></span>
+                      </div>
+                      <button type="button" class="btn btn-success mt-3" id="verifyOtpBtn">Verify OTP</button>
+                      <button type="button" class="btn btn-link mt-3" id="resendOtpBtn">Resend OTP</button>
+                  </div>
+
+                  <div class="text-center text-link mt-3">
+                      Don’t have an account? <a href="#"><strong>Register with us</strong></a>
+                  </div>
+              </form>
+
 
             </div>
             @endif
@@ -308,6 +343,59 @@
     </div> --}}
     <!-- Banner end -->
     <!-- Banner end -->
+    {{-- @if() --}}
+    {{-- <div class="container">
+      <section class="section px-3 px-md-5 pb-4">
+        <h2 class="text-7 fw-500 text-left pb-3">Your recent searches</h2>
+        <div class="row g-4">
+          <div class="col-md-4">
+            <div class="card shadow-sm border-0 mb-3" >
+              <div class="d-flex align-items-center p-2">
+                
+                <img src="{{asset("frontEnd/images/favicon.png")}}" 
+                    class="rounded"  
+                    style="width: 91px;height: 70px;object-fit: scale-down;">
+               
+                <div class="ms-3">
+                  <h6 class="mb-1 fw-bold">Kuwait</h6>
+                  <small class="text-muted">Sep 30 – Oct 2, 2 people</small>
+                </div>
+              </div>
+            </div>
+          </div>
+           <div class="col-md-4">
+            <div class="card shadow-sm border-0 mb-3" >
+              <div class="d-flex align-items-center p-2">
+                
+                <img src="{{asset("frontEnd/images/favicon.png")}}" 
+                    class="rounded" alt="Kuwait" 
+                    style="width: 91px;height: 70px;object-fit: scale-down;">
+               
+                <div class="ms-3">
+                  <h6 class="mb-1 fw-bold">Kuwait</h6>
+                  <small class="text-muted">Sep 30 – Oct 2, 2 people</small>
+                </div>
+              </div>
+            </div>
+          </div>
+           <div class="col-md-4">
+            <div class="card shadow-sm border-0 mb-3" >
+              <div class="d-flex align-items-center p-2">
+                
+                <img src="{{asset("frontEnd/images/favicon.png")}}" 
+                    class="rounded" alt="Kuwait" 
+                    style="width: 91px;height: 70px;object-fit: scale-down;">
+               
+                <div class="ms-3">
+                  <h6 class="mb-1 fw-bold">Kuwait</h6>
+                  <small class="text-muted">Sep 30 – Oct 2, 2 people</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div> --}}
     
     <div class="container">
       <section class="section px-3 px-md-5 pb-4">
@@ -950,6 +1038,111 @@ $("#bookingFlight").validate({
               $('#popupModal').modal('show');
           }
       });
+
+      $(document).ready(function () {
+        // Login form submit
+        $("#loginForm").on("submit", function (e) {
+            e.preventDefault();
+
+            let formData = $(this).serialize();
+            let loginBtn = $("#loginBtn");
+
+            loginBtn.prop("disabled", true).text("Logging in...");
+
+            $.ajax({
+                url: "{{ route('customLogin') }}",
+                type: "POST",
+                data: formData,
+                success: function (response) {
+                    if (response.success) {
+                        window.location.href = response.redirect_url;
+                    } else if (response.two_factor) {
+                        $("#loginSection").addClass("d-none");
+                        $("#otpSection").removeClass("d-none");
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function (xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        if (errors.email) {
+                            $("#emailError").text(errors.email[0]).removeClass("d-none");
+                        }
+                        if (errors.password) {
+                            $("#passwordError").text(errors.password[0]).removeClass("d-none");
+                        }
+                    } else {
+                        $("#emailError").text("Invalid email or password").removeClass("d-none");
+                    }
+                },
+                complete: function () {
+                    loginBtn.prop("disabled", false).text("Login →");
+                }
+            });
+        });
+        // Resend OTP
+        $("#resendOtpBtn").on("click", function () {
+          $.ajax({
+              url: "{{ route('resendOtp') }}",
+              type: "POST",
+              data: {
+                  _token: "{{ csrf_token() }}",
+                  email: $("#emailAddress").val()
+              },
+              success: function (response) {
+                  if (response.success) {
+                      //alert("A new OTP has been sent to your email.");
+                      $("#otpmessage").text("A new OTP has been sent to your email").removeClass("d-none");
+                  } else {
+                      $("#otpError").text(response.message).removeClass("d-none");
+                  }
+              },
+              error: function () {
+                  alert("Failed to resend OTP. Please try again.");
+              }
+          });
+        });
+
+
+        // Verify OTP
+        $("#verifyOtpBtn").on("click", function () {
+          let otp = $("#otpInput").val();
+
+          // get email and password values from the login form
+          let email = $("#emailAddress").val();
+          let password = $("#loginPassword").val();
+          let verifyBtn = $("#verifyOtpBtn");
+
+          verifyBtn.prop("disabled", true).text("Verifying...");
+
+          $.ajax({
+              url: "{{ route('verify2FA') }}",
+              type: "POST",
+              data: {
+                  _token: "{{ csrf_token() }}",
+                  otp: otp,
+                  email: email,
+                  password: password
+              },
+              success: function (response) {
+                  if (response.success) {
+                      window.location.href = response.redirect_url;
+                  } else {
+                      $("#otpError").text(response.message).removeClass("d-none");
+                      verifyBtn.prop("disabled", false).text("Verify OTP");
+                  }
+              },
+              error: function () {
+                  $("#otpError").text("Invalid OTP").removeClass("d-none");
+                  verifyBtn.prop("disabled", false).text("Verify OTP");
+              }
+          });
+      });
+
+    });
+
+
 </script>
 <script src='{{ asset('frontEnd/js/hotel.js') }}?ver={{ config('app.version') }}'></script>
 <script src='{{ asset('frontEnd/js/flight.js') }}?ver={{ config('app.version') }}'></script>

@@ -111,6 +111,9 @@
                         @if(!empty($hoteldetails->hotel_room_booking_path))
                         <a  href = "{{asset($hoteldetails->hotel_room_booking_path)}}" download data-bs-toggle="tooltip" title="Download"><i class="fas fa-download"></i></a>
                         @endif
+                        @if($hoteldetails->booking_status == 'booking_completed')
+                          <a  href = "#" onclick='togglePopup({{ $hoteldetails->id }}, @json($hoteldetails->cancellation_rules))' data-bs-toggle="tooltip" title="Cancle Booking" class="text-danger"><i class="fas fa-times-circle"></i></a>
+                          @endif
                         {{-- @if(!empty($hoteldetails->invoice_path))
                         <a  href = "{{asset($hoteldetails->invoice_path)}}" download data-bs-toggle="tooltip" title="Download Invoice"><i class="fas fa-file-invoice"></i></a>
                         @endif --}}
@@ -144,10 +147,10 @@
   <!-- Content end --> 
 
   <div id="canclemodel" class="modal fade" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="    width: 33%;">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document" style="width: 33%;">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">{{__('lang.cancel_Reschedule')}}</h5>
+          <h5 class="modal-title">Cancle Booking</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -155,21 +158,22 @@
             {{-- <div class="col-3"></div> --}}
             <div class="col-12">
               <div class="text-5 fw-500 text-center mb-4">
-                <div class="mb-1">{{__('lang.i_want_to_request_you_to')}}</div>
-                <div class="mb-1">{{__('lang.cancel_Reschedule')}}</div>
-                <div class="mb-1">{{__('lang.my_flight_ticket')}}</div>
+                {{-- <div class="mb-1">{{__('lang.i_want_to_request_you_to')}}</div> --}}
+                <div class="mb-1">Cancle My Hotel Booking</div>
+                {{-- <div class="mb-1">My Hotel Booking</div> --}}
               </div>
 
-              <div class="text-2 fw-300 text-center mb-4 text-muted">
+              {{-- <div class="text-2 fw-300 text-center mb-4 text-muted">
                 <div class="mb-1">{{__('lang.our_travel_desk_will_call_you_in_few_minitues')}}</div>
                 <div class="mb-1">{{__('lang.on_your_request_to_confirm')}}</div>
                 <div class="mb-1">({{__('lang.or')}})</div>
                 <div class="mb-1">{{__('lang.you_can_contact_for_immediate_response')}}</div>
-              </div>
+              </div> --}}
+              <div id="cancellationRulesContainer" class="mb-3"></div>
               
               <div class="text-center"> 
                 {{-- <a href="#" onclick="cancle()" class="btn btn-primary rounded-pill"><i class="fas fa-shopping-cart d-block d-lg-none"></i> <span class="d-none d-lg-block">Confirm</span></a> --}}
-                <form  method="post" action="{{url('cancelBooking')}}" id ="cancellationForm">
+                <form  method="post" action="{{url('hotelBookingcancellation')}}" id ="cancellationForm">
                   @csrf
                   <input type="hidden" id="bookingId" name="bookingId">
                   <div class="d-grid my-4">
@@ -188,17 +192,88 @@
 
 @endsection
 @section('extraScripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-$(document).ready(function(){
-  $("#cancellationForm").on("submit", function(){
-    $(".cancellationConfirmationButton").prop('disabled',true);
-    $(".cancellationConfirmationButton").find('span').append( '<i class="fa fa-spinner fa-spin"></i>' );
-  });//submit
-});//document ready
+  $(document).ready(function () {
+      $("#cancellationForm").on("submit", function (e) {
+          e.preventDefault(); // stop normal form submit
 
-function togglePopup($bookingId)
+          let $btn = $(".cancellationConfirmationButton");
+          $btn.prop('disabled', true);
+          $btn.find('span').html('<i class="fa fa-spinner fa-spin"></i> ');
+
+          $.ajax({
+              url: $(this).attr("action"),   // form action route
+              method: $(this).attr("method"), // usually POST
+              data: $(this).serialize(),     // send form data (includes CSRF + bookingId)
+              success: function (response) {
+                let msg = "";
+
+                if (Array.isArray(response.message)) {
+                    msg = response.message.join("<br>"); // multiple lines
+                } else {
+                    msg = response.message;
+                }
+
+                if (response.status) {
+                    // ✅ Success alert
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        html: msg,
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        // optional: reload page or redirect
+                        // location.reload();
+                    });
+                } else {
+                    // ❌ Error alert
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        html: msg,
+                        confirmButtonText: 'Close'
+                    });
+                }
+
+                $btn.prop('disabled', false);
+                $btn.find('span').html('');
+                  $("#canclemodel").modal('hide');
+              },
+              error: function (xhr) {
+                  // handle error
+                  alert("Something went wrong!");
+                  console.error(xhr.responseText);
+
+                  // reset button
+                  $btn.prop('disabled', false);
+                  $btn.find('span').html('');
+              }
+          });
+      });
+  });
+
+
+function togglePopup(bookingId, rules) 
 {
-  $("#bookingId").val($bookingId);
+  $("#bookingId").val(bookingId);
+
+  let html = "";
+
+  if (rules && rules.length > 0) {
+      rules.forEach(function(room) {
+          html += `<h6>${room.room}</h6><ul>`;
+          room.rules.forEach(function(rule) {
+              html += `<li>${rule}</li>`;
+          });
+          html += `</ul><hr/>`;
+      });
+  } else {
+      html = `<p class="text-muted">No cancellation rules available.</p>`;
+  }
+
+  $("#cancellationRulesContainer").html(html);
+
   $("#canclemodel").modal('show');
 }
 function cancle()

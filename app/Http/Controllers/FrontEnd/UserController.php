@@ -4,19 +4,24 @@ namespace App\Http\Controllers\FrontEnd;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Agency;
 use App\Models\Country;
 use App\Models\HotelMarkUp;
 use App\Models\HotelBooking;
 use App\Models\WalletLogger;
 use Illuminate\Http\Request;
 use App\Models\FlightBooking;
+use Illuminate\Support\Carbon;
+use App\Models\HotelXmlRequest;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\HotelRoomBookingInfo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Config;
+use App\Http\Controllers\FrontEnd\Hotel\Xml\BookingController;
 
 class UserController extends Controller
 {
@@ -335,7 +340,8 @@ class UserController extends Controller
         $activeTab = $request->get('tab', 'flight-tab'); // Default to 'tab1' if no tab is specified
 
         //wallet
-        $availableWalletBalance = Auth::user()->agency->wallet_balance ; 
+        //dd(Auth::user()->agency);
+        $availableWalletBalance = Auth::user()->agency->wallet_balance ?? 0; 
         $totalRecharge = WalletLogger::whereIn('reference_id' , $userIds)->where(['reference_type' => 'user','action' => 'added'])->sum('amount');
         //we need to add both flight and hotel
         $totalflight = FlightBooking::whereIn('user_id' , $userIds)->where(['booking_status' => 'booking_completed','payment_gateway' => 'WALLET'])->sum('sub_total');
@@ -398,6 +404,50 @@ class UserController extends Controller
             'totalUse' => $totalUse,
             'availableWalletBalance' => $availableWalletBalance
         ];
+        foreach ($hotelbookings as $key => $value) {
+            if ($value['booking_status'] == 'booking_completed') {
+
+                $bookingXML = HotelXmlRequest::find($value['webbeds_booking_request_id']);
+                $parsedResponse = XmlToArrayWithHTML($bookingXML->response_xml);
+
+                $dom = new \DOMDocument();
+                libxml_use_internal_errors(true);
+                $dom->loadHTML($parsedResponse['confirmationText_html']);
+                libxml_clear_errors();
+
+                $xpath = new \DOMXPath($dom);
+
+                // Get ALL <ul> elements that come after "Cancellation Rules"
+                $ulNodes = $xpath->query("//strong[contains(text(),'Cancellation Rules:')]/following::ul");
+
+                $rooms = [];
+                $roomIndex = 1;
+
+                foreach ($ulNodes as $ul) {
+                    $rulesNodes = $xpath->query(".//li", $ul);
+
+                    $rules = [];
+                    foreach ($rulesNodes as $li) {
+                        $cleanText = preg_replace('/\s+/', ' ', trim($li->textContent));
+                        $rules[] = $cleanText;
+                    }
+
+                    $rooms[] = [
+                        'room'  => "Room " . $roomIndex,
+                        'rules' => $rules
+                    ];
+
+                    $roomIndex++;
+                }
+
+                // ✅ Attach to the booking model in the collection
+                $hotelbookings[$key]['cancellation_rules'] = $rooms;
+
+            } else {
+                // ensure empty if no rules
+                $hotelbookings[$key]['cancellation_rules'] = [];
+            }
+        }
 
 
   
@@ -436,22 +486,67 @@ class UserController extends Controller
             $userIds = [Auth::user()->id];
         }
 
-        $hotelbookings  = HotelBooking::with('TravelersInfo','Customercountry','User')
-            ->whereIn("user_id" , $userIds)
-            ->where(function ($query) use ($searchKey) {
-                $query->where('hotel_bookings.hotel_name', 'like', '%' . $searchKey . '%')
-                    ->orWhere('hotel_bookings.booking_ref_id', 'like', '%' . $searchKey . '%')
-                    ->orWhereHas('User', function ($q) use ($searchKey) {
-                        $q->where('first_name', 'like', '%' . $searchKey . '%')
-                            ->orWhere('last_name', 'like', '%' . $searchKey . '%');
-                    })
-                    ->orWhereHas('TravelersInfo', function ($q) use ($searchKey) {
-                        $q->where('first_name', 'like', '%' . $searchKey . '%')
-                            ->orWhere('last_name', 'like', '%' . $searchKey . '%');
-                    });
-            })
-            ->orderBy('id',"desc")->paginate(15);
-            //ddd($hotelbookings);
+       $hotelbookings  = HotelBooking::with('TravelersInfo','Customercountry','User')
+        ->whereIn("user_id" , $userIds)
+        ->where(function ($query) use ($searchKey) {
+            $query->where('hotel_bookings.hotel_name', 'like', '%' . $searchKey . '%')
+                ->orWhere('hotel_bookings.booking_ref_id', 'like', '%' . $searchKey . '%')
+                ->orWhereHas('User', function ($q) use ($searchKey) {
+                    $q->where('first_name', 'like', '%' . $searchKey . '%')
+                        ->orWhere('last_name', 'like', '%' . $searchKey . '%');
+                })
+                ->orWhereHas('TravelersInfo', function ($q) use ($searchKey) {
+                    $q->where('first_name', 'like', '%' . $searchKey . '%')
+                        ->orWhere('last_name', 'like', '%' . $searchKey . '%');
+                });
+        })
+        ->orderBy('id',"desc")
+        ->paginate(15);
+
+        foreach ($hotelbookings as $key => $value) {
+            if ($value['booking_status'] == 'booking_completed') {
+
+                $bookingXML = HotelXmlRequest::find($value['webbeds_booking_request_id']);
+                $parsedResponse = XmlToArrayWithHTML($bookingXML->response_xml);
+
+                $dom = new \DOMDocument();
+                libxml_use_internal_errors(true);
+                $dom->loadHTML($parsedResponse['confirmationText_html']);
+                libxml_clear_errors();
+
+                $xpath = new \DOMXPath($dom);
+
+                // Get ALL <ul> elements that come after "Cancellation Rules"
+                $ulNodes = $xpath->query("//strong[contains(text(),'Cancellation Rules:')]/following::ul");
+
+                $rooms = [];
+                $roomIndex = 1;
+
+                foreach ($ulNodes as $ul) {
+                    $rulesNodes = $xpath->query(".//li", $ul);
+
+                    $rules = [];
+                    foreach ($rulesNodes as $li) {
+                        $cleanText = preg_replace('/\s+/', ' ', trim($li->textContent));
+                        $rules[] = $cleanText;
+                    }
+
+                    $rooms[] = [
+                        'room'  => "Room " . $roomIndex,
+                        'rules' => $rules
+                    ];
+
+                    $roomIndex++;
+                }
+
+                // ✅ Attach to the booking model in the collection
+                $hotelbookings[$key]['cancellation_rules'] = $rooms;
+
+            } else {
+                // ensure empty if no rules
+                $hotelbookings[$key]['cancellation_rules'] = [];
+            }
+        }
  
 
         return view('front_end.agent.hotelBooking',compact('titles' , 'hotelbookings'));
@@ -531,49 +626,155 @@ class UserController extends Controller
     {
         $bookingId = $request->input('bookingId');
         $HotelBooking = HotelBooking::find($bookingId);
-        if($HotelBooking->booking_status == "booking_completed")
-        {
-            $HotelBooking->booking_status ="cancellation_initiated";
+        $bookingController = new BookingController();
+        //fetching booking Ids
+        $HotelConfirmationResponse = HotelXmlRequest::find($HotelBooking->webbeds_booking_request_id);
+        $parsedResponse = XmlToArrayWithHTML($HotelConfirmationResponse->response_xml);
+        $failure = false;
+        $message = [];
+      
+        
+        //we need to send booking code request indiviually 
+       
+        //node Convertion
+        $parsedResponse['bookings']['booking'] = nodeConvertion($parsedResponse['bookings']['booking']);
+  
+
+        foreach($parsedResponse['bookings']['booking'] as $key =>$details){
+              $Info = [
+                'booking_id' => $HotelBooking->id,
+                'confirmCancellation' => 'no',
+                'bookingCode' => $details['bookingCode'],
+            ];
+            $cancellationNoResp = $bookingController->CancelBooking($Info);
+            $cancellationNoResponseDetails[] = $cancellationNoResp;
+
+            if(isset($cancellationNoResp['cancellationInfo']['hotelResponse']['request']['successful']) && ($cancellationNoResp['cancellationInfo']['hotelResponse']['request']['successful'] == "FALSE")){
+                $failure = true;
+                $message[] = 'Room - '.($key+1).' : '.$cancellationNoResp['cancellationInfo']['hotelResponse']['request']['error']['details'];
+            }
+        }
+        if($failure){
+            return response()->json(['status' => false, 'message' => $message]);
+        }
+
+        //now confirming cancellation
+        $penalityAmount = 0;
+        $partiallyCanceled = false;
+        foreach($parsedResponse['bookings']['booking'] as $key =>$details){
+             //fetching cancellation NO responses
+            $cancallationNOresponses = $cancellationNoResponseDetails[$key];
+            $cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service'] = nodeConvertion($cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']);
+      
+            //dd($cancallationNOresponses['cancellationInfo']['hotelResponse'] , $cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']);
+            $Info = [
+                'booking_id' => $HotelBooking->id,
+                'confirmCancellation' => 'yes',
+                'bookingCode' => $details['bookingCode'],
+                'services' => $cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']
+            ];
+            $cancellationYesResp = $bookingController->CancelBooking($Info);
+            $penalityAmountperRoom = 0;
+            $status = null;
+            
+            if(isset($cancellationNoResp['cancellationInfo']['hotelResponse']['successful']) && ($cancellationNoResp['cancellationInfo']['hotelResponse']['successful'] == "TRUE")){
+                //refunding amount back to Agent
+                $cancallationYesresponses['cancellationInfo']['hotelResponse']['services']['service'] = nodeConvertion($cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']);
+                foreach($cancallationYesresponses['cancellationInfo']['hotelResponse']['services']['service'] as $service){
+                    $penalityAmountperRoom += (float)$service['cancellationPenalty']['charge'];
+                }
+                $status = 'cancelled';
+                $isCancel = 1;
+            }else{
+                $partiallyCanceled = true;
+                $status = 'cancellation_failure';
+                $isCancel = 0;
+            }
+            //updating hotel room booking status
+            HotelRoomBookingInfo::where('hotel_booking_id', $HotelBooking->id)->where('room_no', $key+1)->update(['status' => $status , 'is_cancel' => $isCancel ,'penality_amount' => $penalityAmountperRoom]);
+            $penalityAmount+= $penalityAmountperRoom;
+        }
+        if($partiallyCanceled){
+            $HotelBooking->penality_amount = $penalityAmount;
+            $HotelBooking->cancellation_status = 'partially_cancellation';
             $HotelBooking->save();
+        }else{
+            //successfully cancelled
+            $HotelBooking->is_cancel = 1;
+            $HotelBooking->penality_amount = $penalityAmount;
+            $HotelBooking->cancellation_status = 'cancellation_completed';
+            $HotelBooking->save();
+        }
 
-            // $user = $FlightBooking->User->first_name." ".$FlightBooking->User->last_name;
+        //inititing refund process
+        //amount to be refunded 
+        $refundableAmount = $HotelBooking->total_amount - $HotelBooking->penality_amount;
+      
+    
+        $HotelBooking->booking_status = "refund_initiated";
+        $HotelBooking->save();
+    
+        if($HotelBooking->type_of_payment == 'wallet'){
+            $wallet = auth()->user()->agency->wallet_balance + $refundableAmount;
+          
+            $agency = Agency::find(auth()->user()->agency_id);
+            $agency->wallet_balance = $wallet;
+            $agency->save();
+     
+            $walletDetails = WalletLogger::create([
+                'user_id' => auth()->user()->id,
+                'reference_id' => $HotelBooking->id,
+                'reference_type' => 'hotel',
+                'amount' => $refundableAmount,
+                'remaining_amount' => $wallet,
+                'amount_description' => 'KWD '.$refundableAmount .' refunded for booking id '.$HotelBooking->booking_ref_id,
+                'action' => 'added',
+                'status' =>'Active',
+                'date_of_transaction' => Carbon::now()
+            ]);
+            $walletDetails->unique_id = 'WL'.str_pad($walletDetails->id, 7, '0', STR_PAD_LEFT);
+            $walletDetails->save();
+            $HotelBooking->booking_status = "refund_completed";
+            $HotelBooking->save();
+        }
 
-            //email sending to user
+        return response()->json(['status' => true, 'message' => "Hotel booking has been cancelled successfully with penality amount of KWD $penalityAmount"]);
 
+      
+        // if($HotelBooking->booking_status == "booking_completed")
+        // {
 
-            // $emails =  explode(',',env('ADMINMAILS'));
-            // //print_r($emails);
-            // $emails[] = $FlightBooking->email;
-            // dd($emails);
-            $user = 'Ravi';
+        //     $HotelBooking->booking_status ="cancellation_initiated";
+        //     $HotelBooking->save();
+        //     $user = 'Ravi';
 
-            Mail::send('front_end.hotel.webbeds.email_templates.cancellation',compact('HotelBooking'), function($message) use($HotelBooking) {
-                 $message->to('ravi@masilagroup.com')
-                        ->subject('Cancellation of the hotel booking has been requested');
-            });
-        //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) {
-        //         $message->to('amr@masilagroup.com')
-        //        //$message->to([$FlightBooking->email])
-        //        //amr@masilagroup.com,ghunaim@masilagroup.com,acc@masilagroup.com
-        //                ->subject('your request for Cancel / ReSchedule the ticket is intiated');
-        //    });
-        //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) {
-        //          $message->to('ghunaim@masilagroup.com')
-        //         //$message->to([$FlightBooking->email])
-        //         //amr@masilagroup.com,ghunaim@masilagroup.com,acc@masilagroup.com
-        //                 ->subject('your request for Cancel / ReSchedule the ticket is intiated');
+        //     Mail::send('front_end.hotel.webbeds.email_templates.cancellation',compact('HotelBooking'), function($message) use($HotelBooking) {
+        //          $message->to('ravi@masilagroup.com')
+        //                 ->subject('Cancellation of the hotel booking has been requested');
         //     });
-        //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) {
-        //         $message->to('acc@masilagroup.com')
-        //        //$message->to([$FlightBooking->email])
-        //        //amr@masilagroup.com,ghunaim@masilagroup.com,acc@masilagroup.com
-        //                ->subject('your request for Cancel / ReSchedule the ticket is intiated');
-        //    });
+        // //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) {
+        // //         $message->to('amr@masilagroup.com')
+        // //        //$message->to([$FlightBooking->email])
+        // //        //amr@masilagroup.com,ghunaim@masilagroup.com,acc@masilagroup.com
+        // //                ->subject('your request for Cancel / ReSchedule the ticket is intiated');
+        // //    });
+        // //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) {
+        // //          $message->to('ghunaim@masilagroup.com')
+        // //         //$message->to([$FlightBooking->email])
+        // //         //amr@masilagroup.com,ghunaim@masilagroup.com,acc@masilagroup.com
+        // //                 ->subject('your request for Cancel / ReSchedule the ticket is intiated');
+        // //     });
+        // //     Mail::send('front_end.email_templates.cancellation',compact('FlightBooking','user'), function($message) {
+        // //         $message->to('acc@masilagroup.com')
+        // //        //$message->to([$FlightBooking->email])
+        // //        //amr@masilagroup.com,ghunaim@masilagroup.com,acc@masilagroup.com
+        // //                ->subject('your request for Cancel / ReSchedule the ticket is intiated');
+        // //    });
 
-            return redirect()->back()->with('success', 'Cancellation initiated successfully'); 
-        }
-        else{
-            return redirect()->back()->with('error', 'Something went wrong'); 
-        }
+        //     return redirect()->back()->with('success', 'Cancellation initiated successfully'); 
+        // }
+        // else{
+        //     return redirect()->back()->with('error', 'Something went wrong'); 
+        // }
     }
 }
