@@ -273,7 +273,7 @@
             <div class="col-12">
                 <a href="{{route('home')}}" class="btn btn-primary col-4"> <i class="fa fa-arrow-left"></i> &nbsp; {{__('lang.back_to_home')}}</a>
                 <?php $encryptedId = encrypt($result['bookingDetails']->id);?>
-                <a href="{{route('holdHotelBooking',['booking_id' => $encryptedId])}}" class="btn btn-warning mx-4 col-3"> <i class="fa fa-arrow-left"></i> Hold</a>
+                {{-- <a href="{{route('holdHotelBooking',['booking_id' => $encryptedId])}}" class="btn btn-warning mx-4 col-3"> <i class="fa fa-arrow-left"></i> Hold</a> --}}
                 <a  class="btn btn-danger col-4" href="{{route('home')}}">{{__('lang.cancle')}}  &nbsp; <i class="fa fa-times"></i></a>
             </div>
              
