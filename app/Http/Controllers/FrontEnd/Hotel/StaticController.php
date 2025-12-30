@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\FrontEnd\Hotel;
 
 use App\Models\TboHotel;
+use App\Models\DidaHotel;
 use App\Models\WebbedsCity;
 use App\Models\WebbedsHotel;
 use Illuminate\Http\Request;
+use App\Models\DidaHotelList;
 use App\Models\TboHotelsCity;
 use App\Models\TboHotelsCode;
+use App\Models\WebbedsCountry;
 use Illuminate\Support\Carbon;
 use App\Models\TboHotelsCountry;
 use Illuminate\Support\Facades\DB;
@@ -381,13 +384,6 @@ class StaticController extends Controller
 
 
         }
-
-
-
-        
-       
-        
-
     }
 
     public function WebBedsHoteldata(){
@@ -505,4 +501,233 @@ class StaticController extends Controller
 
         
     }
+
+    public function DidaStoreCity()
+    {
+        header('Cache-Control: max-age=0,no-store');
+        
+
+        // Fetch countries that need city data
+         $countries = WebbedsCountry::where('dida_city_dumped', 0)->where('alpha_code', '!=', null)->limit(15)->get();
+        //$countries = WebbedsCountry::where('id', 144)->limit(15)->get();
+        //where('dida_city_dumped', 0)->
+
+        foreach ($countries as $country) {
+            // Fetch city list from Dida API
+            $cityList = $this->DadiApiStaticData([
+                'query'       => ['countryCode' => $country->alpha_code], // dynamic country
+                'end_point'   => 'region/destinations',
+                'method'      => 'GET'
+            ]);
+          
+
+            if ($cityList['status'] && isset($cityList['response']['data'])) {
+                if (count($cityList['response']['data']) != 0) {
+                    $cities = $cityList['response']['data'];
+                     dd($cities);
+
+                    // Split into smaller chunks to prevent memory overload
+                    $cityChunks = array_chunk($cities, 100);
+                    //dd($cityChunks);
+                
+
+                    foreach ($cityChunks as $chunk) {
+                        $insertData = [];
+
+                        foreach ($chunk as $cityInfo) {
+                            // echo "ddd";
+                            $insertData[] = [
+                                'name'          => $cityInfo['name'] ?? null,
+                                'country_name'  => $country->name,
+                                'country_code'  => $country->code,
+                                'dida_code'     => $cityInfo['code'] ?? null,
+                                'is_dida'       => 1,
+                                'long_name'     => $cityInfo['longName'] ?? null,
+                                'created_at'    => now(),
+                                'updated_at'    => now(),
+                            ];
+                        }
+                        //dd($insertData);
+
+                        // ✅ Bulk insert all 100 cities in one go
+                        if (!empty($insertData)) {
+                            WebbedsCity::insert($insertData);
+                        }
+                    }
+                    echo "Inserted cities for country: {$country->name}\n";
+                    
+                    
+                }else{
+                    echo "No cities found for country: {$country->name}\n";
+
+                }
+                
+                // ✅ Mark this country as processed
+                $country->update(['dida_city_dumped' => 1]);
+
+              
+            } else {
+                echo "No data found or error for country: {$country->name}\n";
+            }
+            echo "<br>";
+        }
+
+        echo "✅ All cities inserted successfully.\n";
+    }
+
+    public function DidaStoreHotelList()
+    {
+        header('Cache-Control: max-age=0,no-store');
+        
+
+        // Fetch countries that need city data
+        $countries = WebbedsCountry::where('dida_hotel_dumped', 0)->where('alpha_code', '!=', null)->limit(15)->get();
+        //$countries = WebbedsCountry::where('dida_hotel_dumped', 0)->where('id', 104)->where('alpha_code', '!=', null)->limit(15)->get();
+        //where('dida_city_dumped', 0)->
+
+        foreach ($countries as $country) {
+            // Fetch city list from Dida API
+            $hotelList = $this->DadiApiStaticData([
+                'query'       => ['countryCode' => $country->alpha_code], // dynamic country
+                'end_point'   => 'hotel/list',
+                'method'      => 'GET'
+            ]);
+
+            if ($hotelList['status'] && isset($hotelList['response']['data'])) {
+                if (count($hotelList['response']['data']) != 0) {
+                    $cities = $hotelList['response']['data'];
+
+                    // Split into smaller chunks to prevent memory overload
+                    $cityChunks = array_chunk($cities, 200);
+                    foreach ($cityChunks as $chunk) {
+                        $insertData = [];
+
+                        foreach ($chunk as $hotelId) {
+                            $insertData[] = [
+                                'hotel_id'          => $hotelId,
+                                'country_alpha_code'  => $country->alpha_code,
+                                'created_at'    => now()
+                            ];
+                        }
+                        //dd($insertData);
+
+                        // ✅ Bulk insert all 100 cities in one go
+                        if (!empty($insertData)) {
+                            DidaHotelList::insert($insertData);
+                        }
+                    }
+                    echo "Hotel ID Inserted for country: {$country->name}\n";
+                }else{
+                    echo "No Hotel ID found for country: {$country->name}\n";
+                }
+                
+                // ✅ Mark this country as processed
+                $country->update(['dida_hotel_dumped' => 1 , 'hotel_list_dumped_on' => now()]);
+              
+            } else {
+                echo "No data found or error for country: {$country->name}\n";
+            }
+            echo "<br>";
+        }
+
+        echo "✅ All Hotel ID  inserted successfully.\n";
+    }
+
+    public function DidaStoreHotelDetails()
+    {
+        header('Cache-Control: max-age=0,no-store');
+
+        // Fetch hotels needing detail dump
+        $hotelList = DidaHotelList::where('is_hotel_details_dumped', 0)
+            ->whereNotNull('hotel_id')
+            ->limit(500)
+            ->get();
+
+        if ($hotelList->isEmpty()) {
+            return response()->json(['message' => 'No pending hotel details to process.']);
+        }
+
+        $hotelList->chunk(50)->each(function ($chunk, $chunkIndex) {
+            $hotelIds = $chunk->pluck('hotel_id')->toArray();
+
+            $payload = [
+                'language' => 'en-US',
+                'hotelIds' => $hotelIds,
+            ];
+
+            //try {
+                // 🔹 Call API
+                $apiResponse = $this->DadiApiStaticData([
+                    'end_point' => 'hotel/details',
+                    'method'    => 'POST',
+                    'params'    => $payload,
+                ]);
+                //dd($apiResponse);
+
+                if (!$apiResponse['status']) {
+                    \Log::warning("Chunk {$chunkIndex} failed: " . $apiResponse['message']);
+                    return;
+                }
+                //dd($apiResponse['response']);
+
+                $hotels = $apiResponse['response']['data'] ?? [];
+
+                foreach ($hotels as $hotel) {
+                  
+                    $thumbnail = null;
+
+                    $imagesCsv = implode(',', array_column(
+                        array_filter($hotel['images'], function ($img) use (&$thumbnail) {
+                            if (($img['isDefault'] ?? false) === true) {
+                                $thumbnail = $img['url'];
+                                return false;
+                            }
+                            return true;
+                        }),
+                        'url'
+                    )) ?: null;
+                    // 🔹 Flatten JSON and save to DB
+                    $hotelInfo = DidaHotel::updateOrCreate(
+                        ['hotel_id' => $hotel['id']],
+                        [
+                            'language'          => $hotel['language'] ?? 'en-US',
+                            'name'              => $hotel['name'] ?? null,
+                            'country_code'      => $hotel['location']['country']['code'] ?? null,
+                            'country_name'      => $hotel['location']['country']['name'] ?? null,
+                            'destination_code'  => $hotel['location']['destination']['code'] ?? null,
+                            'destination_name'  => $hotel['location']['destination']['name'] ?? null,
+                            'longitude'         => $hotel['location']['coordinate']['longitude'] ?? null,
+                            'latitude'          => $hotel['location']['coordinate']['latitude'] ?? null,
+                            'state_code'        => $hotel['location']['stateCode'] ?? null,
+                            'address'           => $hotel['location']['address'] ?? null,
+                            'telephone'         => $hotel['telephone'] ?? null,
+                            'star_rating'       => $hotel['starRating'] ?? null,
+                            'zip_code'          => $hotel['zipCode'] ?? null,
+                            'images'            => $imagesCsv ?? null,
+                            'thumbnail'         => $thumbnail ?? null
+                        ]
+                    );
+                   
+                }
+
+                // 🔹 Mark hotels as dumped
+                DidaHotelList::whereIn('hotel_id', $hotelIds)
+                    ->update(['is_hotel_details_dumped' => 1]);
+
+            // } catch (\Exception $e) {
+            //     \Log::error("Chunk {$chunkIndex} processing failed", [
+            //         'error' => $e->getMessage(),
+            //         'hotel_ids' => $hotelIds,
+            //     ]);
+            // }
+
+            // Optional: prevent rate limiting
+            // sleep(1);
+        });
+
+        return response()->json(['message' => 'Hotel details imported successfully.']);
+    }
+
+
+
 }

@@ -29,7 +29,8 @@ class LoginController extends Controller
      */
     public function showLoginForm()
     {
-        return view('front_end.auth.login');
+        // return view('front_end.auth.login');
+            return redirect(url('/'));
     }
      /**
      * Get the needed authorization credentials from the request.

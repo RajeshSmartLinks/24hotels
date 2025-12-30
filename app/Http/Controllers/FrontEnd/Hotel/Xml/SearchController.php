@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\FrontEnd\Hotel\Xml;
 
+use App\Models\DidaHotel;
 use App\Models\HotelSearch;
 use App\Models\WebbedsHotel;
 use Illuminate\Http\Request;
+use App\Models\WebbedsCountry;
 use Illuminate\Support\Carbon;
 use App\Models\WebbedsHotelSearch;
 use Illuminate\Support\Facades\DB;
@@ -85,56 +87,58 @@ class SearchController extends Controller
 
     public function Search(Request $request)
     {
-        $cityCode = $request->input('hotelsCityCode');
+        $searchId = $request->input('search_request_id');
+        $serachInfo = WebbedsHotelSearch::where('id', $searchId)->first();
+        $cityCode = $serachInfo->city_code ;
         $checkIn = $request->input('hotelsCheckIn');
         $checkOut = $request->input('hotelsCheckOut');
         $noOfRooms = (int) $request->input('noOfRooms');
         $nationality = $request->input('nationality');
         $residency = $request->input('residency');
 
-        $cityDetails = DB::table('webbeds_cities')->where('code',$cityCode)->first();
-        $noOfGuests = 0;
-            //preprating json forrequest
+        // $cityDetails = DB::table('webbeds_cities')->where('code',$cityCode)->first();
+        // $noOfGuests = 0;
+        //     //preprating json forrequest
             
-            for ($i=1; $i <= $noOfRooms; $i++) { 
+        //     for ($i=1; $i <= $noOfRooms; $i++) { 
                 
             
-                $roomDetails = $request->input('room'.$i);
-                $childrenAge = [];
-                if(isset($roomDetails['childrenAge']) && count($roomDetails['childrenAge']) > 0)
-                {
-                    $childrenAge = $roomDetails['childrenAge'];
-                }
-                $noOfGuests += $roomDetails['adult']; 
-                $noOfGuests += $roomDetails['children'] ?? 0; 
-                $hotelRequestArray['PaxRooms'][] = array( 
-                    "Adults" => $roomDetails['adult'],
-                    "Children" => $roomDetails['children'],
-                    "ChildrenAges"=> $childrenAge
-                );
-            }
-            $CIn = Carbon::parse($checkIn);
-            $COut =Carbon::parse($checkOut);
+        //         $roomDetails = $request->input('room'.$i);
+        //         $childrenAge = [];
+        //         if(isset($roomDetails['childrenAge']) && count($roomDetails['childrenAge']) > 0)
+        //         {
+        //             $childrenAge = $roomDetails['childrenAge'];
+        //         }
+        //         $noOfGuests += $roomDetails['adult']; 
+        //         $noOfGuests += $roomDetails['children'] ?? 0; 
+        //         $hotelRequestArray['PaxRooms'][] = array( 
+        //             "Adults" => $roomDetails['adult'],
+        //             "Children" => $roomDetails['children'],
+        //             "ChildrenAges"=> $childrenAge
+        //         );
+        //     }
+        //     $CIn = Carbon::parse($checkIn);
+        //     $COut =Carbon::parse($checkOut);
 
             //saving search request in HotelSearch table 
-            $hotelSearch = new WebbedsHotelSearch();
-            $hotelSearch->no_of_rooms = $request->input('noOfRooms');
-            $hotelSearch->no_of_nights    = $CIn->diffInDays($COut);
-            $hotelSearch->nationality    = $nationality;
-            $hotelSearch->residency    = $residency;
-            $hotelSearch->city_code    = $cityCode;
-            $hotelSearch->no_of_guests    = $noOfGuests;
-            $hotelSearch->city_name    = $cityDetails->name;
-            $hotelSearch->country = $cityDetails->country_name;
-            $hotelSearch->country_code = $cityDetails->country_code;
-            $hotelSearch->check_in = $checkIn;
-            $hotelSearch->check_out = $checkOut;
-            $hotelSearch->rooms_request = json_encode($hotelRequestArray['PaxRooms']);
-            $hotelSearch->ip_address = $_SERVER['REMOTE_ADDR'];
-            $hotelSearch->hotel_traveller_info = $request->input('hotels-travellers-class');
-            $hotelSearch->request_json = json_encode($request->input());
-            $hotelSearch->search_url = $request->input('search_url');
-            $hotelSearch->save();
+            // $hotelSearch = new WebbedsHotelSearch();
+            // $hotelSearch->no_of_rooms = $request->input('noOfRooms');
+            // $hotelSearch->no_of_nights    = $CIn->diffInDays($COut);
+            // $hotelSearch->nationality    = $nationality;
+            // $hotelSearch->residency    = $residency;
+            // $hotelSearch->city_code    = $cityCode;
+            // $hotelSearch->no_of_guests    = $noOfGuests;
+            // $hotelSearch->city_name    = $cityDetails->name;
+            // $hotelSearch->country = $cityDetails->country_name;
+            // $hotelSearch->country_code = $cityDetails->country_code;
+            // $hotelSearch->check_in = $checkIn;
+            // $hotelSearch->check_out = $checkOut;
+            // $hotelSearch->rooms_request = json_encode($hotelRequestArray['PaxRooms']);
+            // $hotelSearch->ip_address = $_SERVER['REMOTE_ADDR'];
+            // $hotelSearch->hotel_traveller_info = $request->input('hotels-travellers-class');
+            // $hotelSearch->request_json = json_encode($request->input());
+            // $hotelSearch->search_url = $request->input('search_url');
+            // $hotelSearch->save();
         $xml = <<<EOM
         <customer>
             <username>{$this->WebbedsUsername}</username>
@@ -191,14 +195,15 @@ class SearchController extends Controller
             </request>
         </customer>
         EOM;
+        // dd($xml);
 
         $data = array(
             'xml' => $xml,
             'request_type' => 'search',
-            'searchId' => $hotelSearch->id
+            'searchId' => $request->input('search_id')
         );
         $data = $this->WebbedsApi($data);
-        $data['searchId'] = $hotelSearch->id;
+        $data['searchId'] = $request->input('search_id');
         return $data;             
     } 
 
@@ -392,4 +397,101 @@ class SearchController extends Controller
         ];
 
     } 
+
+
+    public function didaSearch(Request $request)
+    {
+        // $cityCode = $request->input('hotelsCityCode');
+        // $checkIn = $request->input('hotelsCheckIn');
+        // $checkOut = $request->input('hotelsCheckOut');
+        // $noOfRooms = (int) $request->input('noOfRooms', 1);
+        // $nationality = $request->input('nationality', 'IN');
+        // $currency = $request->input('currency', 'USD');
+        $searchId = $request->input('search_request_id');
+        $serachInfo = WebbedsHotelSearch::where('id', $searchId)->first();
+        $nationality = WebbedsCountry::where('code', $serachInfo->nationality)->first()->alpha_code ?? 'IN';
+
+        // $cityCode = $serachInfo->input('hotelsCityCode');
+        $checkIn = $serachInfo->check_in;
+        $checkOut = $serachInfo->check_out;
+        $noOfRooms = (int) $serachInfo->no_of_rooms ?? 1;
+        $currency = 'USD';
+
+
+        $destinationCityCode = $serachInfo->dida_destination_code;
+        //$destinationCityCode = 3433; 
+        if($request->input('hotel_code')){
+            $hotelIds = [$request->input('hotel_code')];
+        }else{
+            $hotelIds = DidaHotel::where('destination_code', $destinationCityCode)->pluck('hotel_id')->toArray();
+        }
+
+        
+        $rooms = json_decode($serachInfo->rooms_request,true);
+        //dd($rooms);
+
+
+        // Default occupancy
+        $maxAdults = 0;
+        $maxChildren = 0;
+        $childAges = [];
+
+         // Combine occupancy across rooms (per Dida spec)
+        foreach ($rooms as $room) {
+            $adults = (int)($room['Adults'] ?? 0);
+            $children = (int)($room['Children'] ?? 0);
+            $ages = $room['ChildrenAges'] ?? [];
+
+            $maxAdults = max($maxAdults, $adults);
+            $maxChildren = max($maxChildren, $children);
+            $childAges = array_merge($childAges, $ages);
+        }
+
+        // Remove duplicates and limit to required number of children
+        $childAges = array_slice(array_unique($childAges), 0, $maxChildren);
+
+        $hotelIdsChunks = array_chunk($hotelIds, 50);
+        $respList = [];
+        foreach($hotelIdsChunks as $hotelIds){
+            $data['payload'] = [
+                "Header" => [
+                    "ClientID" => env('DIDA_USERNAME', 'DidaApiTestID'),
+                    "LicenseKey" => env('DIDA_PASSWORD', 'TestKey'),
+                ],
+                "HotelIDList" => $hotelIds,
+                "CheckInDate" => $checkIn,
+                "CheckOutDate" => $checkOut,
+                "IsRealTime" => [
+                    "Value" => true,
+                    "RoomCount" => $noOfRooms,
+                ],
+                "RealTimeOccupancy" => [
+                    "AdultCount" => $maxAdults,
+                    "ChildCount" => $maxChildren,
+                    "ChildAgeDetails" => $childAges,
+                ],
+                "Currency" => $currency,
+                "Nationality" => $nationality,
+            ];
+            $data['end_point'] = 'rate/pricesearch';
+            $data['serachId'] = $searchId;
+            $data['method'] = 'POST';
+            $data['request_type'] = 'search';
+            $hotelSearchRsp = $this->DadiApi($data);
+           
+      
+            if($hotelSearchRsp['status']){
+                $hotels = $hotelSearchRsp['response']['Success']['PriceDetails']['HotelList'] ?? [];
+                $respList = array_merge($respList, $hotels);
+            }
+            
+        }
+        return ['status' => true, 'response' => $respList];
+
+        
+        
+
+       // return response()->json($payload, 200, [], JSON_PRETTY_PRINT);
+    }
+
 }

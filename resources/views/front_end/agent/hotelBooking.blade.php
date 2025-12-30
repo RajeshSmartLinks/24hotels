@@ -111,7 +111,10 @@
                         @if(!empty($hoteldetails->hotel_room_booking_path))
                         <a  href = "{{asset($hoteldetails->hotel_room_booking_path)}}" download data-bs-toggle="tooltip" title="Download"><i class="fas fa-download"></i></a>
                         @endif
-                        @if($hoteldetails->booking_status == 'booking_completed')
+                        @if(!empty($hoteldetails->invoice_path))
+                        <a  href = "{{asset($hoteldetails->invoice_path)}}" download data-bs-toggle="tooltip" title="Download Invoice"><i class="fas fa-file-invoice"></i></a>
+                        @endif
+                        @if($hoteldetails->booking_status == 'booking_completed' )
                           <a  href = "#" onclick='togglePopup({{ $hoteldetails->id }}, @json($hoteldetails->cancellation_rules))' data-bs-toggle="tooltip" title="Cancle Booking" class="text-danger"><i class="fas fa-times-circle"></i></a>
                           @endif
                         {{-- @if(!empty($hoteldetails->invoice_path))
@@ -224,7 +227,7 @@
                         confirmButtonText: 'OK'
                     }).then(() => {
                         // optional: reload page or redirect
-                        // location.reload();
+                         location.reload();
                     });
                 } else {
                     // ❌ Error alert
@@ -256,6 +259,7 @@
 
 function togglePopup(bookingId, rules) 
 {
+  console.log(rules);
   $("#bookingId").val(bookingId);
 
   let html = "";

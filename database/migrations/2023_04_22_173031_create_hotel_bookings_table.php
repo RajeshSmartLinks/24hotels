@@ -64,9 +64,9 @@ class CreateHotelBookingsTable extends Migration
             $table->string('no_of_guests')->nullable();
 
             $table->enum('type_of_payment',['k_net','credit_card','wallet'])->default('k_net');
-            $table->enum('supplier',['tbo','webbeds'])->default('tbo');
+            $table->enum('supplier',['tbo','webbeds','dida'])->default('tbo');
 
-            $table->enum('reservation_status',['Confirmed','Cancelled','CancellationInProgress','CancelPending','CxlRequestSentToHotel','CancelledAndRefundAwaited'])->nullable();
+            $table->enum('reservation_status',['Confirmed','Canceled','CancellationInProgress','CancelPending','CxlRequestSentToHotel','CancelledAndRefundAwaited','PreBook','Failed','Pending','OnRequest'])->nullable();
             $table->string('supplement_charges')->nullable();
             $table->tinyInteger('is_rsp_price')->default('0')->comment('if price is Recommended Selling Price enabling this flag')->nullable();
             $table->text('hotel_name')->nullable();
@@ -74,7 +74,7 @@ class CreateHotelBookingsTable extends Migration
             $table->string('webbeds_booking_request_id')->nullable();
             $table->tinyInteger('is_cancel')->default('0')->nullable();
             $table->decimal('penality_amount',18,3)->nullable();
-            $table->enum('cancellation_status',['partially_cancellation','cancellation_completed'])->nullable();
+            $table->enum('cancellation_status',['partially_cancellation','cancellation_completed','cancellation_failure'])->nullable();
         });
     }
 

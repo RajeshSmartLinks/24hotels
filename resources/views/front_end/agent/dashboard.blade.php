@@ -257,6 +257,9 @@
                           @if(!empty($hoteldetails->hotel_room_booking_path))
                           <a  href = "{{asset($hoteldetails->hotel_room_booking_path)}}" download data-bs-toggle="tooltip" title="Download"><i class="fas fa-download"></i></a>
                           @endif
+                          @if(!empty($hoteldetails->invoice_path))
+                        <a  href = "{{asset($hoteldetails->invoice_path)}}" download data-bs-toggle="tooltip" title="Download Invoice"><i class="fas fa-file-invoice"></i></a>
+                        @endif
                   
                           @if($hoteldetails->booking_status == 'booking_completed')
                           {{-- <a   class="fas fa-times-circle text-4 text-danger" data-bs-toggle="tooltip" title="Cancle / change Booking"  onclick="confirmCancel()" href="javascript:void(0);" ></a> --}}
@@ -380,7 +383,7 @@ $(document).ready(function(){
                         confirmButtonText: 'OK'
                     }).then(() => {
                         // optional: reload page or redirect
-                        // location.reload();
+                         location.reload();
                     });
                 } else {
                     // ❌ Error alert

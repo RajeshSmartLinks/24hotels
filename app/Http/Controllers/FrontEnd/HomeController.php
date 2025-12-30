@@ -93,10 +93,11 @@ class HomeController extends Controller
         $countries      = WebbedsCountry::get();
 
 
-        // $recentSearches = [];
-        // if(isset(auth()->user()->id)){
-        //     $recentSearches = WebbedsHotelSearch::where('user_id', auth()->user()->id)->orderBy('id', 'desc')->limit(3)->get();
-        // }
+        $recentSearches = [];
+        if(isset(auth()->user()->id)){
+            $recentSearches = WebbedsHotelSearch::where('user_id', auth()->user()->id)->orderBy('id', 'desc')->limit(3)->get();
+        }
+        //dd($recentSearches);
        
 
 
@@ -104,7 +105,7 @@ class HomeController extends Controller
 
         $popUp = Popup::first();
 
-        return view('front_end.index',compact('titles' ,'countries','popUp'));
+        return view('front_end.index',compact('titles' ,'countries','popUp' ,'recentSearches'));
     }
     
     

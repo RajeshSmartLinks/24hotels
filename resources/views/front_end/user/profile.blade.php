@@ -172,13 +172,42 @@
                               </span>
                           @enderror
                     </div>
-                    <div class ="row">
+                    <div class="row">
                       <div class="col-4">
+                        <div class="mb-3">
+                          <label class="form-label" for="fullName">Alter Number </label>
+                          <select class="form-select @error('alter_mobile_country_id') is-invalid @enderror"  name= "alter_mobile_country_id" id="alterCountry" style="min-height: 46% !important" title="select Country" > 
+                            <option value="">Select country Code</option>
+                            @foreach($countries as $country)
+                              <option value = "{{$country->id}}" {{ (Auth::user()->alter_mobile_country_id == $country->id)? 'selected':'' }}>{{$country->name}} ( {{$country->phone_code}} )</option>
+                            @endforeach
+                          </select>
+                            {{-- @error('country_id')
+                              <span class="invalid-feedback" role="alert">
+                                  <strong>{{ $message }}</strong>
+                              </span>
+                            @enderror --}}
+                        </div>
+                      </div>
+                      <div class="col-8">
+                        <div class="mb-3">
+                          <label class="form-label" for="mobileNumber">Alter Mobile Number</label>
+                          <input type="text" value="{{Auth::user()->alter_mobile_number}}" class="form-control @error('alter_mobile_number') is-invalid @enderror" data-bv-field="altermobile" id="altermobile"  placeholder="Alter Mobile Number" name="alter_mobile_number">
+                          {{-- @error('mobile')
+                              <span class="invalid-feedback" role="alert">
+                                  <strong>{{ $message }}</strong>
+                              </span>
+                          @enderror --}}
+                        </div>
+                      </div>
+                    </div>
+                    <div class ="row">
+                      {{-- <div class="col-4">
                         <div class="mb-3">
                           <label class="form-label" for="birthDate">Date of Birth</label>
                           <input id="birthDate" value="{{Auth::user()->date_of_birth}}" type="date" class="form-control"  placeholder="Date of Birth" name="date_of_birth">
                         </div>
-                      </div>
+                      </div> --}}
                       <div class="col-8">
                         <div class="mb-3">
                           <label class="form-label" for="birthDate">Profile Pic</label>

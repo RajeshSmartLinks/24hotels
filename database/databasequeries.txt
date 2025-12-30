@@ -1,0 +1,44 @@
+ALTER TABLE `24hotels`.`hotel_xml_requests` 
+MODIFY COLUMN `request_type` enum('search','getRooms','getRoomsWithBlocking','confirmBooking','cancelBooking','getbookingdetails','saveBooking','cancelbookingNo','cancelbookingYes','prebooking') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL AFTER `ip_address`;
+
+ALTER TABLE `24hotels`.`hotel_bookings` 
+MODIFY COLUMN `supplier` enum('tbo','webbeds','dida') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'tbo' AFTER `type_of_payment`;
+
+ALTER TABLE `24hotels`.`hotel_bookings` 
+MODIFY COLUMN `reservation_status` enum('Confirmed','Canceled','CancellationInProgress','CancelPending','CxlRequestSentToHotel','CancelledAndRefundAwaited','PreBook','Failed','Pending','OnRequest') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL AFTER `supplier`;
+
+ALTER TABLE `dbbgpquf1qmgoj`.`hotel_xml_requests` 
+MODIFY COLUMN `request_xml` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL AFTER `id`,
+MODIFY COLUMN `response_xml` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL AFTER `request_xml`;
+
+ALTER TABLE `24hotels`.`hotel_room_booking_infos` 
+MODIFY COLUMN `status` enum('confirmed','cancelled','cancellation_failure','failed','pending') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL AFTER `booking_reference_no`;
+---------------------------------------
+ALTER TABLE `24hotels`.`hotel_bookings` 
+MODIFY COLUMN `cancellation_status` enum('partially_cancellation','cancellation_completed','cancellation_failure') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL AFTER `penality_amount`;
+
+ALTER TABLE `24hotels`.`hotel_bookings` 
+ADD COLUMN `penality_currency` varchar(255) NULL COMMENT 'penality currency' AFTER `cancellation_status`;
+
+ALTER TABLE `24hotels`.`agencies` 
+ADD COLUMN `is_special` enum('0','1') NULL DEFAULT '0' AFTER `wallet_balance`;
+
+ALTER TABLE `24hotels`.`hotel_room_booking_infos` 
+ADD COLUMN `meal_type` varchar(255) NULL AFTER `is_cancel`;
+
+ALTER TABLE `24hotels`.`dida_hotels` 
+MODIFY COLUMN `star_rating` VARCHAR(10) NULL DEFAULT NULL AFTER `telephone`;
+
+
+
+
+
+--------------------------------------------------------------------------------
+
+
+ALTER TABLE `dbbgpquf1qmgoj`.`webbeds_cities` 
+DROP COLUMN `restel_city_code`,
+DROP COLUMN `restel_country_code`,
+DROP COLUMN `restel_provincia_code`;
+
+need to copy webbeds_city ,webbed_countries, dida_hotel_list,dida_hotels

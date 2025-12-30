@@ -107,7 +107,7 @@
             <div class="col-lg-12">
               <?php $searchRequest = json_decode($result['searchRequest']->request_json ,true);?>
 
-              <form id="bookingHotels" method="get" action="{{route('GethotelDetails')}}" style = "position: sticky;top: 80px;z-index: 1000;padding: 15px;">
+              <form id="bookingHotels" method="get" action="{{route('GethotelDetails')}}" style = "position: sticky;top: 66px;z-index: 1000;">
                 <input type="hidden" class="form-control" id="hotelCode"  name = "hotelCode" value = "{{app('request')->input('hotelCode')}}">
                  <div class="row g-3 pb-3" style="background: white;">
                   <div class="col-md-12 col-lg-4">
@@ -115,6 +115,9 @@
                       <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder="{{__('lang.enter_city')}}" value="{{$searchRequest['hotelsCityName']}}" readonly>
                       <span class="icon-inside"><i class="fas fa-map-marker-alt"></i></span> </div>
                       <input type="hidden" class="form-control" id="hotelsCityCode"  name = "hotelsCityCode" value = "{{$searchRequest['hotelsCityCode']}}">
+                      <input type="hidden" class="form-control" id="hotelsCityId"  name = "hotelsCityId" value = "{{$searchRequest['hotelsCityId']}}">
+                       <input type="hidden" class="form-control" id="type"  name = "type" value = "{{encrypt($type)}}">
+                       
                   </div>
                   <div class="col-md-6 col-lg-2">
                     <div class="position-relative">
@@ -282,7 +285,9 @@
                       <th>Board Basis</th>
                       <th></th>
                       <th>Per Room/Night</th>
+                      @if($result['hotelDeatils']['type'] == 'webbeds')
                       <th>Tariff</th>
+                      @endif
                       <th>Total Price</th>
                     </tr>
                   </thead>
@@ -335,7 +340,7 @@
                                       @endforeach
                                       <br>
                                       
-                                      <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@masilaholidays.com<">booking@masilaholidays.com</a></strong></li>
+                                      <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: {{env('SUPPORT_MAIL_ID')}}">{{env('SUPPORT_MAIL_ID')}}</a></strong></li>
                                       <li>{{__('lang.cancellation_policy_2')}}</li>
                                     </ul>
                                   </div>
@@ -343,7 +348,8 @@
                               </div>
                             </div>
                           </td>
-                          <td>KWD {{number_format($roomDetails['markups']['totalPrice']['value']/($result['searchRequest']->no_of_rooms*$result['searchRequest']->no_of_nights))}}</td>
+                          <td>{{$roomDetails['markups']['totalPrice']['currency_code']}} {{number_format($roomDetails['markups']['totalPrice']['value']/($result['searchRequest']->no_of_rooms*$result['searchRequest']->no_of_nights))}}</td>
+                          @if($roomDetails['type'] == 'webbeds')
                           <td>
                             <a href="#" data-bs-toggle="modal" data-bs-target="#tariffNotes{{$r}}"><i class="fa fa-info-circle"></i></a>
                             <div id="tariffNotes{{$r}}" class="modal fade" role="dialog" aria-hidden="true">
@@ -383,7 +389,9 @@
                             
 
                           </td>
-                          {{-- <td>{{$result['searchRequest']->no_of_rooms}} {{__('lang.room')}}/ {{$result['searchRequest']->no_of_nights}} {{__('lang.night')}}</td> --}}
+                          @endif
+                          
+                          
                           <td style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">{{$roomDetails['markups']['totalPrice']['currency_code'] }}&nbsp; {{$roomDetails['markups']['totalPrice']['value'] }} 
                             <span><a href="#" data-bs-toggle="modal" data-bs-target="#roomInfo{{$r}}"><i class="fa fa-info-circle"></i></a></span> 
                             <div id="roomInfo{{$r}}" class="modal fade" role="dialog" aria-hidden="true">
@@ -438,7 +446,7 @@
                              @if( $result['searchRequest']->no_of_rooms == 1 && isset($roomDetails['validForOccupancy'][0]))
                               <a   title="{{$roomDetails['validForOccupancy'][0]}}" ><i class="fa fa-bed"></i></a>
                               @endif
-                            <span> <a href="{{route('PreBookingRoom',['hotelCode'=>encrypt($result['hotelDeatils']['hotel_code']) , 'searchId' =>encrypt($result['searchRequest']->id) , 'bookingCode' => encrypt($roomDetails['bookingCode'])])}}" class="btn btn-sm btn-outline-primary shadow-none gButton"><span class="gButtonloader"></span>Book</a> </span>
+                            <span> <a href="{{route('PreBookingRoom',['hotelCode'=>encrypt($result['hotelDeatils']['hotel_code']) , 'searchId' =>encrypt($result['searchRequest']->id) , 'bookingCode' => encrypt($roomDetails['bookingCode']) , 'type' => encrypt($roomDetails['type'])])}}" class="btn btn-sm btn-outline-primary shadow-none gButton"><span class="gButtonloader"></span>Book</a> </span>
 
                             
                           

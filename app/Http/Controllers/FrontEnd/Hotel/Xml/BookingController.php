@@ -5,6 +5,7 @@ namespace App\Http\Controllers\FrontEnd\Hotel\Xml;
 use App\Models\HotelSearch;
 use App\Models\HotelBooking;
 use Illuminate\Http\Request;
+use App\Models\WebbedsCountry;
 use App\Models\WebbedsHotelSearch;
 use App\Http\Controllers\Controller;
 use App\Models\HotelBookingTravelsInfo;
@@ -551,5 +552,158 @@ class BookingController extends Controller
             'xml_request_id' => $response['hotelRequest']->id ?? null
         ];
     }
+
+    public function DidaPrebooking($data)
+    {
+        $bookingCode = decrypt($data['booking_code']); 
+        //dd($bookingCode);
+        $hotelCode   = $data['hotel_code'];
+        $searchId    = $data['search_id'];
+        //dd($searchId);
+
+        $searchRequest   = WebbedsHotelSearch::find($searchId);
+        $nationality = WebbedsCountry::where('code', $searchRequest->nationality)->first()->alpha_code ?? 'IN';
+        $noOfRooms       = (int) $searchRequest->no_of_rooms;
+        $roomInformation = json_decode($searchRequest->rooms_request, true);
+
+        $occupancyDetails = [];
+
+        foreach ($roomInformation as $index => $room) {
+            $occupancyDetails[] = [
+                'ChildCount'      => (int) ($room['Children'] ?? 0),
+                'AdultCount'      => (int) ($room['Adults'] ?? 0),
+                'RoomNum'         => $index + 1,
+                'ChildAgeDetails' => $room['ChildrenAges'] ?? [],
+            ];
+        }
+
+        // Example: you can fetch Metadata, RatePlanID, or other values from your DB or $data
+        $data['payload'] = [
+            'PreBook'          => true,
+            'CheckInDate'      => $searchRequest->check_in,
+            'CheckOutDate'     => $searchRequest->check_out,
+            'NumOfRooms'       => $noOfRooms,
+            'HotelID'          => (int) $hotelCode,
+            'Header'           => [
+                'ClientID'   => env('DIDA_USERNAME', 'DidaApiTestID'),
+                'LicenseKey' => env('DIDA_PASSWORD', 'TestKey'),
+            ],
+            'OccupancyDetails' => $occupancyDetails,
+            'Currency'         => $searchRequest->currency ?? 'USD',
+            'Nationality'      => $nationality,
+            'RatePlanID'       => $bookingCode['RatePlanID'] ,
+            'IsNeedOnRequest'  => false,
+            'Metadata'         => $bookingCode['metadata'],
+        ];
+        $data['end_point'] = 'rate/PriceConfirm';
+        $data['serachId'] = $searchId;
+        $data['method'] = 'POST';
+        $data['request_type'] = 'prebooking';
+        $prebookingInfo = $this->DadiApi($data);
+        return $prebookingInfo;
+
+    }
+
+    public function DidaBooking($data)
+    {
+        $bookingId = $data['booking_id'];
+        $hotelBookingDetails = HotelBooking::with('Customercountry')->find($bookingId);
+        $travelersInfo = HotelBookingTravelsInfo::where("hotel_booking_id", $bookingId)->get();
+        $dida_reference_no = json_decode($hotelBookingDetails->booking_code , true)['dida_ref_id'];
+        $mainGuest = $travelersInfo->first();
+
+        $json = [
+            "Header" => [
+                'ClientID'   => env('DIDA_USERNAME', 'DidaApiTestID'),
+                'LicenseKey' => env('DIDA_PASSWORD', 'TestKey'),
+            ],
+            "CheckInDate"  => $hotelBookingDetails->check_in ,
+            "CheckOutDate" => $hotelBookingDetails->check_out ,
+            "NumOfRooms"   => $hotelBookingDetails->no_of_rooms,
+            "GuestList"    => [],
+            "Contact" => [
+                "Name" => [
+                    "Last"  => $mainGuest->last_name ,
+                    "First" => $mainGuest->first_name ,
+                ],
+                "Email" => $hotelBookingDetails->email,
+                "Phone" => $hotelBookingDetails->mobile
+            ],
+            "ClientReference" => $hotelBookingDetails->booking_ref_id,
+            "ReferenceNo"     => $dida_reference_no 
+        ];
+
+        // Group by room number
+        $groupedTravelers = $travelersInfo->groupBy('room_no');
+
+        foreach ($groupedTravelers as $roomNo => $travellers) {
+            $guestInfo = [];
+
+            foreach ($travellers as $traveler) {
+                $isAdult = strtoupper($traveler->traveler_type) === 'ADT';
+                $guest = [
+                    "Name" => [
+                        "First" => $traveler->first_name,
+                        "Last"  => $traveler->last_name
+                    ],
+                    "IsAdult" => $isAdult
+                ];
+
+                if (!$isAdult && !empty($traveler->age)) {
+                    $guest["Age"] = (int) $traveler->age;
+                }
+
+                $guestInfo[] = $guest;
+            }
+
+            $json["GuestList"][] = [
+                "RoomNum" => (int) $roomNo,
+                "GuestInfo" => $guestInfo
+            ];
+        }
+        $data['payload'] = $json;
+        $data['end_point'] = 'booking/HotelBookingConfirm';
+        $data['serachId'] = $hotelBookingDetails->search_id;
+        $data['method'] = 'POST';
+        $data['request_type'] = 'confirmBooking';
+        // dd($data);
+        $booking = $this->DadiApi($data);
+        return $booking;
+    }
+
+
+    public function DidaCancelBooking($data){
+        $bookingId = $data['hotel_booking_id'];
+
+        // $bookingId = $data['booking_id'];
+        // $bookingCode = $data['bookingCode'];
+        // $hotelBookingDetails = HotelBooking::with('Customercountry')->find($bookingId);
+         $confirmCancellation = $data['confirmCancellation'];
+
+        $hotelBookingDetails = HotelBooking::with('Customercountry')->find($bookingId);
+        $json = [
+            "Header" => [
+                'ClientID'   => env('DIDA_USERNAME', 'DidaApiTestID'),
+                'LicenseKey' => env('DIDA_PASSWORD', 'TestKey'),
+            ],
+            "BookingID" => $data['dida_booking_id']
+        ];
+
+        if(isset($data['confirmation_id']) && !empty($data['confirmation_id'])){
+            $json['ConfirmID'] = $data['confirmation_id'];
+        }
+
+        $data['payload'] = $json;
+        $data['end_point'] =  $confirmCancellation === 'no' ? 'booking/HotelBookingCancel' : 'booking/HotelBookingCancelConfirm';
+        $data['serachId'] = $hotelBookingDetails->search_id;
+        $data['method'] = 'POST';
+        $data['request_type'] = $confirmCancellation === 'no' ? 'cancelbookingNo' : 'cancelbookingYes';
+        // dd($data);
+        $cancellationNo = $this->DadiApi($data);
+        return $cancellationNo;
+
+    }
+
+
 
 }

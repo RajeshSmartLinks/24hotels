@@ -78,12 +78,12 @@
                 <h2 class="text-4 mb-3">{{__('lang.book_domestic_and_international_hotels')}} </h2>
                 <form id="bookingHotels" method="get" action="{{route('webbedsSearchHotels')}}">
                   <div class="row g-3">
-                    
                     <div class="col-md-12 col-lg-4">
                       <div class="position-relative">
                         <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder=" {{__('lang.enter_city')}}">
                         <span class="icon-inside"><i class="fas fa-map-marker-alt"></i></span> </div>
                         <input type="hidden" class="form-control" id="hotelsCityCode"  name = "hotelsCityCode" value = "">
+                        <input type="hidden" class="form-control" id="hotelsCityId"  name = "hotelsCityId" value = "">
                     </div>
                     <div class="col-md-6 col-lg-4">
                       <div class="position-relative">
@@ -343,7 +343,43 @@
     </div> --}}
     <!-- Banner end -->
     <!-- Banner end -->
-    {{-- @if() --}}
+    @if(auth()->user())
+    <div class="bg-white shadow-md pt-5 pb-4">
+      <div class="container">
+        <h2 class="text-7 fw-500 text-left pb-3">Your recent searches</h2>
+        <div class="owl-carousel owl-theme" data-autoplay="true" data-loop="true" data-nav="true" data-margin="30" data-items-xs="1" data-items-sm="2" data-items-md="2" data-items-lg="3">
+          @foreach($recentSearches as $search)
+          <div class="item">
+            {{-- <a href="{{route('offerDetails',['slug'=>$offer->slug])}}">
+            <div class="offerBlkWdgtNew offers">
+              <img src="{{asset('uploads/offers/'.$offer->image)}}" alt="Offers">
+              <div class="ico13 greyDr padTB10 padLR10 lh1-2 fmed dib offerListIndex" style="display: inline-block;    padding: 10px;    color: black;">{{$offer->name}}</div>
+              <br>
+              <div class=" offerListIndex" style="display: inline-block;    padding: 0px 10px;    color: black;"><span style="color: green">Valid Upto :</span><span>  {{date('M d,Y', strtotime($offer->valid_upto))}}</span></div>
+            </div>
+            </a> --}}
+            <a href="{{$search->search_url}}">
+              <div class="card shadow-sm border-0 mb-3" >
+                <div class="d-flex align-items-center p-2">
+                  <img src="{{asset("frontEnd/images/favicon.png")}}" 
+                      class="rounded"  
+                      style="width: 91px;height: 70px;object-fit: scale-down;">
+                
+                  <div class="ms-3">
+                    <h6 class="mb-1 fw-bold">{{$search->city_name}}</h6>
+                    <small class="text-muted">{{\Carbon\Carbon::parse($search->check_in)->format('d M') }} – {{\Carbon\Carbon::parse($search->check_out)->format('d M ') }} – {{$search->no_of_guests}} people</small>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+          @endforeach
+         
+        </div>
+      </div>
+
+
+    </div>
     {{-- <div class="container">
       <section class="section px-3 px-md-5 pb-4">
         <h2 class="text-7 fw-500 text-left pb-3">Your recent searches</h2>
@@ -396,6 +432,7 @@
         </div>
       </section>
     </div> --}}
+    @endif
     
     <div class="container">
       <section class="section px-3 px-md-5 pb-4">
@@ -792,6 +829,7 @@ $("#bookingFlight").validate({
                               code: item.code,
                               city_name: item.name,
                               country_name: item.country_name,
+                              id: item.id
                           };
                       }));
                   },
@@ -799,6 +837,7 @@ $("#bookingFlight").validate({
           },
           select: function(event, ui) {
               $("input[name='hotelsCityCode']").val(ui.item.code);
+              $("input[name='hotelsCityId']").val(ui.item.id);
               $("#hotelsCheckIn").focus();
           },
           search: function() { $(this).addClass('preloader'); },

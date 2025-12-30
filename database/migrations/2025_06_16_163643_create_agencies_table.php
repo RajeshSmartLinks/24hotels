@@ -21,6 +21,7 @@ class CreateAgenciesTable extends Migration
             $table->string('country_id')->nullable();
             $table->string('logo')->nullable();
             $table->enum('status', ['Active', 'InActive'])->default('Active');
+            $table->enum('is_special', ['0', '1'])->default('0');
             $table->timestamps();
         });
     }

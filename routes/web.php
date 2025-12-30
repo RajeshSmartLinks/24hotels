@@ -128,9 +128,7 @@ Route::get('search/hotels', [App\Http\Controllers\FrontEnd\Hotel\HomeController:
 Route::get('hotel/details/{hotelCode}/{searchId}', [App\Http\Controllers\FrontEnd\Hotel\HomeController::class, 'HotelDetails'])->name('HotelDetails');
 Route::get('hotel/preBooking/{hotelCode}/{bookingCode}/{searchId}', [App\Http\Controllers\FrontEnd\Hotel\HomeController::class, 'PreBooking'])->name('PreBooking');
 Route::post('hotel/savePassenger', [App\Http\Controllers\FrontEnd\Hotel\HomeController::class, 'savePassanger'])->name('hotelSavePassenger');
-
 Route::get('hotel/bookingPreview/{bookingId}', [App\Http\Controllers\FrontEnd\Hotel\HomeController::class, 'HotelBookingPreview'])->name('HotelBookingPreview');
-
 Route::post('hotel/updateSearchRequest', [App\Http\Controllers\FrontEnd\Hotel\HomeController::class, 'updatedHotelsearch'])->name('updatedHotelsearch');
 
 
@@ -162,22 +160,20 @@ Route::get('remainders', [App\Http\Controllers\CronController::class, 'bookingRe
 
 Route::get('webbedsHotelDump', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'WebBedsHoteldata'])->name('webbedsHotelDump');
 
+Route::group([
+    'middleware' => ['auth:web']], function() {
+    //webbeds
+    Route::get('cityCountryList', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'AjaxHotelCityList'])->name('hotelCityAutoSuggest');
+    Route::get('search/hotelsList', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'SearchHotels'])->name('webbedsSearchHotels');
+    Route::get('hotel/rooms/details', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'GethotelDetails'])->name('GethotelDetails');
+    Route::get('hotel/preBookRoom/{hotelCode}/{bookingCode}/{searchId}/{type}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'PreBooking'])->name('PreBookingRoom');
+    Route::post('hotel/savePassengerDetails', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'savePassanger'])->name('hotelsavePassengerDetails');
+    Route::get('hotel/holdBooking', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'holdBooking'])->name('holdHotelBooking');
+    Route::get('hotel/bookingPreviewInfo/{bookingId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'HotelBookingPreview'])->name('HotelBookingPreviewInfo');
+    Route::post('agentHotelpaymentGateWay', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'HotelpaymentGateWay'])->name('agentHotelpaymentGateWay');
+    Route::get('agentbookHotelRooms/{hotelbookingId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'bookHotelRooms'])->name('agentbookHotelRooms');
+});
 
-
-//webbeds
-Route::get('cityCountryList', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'AjaxHotelCityList'])->name('hotelCityAutoSuggest');
-Route::get('search/hotelsList', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'SearchHotels'])->name('webbedsSearchHotels');
-Route::get('hotel/rooms/details', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'GethotelDetails'])->name('GethotelDetails');
-Route::get('hotel/preBookRoom/{hotelCode}/{bookingCode}/{searchId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'PreBooking'])->name('PreBookingRoom');
-Route::post('hotel/savePassengerDetails', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'savePassanger'])->name('hotelsavePassengerDetails');
-Route::get('hotel/holdBooking', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'holdBooking'])->name('holdHotelBooking');
-
-Route::get('hotel/bookingPreviewInfo/{bookingId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'HotelBookingPreview'])->name('HotelBookingPreviewInfo');
-
-Route::post('agentHotelpaymentGateWay', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'HotelpaymentGateWay'])->name('agentHotelpaymentGateWay');
-
-
-Route::get('agentbookHotelRooms/{hotelbookingId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'bookHotelRooms'])->name('agentbookHotelRooms');
 
 
 
@@ -187,4 +183,13 @@ Route::get('hotelTest', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeControl
 Route::post('customLogin', [App\Http\Controllers\Auth\CustomLoginController::class, 'login'])->name('customLogin');
 Route::post('verify2FA', [App\Http\Controllers\Auth\CustomLoginController::class, 'verify2FA'])->name('verify2FA');
 Route::post('resendOtp', [App\Http\Controllers\Auth\CustomLoginController::class, 'resendOtp'])->name('resendOtp');
+
+
+//Dida Api
+Route::get('dumpDadiCity', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'DidaStoreCity']);
+Route::get('dumpDadiHotelsList', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'DidaStoreHotelList']);
+Route::get('dumpDadiHotelsDetails', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'DidaStoreHotelDetails']);
+
+
+
 

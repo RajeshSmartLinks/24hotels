@@ -93,6 +93,7 @@ class UserController extends Controller
 
     public function updateProfile(Request $request, $id)
     {
+        //dd($request->input());
         $userId = decrypt($id);
         $user = User::findOrFail($userId);
 
@@ -104,13 +105,12 @@ class UserController extends Controller
             'profile_pic'  => 'mimes:jpeg,png,jpg,gif|max:2048', // ✅ secure image validation
         ]);
         $allowedMimes = ['image/jpeg', 'image/png', 'image/gif'];
+        if(!empty($request->file('profile_pic'))){
             $mime = $request->file('profile_pic')->getMimeType();
-            
-
             if (!in_array($mime, $allowedMimes)) {
                 return back()->withErrors(['profile_pic' => 'Unsupported image type.']);
             }
-       
+        }
 
         $update = [
             'first_name'    => $request->input('first_name'),
@@ -118,8 +118,10 @@ class UserController extends Controller
             'title'         => $request->input('title'),
             'country_id'    => $request->input('country_id'),
             'mobile'        => $request->input('mobile'),
-            'date_of_birth' => $request->input('date_of_birth'),
+            //'date_of_birth' => $request->input('date_of_birth'),
             'email'         => $request->input('email'),
+            'alter_mobile_country_id'    => $request->input('alter_mobile_country_id') ?? null,
+            'alter_mobile_number'        => $request->input('alter_mobile_number') ?? null,
         ];
 
 
@@ -153,6 +155,7 @@ class UserController extends Controller
 
         // Update user
         $user->update($update);
+        // dd($user);
 
         // Reset and assign role
         $role = Role::where("slug", "user")->first();
@@ -190,7 +193,7 @@ class UserController extends Controller
         ]);
 
         $user = User::where("id",Auth::user()->id)->update([
-        'password' =>  Hash::make($request->input('new-password'))]);
+        'password' =>  Hash::make($request->input('new-password')),'first_login' => 0]);
 
         return redirect()->route('profile')->with('success','Password successfully changed!');
       
@@ -406,43 +409,64 @@ class UserController extends Controller
         ];
         foreach ($hotelbookings as $key => $value) {
             if ($value['booking_status'] == 'booking_completed') {
+                if($value['supplier'] == 'webbeds'){
+                     $bookingXML = HotelXmlRequest::find($value['webbeds_booking_request_id']);
+                    $parsedResponse = XmlToArrayWithHTML($bookingXML->response_xml);
 
-                $bookingXML = HotelXmlRequest::find($value['webbeds_booking_request_id']);
-                $parsedResponse = XmlToArrayWithHTML($bookingXML->response_xml);
+                    $dom = new \DOMDocument();
+                    libxml_use_internal_errors(true);
+                    $dom->loadHTML($parsedResponse['confirmationText_html']);
+                    libxml_clear_errors();
 
-                $dom = new \DOMDocument();
-                libxml_use_internal_errors(true);
-                $dom->loadHTML($parsedResponse['confirmationText_html']);
-                libxml_clear_errors();
+                    $xpath = new \DOMXPath($dom);
 
-                $xpath = new \DOMXPath($dom);
+                    // Get ALL <ul> elements that come after "Cancellation Rules"
+                    $ulNodes = $xpath->query("//strong[contains(text(),'Cancellation Rules:')]/following::ul");
 
-                // Get ALL <ul> elements that come after "Cancellation Rules"
-                $ulNodes = $xpath->query("//strong[contains(text(),'Cancellation Rules:')]/following::ul");
+                    $rooms = [];
+                    $roomIndex = 1;
 
-                $rooms = [];
-                $roomIndex = 1;
+                    foreach ($ulNodes as $ul) {
+                        $rulesNodes = $xpath->query(".//li", $ul);
 
-                foreach ($ulNodes as $ul) {
-                    $rulesNodes = $xpath->query(".//li", $ul);
+                        $rules = [];
+                        foreach ($rulesNodes as $li) {
+                            $cleanText = preg_replace('/\s+/', ' ', trim($li->textContent));
+                            $rules[] = $cleanText;
+                        }
 
-                    $rules = [];
-                    foreach ($rulesNodes as $li) {
-                        $cleanText = preg_replace('/\s+/', ' ', trim($li->textContent));
-                        $rules[] = $cleanText;
+                        $rooms[] = [
+                            'room'  => "Room " . $roomIndex,
+                            'rules' => $rules
+                        ];
+
+                        $roomIndex++;
                     }
 
-                    $rooms[] = [
-                        'room'  => "Room " . $roomIndex,
-                        'rules' => $rules
-                    ];
+                    // ✅ Attach to the booking model in the collection
+                    $hotelbookings[$key]['cancellation_rules'] = $rooms;
 
-                    $roomIndex++;
+                    
+                }
+                elseif($value['supplier'] == 'dida'){
+                    $bookingJson = HotelXmlRequest::find($value['webbeds_booking_request_id']);
+                    $bookingInfo = json_decode($bookingJson->json_response , true);
+
+                    $rooms = [];
+
+                    foreach($bookingInfo['Success']['BookingDetails']['Hotel']['RatePlanList'] as $rkey => $rvalue){
+
+                        $rooms[] = convertCancellationRulesForDida($bookingInfo['Success']['BookingDetails']['Hotel']['CancellationPolicyList'] ,$rvalue['Currency'],(int)$value['no_of_rooms'], 'Room '.($rkey+1));
+                    }
+
+                    // ✅ Attach to the booking model in the collection
+                    $hotelbookings[$key]['cancellation_rules'] = $rooms;
+                }
+                else{
+                    $hotelbookings[$key]['cancellation_rules'] = [];
                 }
 
-                // ✅ Attach to the booking model in the collection
-                $hotelbookings[$key]['cancellation_rules'] = $rooms;
-
+               
             } else {
                 // ensure empty if no rules
                 $hotelbookings[$key]['cancellation_rules'] = [];
@@ -504,50 +528,71 @@ class UserController extends Controller
         ->paginate(15);
 
         foreach ($hotelbookings as $key => $value) {
-            if ($value['booking_status'] == 'booking_completed') {
+            if ($value['booking_status'] == 'booking_completed' ) {
+                if($value['supplier'] == 'webbeds'){
+                    
+                    $bookingXML = HotelXmlRequest::find($value['webbeds_booking_request_id']);
+                    $parsedResponse = XmlToArrayWithHTML($bookingXML->response_xml);
 
-                $bookingXML = HotelXmlRequest::find($value['webbeds_booking_request_id']);
-                $parsedResponse = XmlToArrayWithHTML($bookingXML->response_xml);
+                    $dom = new \DOMDocument();
+                    libxml_use_internal_errors(true);
+                    $dom->loadHTML($parsedResponse['confirmationText_html']);
+                    libxml_clear_errors();
 
-                $dom = new \DOMDocument();
-                libxml_use_internal_errors(true);
-                $dom->loadHTML($parsedResponse['confirmationText_html']);
-                libxml_clear_errors();
+                    $xpath = new \DOMXPath($dom);
 
-                $xpath = new \DOMXPath($dom);
+                    // Get ALL <ul> elements that come after "Cancellation Rules"
+                    $ulNodes = $xpath->query("//strong[contains(text(),'Cancellation Rules:')]/following::ul");
 
-                // Get ALL <ul> elements that come after "Cancellation Rules"
-                $ulNodes = $xpath->query("//strong[contains(text(),'Cancellation Rules:')]/following::ul");
+                    $rooms = [];
+                    $roomIndex = 1;
 
-                $rooms = [];
-                $roomIndex = 1;
+                    foreach ($ulNodes as $ul) {
+                        $rulesNodes = $xpath->query(".//li", $ul);
 
-                foreach ($ulNodes as $ul) {
-                    $rulesNodes = $xpath->query(".//li", $ul);
+                        $rules = [];
+                        foreach ($rulesNodes as $li) {
+                            $cleanText = preg_replace('/\s+/', ' ', trim($li->textContent));
+                            $rules[] = $cleanText;
+                        }
 
-                    $rules = [];
-                    foreach ($rulesNodes as $li) {
-                        $cleanText = preg_replace('/\s+/', ' ', trim($li->textContent));
-                        $rules[] = $cleanText;
+                        $rooms[] = [
+                            'room'  => "Room " . $roomIndex,
+                            'rules' => $rules
+                        ];
+
+                        $roomIndex++;
                     }
 
-                    $rooms[] = [
-                        'room'  => "Room " . $roomIndex,
-                        'rules' => $rules
-                    ];
+                    // ✅ Attach to the booking model in the collection
+                    $hotelbookings[$key]['cancellation_rules'] = $rooms;
 
-                    $roomIndex++;
+                }
+                elseif($value['supplier'] == 'dida'){
+                    $bookingJson = HotelXmlRequest::find($value['webbeds_booking_request_id']);
+                    $bookingInfo = json_decode($bookingJson->json_response , true);
+
+                    $rooms = [];
+
+                    foreach($bookingInfo['Success']['BookingDetails']['Hotel']['RatePlanList'] as $rkey => $rvalue){
+
+                        $rooms[] = convertCancellationRulesForDida($bookingInfo['Success']['BookingDetails']['Hotel']['CancellationPolicyList'] ,$rvalue['Currency'],(int)$value['no_of_rooms'], 'Room '.($rkey+1));
+                    }
+
+                    // ✅ Attach to the booking model in the collection
+                    $hotelbookings[$key]['cancellation_rules'] = $rooms;
+                }
+                else{
+                    $hotelbookings[$key]['cancellation_rules'] = [];
                 }
 
-                // ✅ Attach to the booking model in the collection
-                $hotelbookings[$key]['cancellation_rules'] = $rooms;
 
             } else {
                 // ensure empty if no rules
                 $hotelbookings[$key]['cancellation_rules'] = [];
             }
         }
- 
+        //dd($hotelbookings);
 
         return view('front_end.agent.hotelBooking',compact('titles' , 'hotelbookings'));
     }
@@ -629,29 +674,43 @@ class UserController extends Controller
         $bookingController = new BookingController();
         //fetching booking Ids
         $HotelConfirmationResponse = HotelXmlRequest::find($HotelBooking->webbeds_booking_request_id);
-        $parsedResponse = XmlToArrayWithHTML($HotelConfirmationResponse->response_xml);
         $failure = false;
         $message = [];
-      
-        
-        //we need to send booking code request indiviually 
+        if($HotelBooking->supplier == 'webbeds'){
+            $parsedResponse = XmlToArrayWithHTML($HotelConfirmationResponse->response_xml);
+            //we need to send booking code request indiviually 
        
-        //node Convertion
-        $parsedResponse['bookings']['booking'] = nodeConvertion($parsedResponse['bookings']['booking']);
-  
+            //node Convertion
+            $parsedResponse['bookings']['booking'] = nodeConvertion($parsedResponse['bookings']['booking']);
+    
 
-        foreach($parsedResponse['bookings']['booking'] as $key =>$details){
-              $Info = [
-                'booking_id' => $HotelBooking->id,
-                'confirmCancellation' => 'no',
-                'bookingCode' => $details['bookingCode'],
-            ];
-            $cancellationNoResp = $bookingController->CancelBooking($Info);
-            $cancellationNoResponseDetails[] = $cancellationNoResp;
+            foreach($parsedResponse['bookings']['booking'] as $key =>$details){
+                $Info = [
+                    'booking_id' => $HotelBooking->id,
+                    'confirmCancellation' => 'no',
+                    'bookingCode' => $details['bookingCode'],
+                ];
+                $cancellationNoResp = $bookingController->CancelBooking($Info);
+                $cancellationNoResponseDetails[] = $cancellationNoResp;
 
-            if(isset($cancellationNoResp['cancellationInfo']['hotelResponse']['request']['successful']) && ($cancellationNoResp['cancellationInfo']['hotelResponse']['request']['successful'] == "FALSE")){
+                if(isset($cancellationNoResp['cancellationInfo']['hotelResponse']['request']['successful']) && ($cancellationNoResp['cancellationInfo']['hotelResponse']['request']['successful'] == "FALSE")){
+                    $failure = true;
+                    $message[] = 'Room - '.($key+1).' : '.$cancellationNoResp['cancellationInfo']['hotelResponse']['request']['error']['details'];
+                }
+            }
+            
+        }elseif($HotelBooking->supplier == 'dida'){
+
+            //sendinmg  booking code
+             $Info = [
+                    'dida_booking_id' => $HotelBooking->booking_reference_number,
+                    'confirmCancellation' => 'no',
+                    'hotel_booking_id' => $HotelBooking->id,
+                ];
+            $cancellationNoResp = $bookingController->DidaCancelBooking($Info);
+            if(isset($cancellationNoResp['response']['Error']['Message'])){
                 $failure = true;
-                $message[] = 'Room - '.($key+1).' : '.$cancellationNoResp['cancellationInfo']['hotelResponse']['request']['error']['details'];
+                $message[] = $cancellationNoResp['response']['Error']['Message'];
             }
         }
         if($failure){
@@ -661,47 +720,81 @@ class UserController extends Controller
         //now confirming cancellation
         $penalityAmount = 0;
         $partiallyCanceled = false;
-        foreach($parsedResponse['bookings']['booking'] as $key =>$details){
-             //fetching cancellation NO responses
-            $cancallationNOresponses = $cancellationNoResponseDetails[$key];
-            $cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service'] = nodeConvertion($cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']);
-      
-            //dd($cancallationNOresponses['cancellationInfo']['hotelResponse'] , $cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']);
-            $Info = [
-                'booking_id' => $HotelBooking->id,
-                'confirmCancellation' => 'yes',
-                'bookingCode' => $details['bookingCode'],
-                'services' => $cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']
-            ];
-            $cancellationYesResp = $bookingController->CancelBooking($Info);
-            $penalityAmountperRoom = 0;
-            $status = null;
-            
-            if(isset($cancellationNoResp['cancellationInfo']['hotelResponse']['successful']) && ($cancellationNoResp['cancellationInfo']['hotelResponse']['successful'] == "TRUE")){
-                //refunding amount back to Agent
-                $cancallationYesresponses['cancellationInfo']['hotelResponse']['services']['service'] = nodeConvertion($cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']);
-                foreach($cancallationYesresponses['cancellationInfo']['hotelResponse']['services']['service'] as $service){
-                    $penalityAmountperRoom += (float)$service['cancellationPenalty']['charge'];
+        $penalityCurrency = 'KWD';
+        $cancellationFailure = false;
+
+        if($HotelBooking->supplier == 'webbeds'){
+            foreach($parsedResponse['bookings']['booking'] as $key =>$details){
+                //fetching cancellation NO responses
+                $cancallationNOresponses = $cancellationNoResponseDetails[$key];
+                $cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service'] = nodeConvertion($cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']);
+        
+                //dd($cancallationNOresponses['cancellationInfo']['hotelResponse'] , $cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']);
+                $Info = [
+                    'booking_id' => $HotelBooking->id,
+                    'confirmCancellation' => 'yes',
+                    'bookingCode' => $details['bookingCode'],
+                    'services' => $cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']
+                ];
+                $cancellationYesResp = $bookingController->CancelBooking($Info);
+                $penalityAmountperRoom = 0;
+                $status = null;
+                
+                if(isset($cancellationNoResp['cancellationInfo']['hotelResponse']['successful']) && ($cancellationNoResp['cancellationInfo']['hotelResponse']['successful'] == "TRUE")){
+                    //refunding amount back to Agent
+                    $cancallationYesresponses['cancellationInfo']['hotelResponse']['services']['service'] = nodeConvertion($cancallationNOresponses['cancellationInfo']['hotelResponse']['services']['service']);
+                    foreach($cancallationYesresponses['cancellationInfo']['hotelResponse']['services']['service'] as $service){
+                        $penalityAmountperRoom += (float)$service['cancellationPenalty']['charge'];
+                    }
+                    $status = 'cancelled';
+                    $isCancel = 1;
+                }else{
+                    $partiallyCanceled = true;
+                    $status = 'cancellation_failure';
+                    $isCancel = 0;
                 }
+                //updating hotel room booking status
+                HotelRoomBookingInfo::where('hotel_booking_id', $HotelBooking->id)->where('room_no', $key+1)->update(['status' => $status , 'is_cancel' => $isCancel ,'penality_amount' => $penalityAmountperRoom]);
+                $penalityAmount+= $penalityAmountperRoom;
+            }
+        }elseif($HotelBooking->supplier == 'dida'){
+            $penalityAmount = $cancellationNoResp['response']['Success']['Amount'];
+            $penalityCurrency = $cancellationNoResp['response']['Success']['Currency'];
+            $Info = [
+                'dida_booking_id' => $HotelBooking->booking_reference_number,
+                'confirmCancellation' => 'yes',
+                'hotel_booking_id' => $HotelBooking->id,
+                'confirmation_id' => $cancellationNoResp['response']['Success']['ConfirmID'],
+            ];
+            $cancellationYesResp = $bookingController->DidaCancelBooking($Info);
+            if(isset($cancellationYesResp['response']['Success'])){
                 $status = 'cancelled';
                 $isCancel = 1;
             }else{
-                $partiallyCanceled = true;
                 $status = 'cancellation_failure';
                 $isCancel = 0;
             }
-            //updating hotel room booking status
-            HotelRoomBookingInfo::where('hotel_booking_id', $HotelBooking->id)->where('room_no', $key+1)->update(['status' => $status , 'is_cancel' => $isCancel ,'penality_amount' => $penalityAmountperRoom]);
-            $penalityAmount+= $penalityAmountperRoom;
+            $noOfRooms = $HotelBooking->no_of_rooms;
+            $penalityAmountperRoom = $penalityAmount/$noOfRooms;
+            for($i = 1 ; $i <= $noOfRooms ; $i++)
+            {
+                //updating hotel room booking status
+                HotelRoomBookingInfo::where('hotel_booking_id', $HotelBooking->id)->where('room_no', $i)->update(['status' => $status , 'is_cancel' => $isCancel ,'penality_amount' => $penalityAmountperRoom]);
+            }
+            
         }
+        $HotelBooking->penality_amount = $penalityAmount;
+        $HotelBooking->penality_currency = $penalityCurrency;
+        
         if($partiallyCanceled){
-            $HotelBooking->penality_amount = $penalityAmount;
             $HotelBooking->cancellation_status = 'partially_cancellation';
+            $HotelBooking->save();
+        }elseif($status == 'cancellation_failure' && $HotelBooking->supplier == 'dida'){
+            $HotelBooking->cancellation_status = 'cancellation_failure';
             $HotelBooking->save();
         }else{
             //successfully cancelled
             $HotelBooking->is_cancel = 1;
-            $HotelBooking->penality_amount = $penalityAmount;
             $HotelBooking->cancellation_status = 'cancellation_completed';
             $HotelBooking->save();
         }
@@ -709,6 +802,13 @@ class UserController extends Controller
         //inititing refund process
         //amount to be refunded 
         $refundableAmount = $HotelBooking->total_amount - $HotelBooking->penality_amount;
+        if((int)$refundableAmount == 0){
+            $HotelBooking->booking_status = "canceled";
+            $HotelBooking->save();
+            return response()->json(['status' => true, 'message' => "Hotel booking has been cancelled successfully with penality amount of ".$penalityCurrency." ".$penalityAmount]);
+
+            
+        }
       
     
         $HotelBooking->booking_status = "refund_initiated";
@@ -738,7 +838,7 @@ class UserController extends Controller
             $HotelBooking->save();
         }
 
-        return response()->json(['status' => true, 'message' => "Hotel booking has been cancelled successfully with penality amount of KWD $penalityAmount"]);
+        return response()->json(['status' => true, 'message' => "Hotel booking has been cancelled successfully with penality amount of ".$penalityCurrency." ".$penalityAmount]);
 
       
         // if($HotelBooking->booking_status == "booking_completed")

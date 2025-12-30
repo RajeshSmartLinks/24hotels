@@ -170,6 +170,7 @@
                                 @foreach($result['roomDetails']['CancelPolicies'] as $ck => $cv)
 
                                 <span style="font-weight: bold">Room {{$ck+1}} &nbsp; <span>Cancellation Policy</span></span>
+                                <br>
                                   
                                 @foreach($cv as $policy)
                                   <li>
@@ -200,7 +201,7 @@
                                   </li>
                                   @endforeach
                                 @endforeach
-                                <br>
+                                {{-- <br> --}}
                                 
                                 <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@24flights.com">booking@24Flights.com</a></strong></li>
                                 <li>{{__('lang.cancellation_policy_2')}}</li>
@@ -219,8 +220,8 @@
             <hr>
             <h3 class="text-5 mb-4 mt-4">{{__('lang.hotels_rules')}}</h3>
             <div class="row mb-3">
-              <div class="col-6 col-xl-4"><span class="text-muted text-3 me-2"><i class="fas fa-sign-in-alt"></i></span>{{__('lang.checkin_time')}} {{$result['hotelDetails']['check_in']}}</div>
-              <div class="col-6 col-xl-4"><span class="text-muted text-3 me-2"><i class="fas fa-sign-out-alt"></i></span>{{__('lang.checkout_time')}}  {{$result['hotelDetails']['check_out']}}</div>
+              <div class="col-6 col-xl-4"><span class="text-muted text-3 me-2"><i class="fas fa-sign-in-alt"></i></span>Check In {{$result['hotelDetails']['check_in']}}</div>
+              <div class="col-6 col-xl-4"><span class="text-muted text-3 me-2"><i class="fas fa-sign-out-alt"></i></span>Check Out  {{$result['hotelDetails']['check_out']}}</div>
             </div>
             @if(!empty($result['roomDetails']))
             <hr>
@@ -235,7 +236,7 @@
               <input type = "hidden" value = "{{encrypt($result['bookingCode'])}}" name ="bookingCode">
               <input type = "hidden" value = "{{encrypt($result['hotelCode'])}}" name ="hotelCode">
               <input type = "hidden" value = "{{encrypt($result['searchId'])}}" name ="searchId">
-              <input type = "hidden" value = "{{encrypt($result['webbedsBlockingId'])}}" name ="webbedsBlockingId">
+              <input type = "hidden" value = "{{encrypt($result['BlockingId'])}}" name ="BlockingId">
               <p class="text-info">{{__('lang.message_info')}} </p>
               <p class="fw-600">{{__('lang.contact_details')}}</p>
             <div class="row g-3 mb-3">
@@ -542,7 +543,7 @@
                                   @endif
                                 </li>
                                 @endforeach
-                                <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@24flights.com">booking@24Flights.com</a></strong></li>
+                                <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: {{env('SUPPORT_MAIL_ID')}}">{{env('SUPPORT_MAIL_ID')}}</a></strong></li>
                                 <li>{{__('lang.cancellation_policy_2')}}</li>
                               </ul>
                             </div>

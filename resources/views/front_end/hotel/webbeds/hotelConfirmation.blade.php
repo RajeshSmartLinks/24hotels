@@ -40,26 +40,48 @@
     <!-- 404
     ============================================= -->
     <section class="section">
-      <div class="container ">
+      <div class="container" >
         @if(!empty($result['confirmationHtml']))
             @if($result['hotelbookingdetails']->booking_status == "booking_completed" || $result['hotelbookingdetails']->booking_status == "booking_partially_completed")
-                <div>{!! $result['confirmationHtml'] !!}</div>
+                <div id = "printArea">{!! $result['confirmationHtml'] !!}</div>
             @elseif($result['hotelbookingdetails']->booking_status == "booking_pending")   
                 <h2 class="text-8 fw-600 mb-3">Hotel Booking is in progress</h2>
             @endif 
         @else
             <h2 class="text-8 fw-600 mb-3">Error in Hotel Booking</h2>
         @endif
-       
-        {{-- <h2 class="text-8 fw-600 mb-3">{{__('lang.hotel_booking_is_in_progress')}}</h2>
-        <h3 class="text-6 fw-600 mb-3">{{__('lang.you_will_get_confirmation_mail_in_5_min')}}</h3>
-        <p class="text-3 text-muted">{{__('lang.Dont_be_panic')}}</p> --}}
+      
+        <div class="text-center">
+          <a href="{{url('/')}}" class="btn btn-primary shadow-none px-5 m-2">{{__('lang.home')}}</a> 
+          <a href="{{url('/')}}" class="btn btn-outline-dark shadow-none px-5 m-2">{{__('lang.back')}}</a>
+          @if($result['hotelbookingdetails']->booking_status == "booking_completed" || $result['hotelbookingdetails']->booking_status == "booking_partially_completed")
+            <a class="btn btn-primary shadow-none px-5 m-2" onclick="printDiv('printArea')">Print</a>
+            <a href = "{{asset($result['hotelbookingdetails']->hotel_room_booking_path)}}" download   class="btn btn-outline-dark shadow-none px-5 m-2" data-bs-toggle="tooltip" title="Download">Download</a>
 
-        <a href="{{url('/')}}" class="btn btn-primary shadow-none px-5 m-2">{{__('lang.home')}}</a> <a href="{{url('/')}}" class="btn btn-outline-dark shadow-none px-5 m-2">{{__('lang.back')}}</a> </div>
+            {{-- <a  href = "{{asset($hoteldetails->hotel_room_booking_path)}}" download data-bs-toggle="tooltip" title="Download"><i class="fas fa-download"></i></a> --}}
+          @endif
+         </div>
+        </div>
+      
     </section>
     <!-- 404 end --> 
     
   </div>
   <!-- Content end --> 
 
+@endsection
+
+@section('extraScripts')
+  <script>
+    function printDiv(divId) {
+    var originalContent = document.body.innerHTML;
+    var printContent = document.getElementById(divId).innerHTML;
+
+    document.body.innerHTML = printContent;
+
+    window.print();
+
+    document.body.innerHTML = originalContent;
+}
+  </script>
 @endsection

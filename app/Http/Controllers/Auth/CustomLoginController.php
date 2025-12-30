@@ -104,13 +104,18 @@ class CustomLoginController extends Controller
             'otp_code'       => null,
             'otp_expires_at' => null,
         ]);
+        $user->update([
+            'last_login_at'       => now(),
+        ]);
+        $route = ($user->first_login == 1) ? route('change-password') : route('home');
 
         Auth::login($user);
+        //Auth::login($user, true);  //forlong run we need to use this
         $request->session()->regenerate();
 
         return response()->json([
             'success'      => true,
-            'redirect_url' => route('agent-dashboard'),
+            'redirect_url' => $route,
         ]);
     }
 

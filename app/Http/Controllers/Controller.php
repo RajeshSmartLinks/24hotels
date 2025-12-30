@@ -92,6 +92,13 @@ class Controller extends BaseController
     public $WebbedsPassword ;
     public $WebbedsCompanyCode;
 
+    // Dida
+    public $didaUrl;
+    public $didaUsername ;   
+    public $didaPassword ;
+    public $didaCompanyCode;
+    public $didaAuthToken;
+
 
     public function __construct()
     {
@@ -128,6 +135,16 @@ class Controller extends BaseController
         $this->WebbedsPassword          = md5(env('WEBBEDS_PASSWORD'));
         $this->WebbedsCompanyCode       = env('WEBBEDS_COMPANYCODE');
 
+        // DIDA
+        $this->didaUrl               = env('DIDA_URL');
+        $this->didaStatic               = env('DIDA_STATIC');
+        $this->didaUsername          = env('DIDA_USERNAME');
+        $this->didaPassword          = env('DIDA_PASSWORD');
+        $this->didaCompanyCode       = env('DIDA_COMPANYCODE');
+        $didaCredentials = $this->didaUsername . ':' . $this->didaPassword;
+        $encoded = base64_encode($didaCredentials);
+        $this->didaAuthToken         = $encoded;
+        
     }
 
     public function TravelportAirApi($request)
@@ -940,7 +957,233 @@ class Controller extends BaseController
         }
     }
 
+    public function DadiApiStaticData(array $request)
+    {
+        //dd($request);
+        set_time_limit(400);
 
-    
+        try {
+            $baseUrl = rtrim($this->didaStatic, '/') . '/';
+            $url = $baseUrl . ltrim($request['end_point'], '/');
 
+            // Default method
+            $method = strtoupper($request['method'] ?? 'GET');
+
+            // Always attach language param
+            $queryParams = ['language' => 'en-US'];
+
+            // Append extra query params if passed
+            if (!empty($request['query'])) {
+                $queryParams = array_merge($queryParams, $request['query']);
+            }
+
+            // Build final URL for GET requests
+            if ($method === 'GET') {
+                $url .= '?' . http_build_query($queryParams);
+            }
+            //dd($url);
+
+            // Common headers
+            $headers = [
+                'Accept' => 'application/json',
+                'Authorization' => 'Basic ' . $this->didaAuthToken,
+                'Accept-Encoding' => 'gzip, deflate',
+            ];
+            // dd($url , $headers ,$request['params']);
+
+            // Prepare request
+            $http = Http::withHeaders($headers)
+                ->timeout(300)
+                ->withoutVerifying(); // For local/self-signed SSL
+
+            // Execute GET or POST
+            if ($method === 'POST') {
+                // Attach params as JSON body
+                $response = $http->post($url, $request['params'] ?? []);
+            } else {
+                $response = $http->get($url);
+            }
+
+            // Check for HTTP failure
+            if ($response->failed()) {
+                return [
+                    'response' => [],
+                    'status'   => false,
+                    'message'  => 'HTTP ' . $response->status() . ' ' . $response->body(),
+                ];
+            }
+
+            // Return structured response
+            return [
+                'response' => $response->json(),
+                'status'   => true,
+                'message'  => 'Success',
+            ];
+        } catch (\Throwable $e) {
+            \Log::error('Dida API Error: ' . $e->getMessage(), [
+                'endpoint' => $request['end_point'] ?? null,
+                'method'   => $request['method'] ?? null,
+                'params'   => $request['params'] ?? null,
+            ]);
+
+            return [
+                'response' => [],
+                'status'   => false,
+                'message'  => $e->getMessage(),
+            ];
+        }
+    }
+
+    // public function DadiApi(array $request)
+    // {
+    //     // dd(json_encode($request['payload']));
+    //     set_time_limit(400);
+
+    //     try {
+    //         $baseUrl = rtrim($this->didaUrl, '/') . '/';
+    //         $url = $baseUrl . ltrim($request['end_point'], '/');
+
+    //         // Default method
+    //         $method = strtoupper($request['method'] ?? 'GET');
+
+    //         $url .= '?' . http_build_query(['$format'=>'json']);
+
+
+    //         // Common headers
+    //         $headers = [
+    //             'Accept' => 'application/json',
+    //             'Authorization' => 'Basic ' . $this->didaAuthToken,
+    //             'Accept-Encoding' => 'gzip, deflate',
+    //         ];
+
+    //         // Prepare request
+    //         $http = Http::withHeaders($headers)
+    //             ->timeout(300)
+    //             ->withoutVerifying(); // For local/self-signed SSL
+
+    //         // Execute GET or POST
+    //         if ($method === 'POST') {
+    //             // Attach params as JSON body
+    //             $response = $http->post($url, $request['payload'] ?? []);
+    //         } else {
+    //             $response = $http->get($url);
+    //         }
+
+    //         $HotelXmlRequest = new HotelXmlRequest;
+    //         $HotelXmlRequest->json_request    = json_encode($request['payload']) ?? '';
+    //         $HotelXmlRequest->json_response = $response->body() ?? '';
+    //         $HotelXmlRequest->ip_address = $_SERVER['REMOTE_ADDR'] ?? null;
+    //         $HotelXmlRequest->request_type = $request['request_type'] ??null;
+    //         $HotelXmlRequest->supplier = 'dida';
+    //         $HotelXmlRequest->hotel_search_id = $request['searchId']??null;
+    //         $HotelXmlRequest->save();
+
+
+    //         // Check for HTTP failure
+    //         if ($response->failed()) {
+    //             return [
+    //                 'response' => [],
+    //                 'status'   => false,
+    //                 'message'  => 'HTTP ' . $response->status(),
+    //             ];
+    //         }
+
+    //         // Return structured response
+    //         return [
+    //             'response' => $response->json(),
+    //             'status'   => true,
+    //             'message'  => 'Success',
+    //         ];
+    //     } catch (\Throwable $e) {
+    //         \Log::error('Dida API Error: ' . $e->getMessage(), [
+    //             'endpoint' => $request['end_point'] ?? null,
+    //             'method'   => $request['method'] ?? null,
+    //             'params'   => $request['params'] ?? null,
+    //         ]);
+
+    //         return [
+    //             'response' => [],
+    //             'status'   => false,
+    //             'message'  => $e->getMessage(),
+    //         ];
+    //     }
+    // }
+
+    public function DadiApi(array $request)
+    {
+        //dd(json_encode($request['payload']));
+        set_time_limit(400);
+
+        try {
+            $baseUrl = rtrim($this->didaUrl, '/') . '/';
+            $url = $baseUrl . ltrim($request['end_point'], '/');
+
+            // Default method
+            $method = strtoupper($request['method'] ?? 'GET');
+
+            // Append format query param
+            $url .= '?' . http_build_query(['$format' => 'json']);
+
+            // Common headers
+            $headers = [
+                'Accept'           => 'application/json',
+                'Authorization'    => 'Basic ' . $this->didaAuthToken,
+                'Accept-Encoding'  => 'gzip, deflate',
+            ];
+
+            // Prepare HTTP client
+            $http = Http::withHeaders($headers)
+                ->timeout(300)
+                ->withoutVerifying(); // For local/self-signed SSL
+
+            // Execute GET or POST
+            if ($method === 'POST') {
+                $response = $http->post($url, $request['payload'] ?? []);
+            } else {
+                $response = $http->get($url);
+            }
+
+            // Log request/response
+            $HotelXmlRequest = new HotelXmlRequest;
+            $HotelXmlRequest->json_request   = json_encode($request['payload']) ?? '';
+            $HotelXmlRequest->json_response  = $response->body() ?? '';
+            $HotelXmlRequest->ip_address     = $_SERVER['REMOTE_ADDR'] ?? null;
+            $HotelXmlRequest->request_type   = $request['request_type'] ?? null;
+            $HotelXmlRequest->supplier       = 'dida';
+            $HotelXmlRequest->formate_type   = 'json';
+            $HotelXmlRequest->hotel_search_id = $request['searchId'] ?? null;
+            $HotelXmlRequest->save();
+
+            // Handle HTTP failure
+            if ($response->failed()) {
+                return [
+                    'response' => [],
+                    'status'   => false,
+                    'message'  => 'HTTP ' . $response->status(),
+                    'hotelRequest'  => $HotelXmlRequest
+                ];
+            }
+
+            // Return structured success response
+            return [
+                'response' => $response->json(),
+                'status'   => true,
+                'message'  => 'Success',
+                'hotelRequest'  => $HotelXmlRequest
+            ];
+        } catch (\Throwable $e) {
+            \Log::error('Dida API Error: ' . $e->getMessage(), [
+                'endpoint' => $request['end_point'] ?? null,
+                'method'   => $request['method'] ?? null,
+                'params'   => $request['params'] ?? null,
+            ]);
+
+            return [
+                'response' => [],
+                'status'   => false,
+                'message'  => $e->getMessage(),
+                'hotelRequest' => []
+            ];
+        }
+    }
 }

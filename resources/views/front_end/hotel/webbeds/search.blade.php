@@ -1,6 +1,11 @@
 @extends('front_end.layouts.master')
 @section('content')
-  
+<style>
+  .ui-autocomplete {
+    z-index: 99999 !important;
+}
+
+</style>
   <!-- Page Header
     ============================================= -->
   <section class="page-header page-header-dark bg-secondary">
@@ -25,13 +30,14 @@
   ============================================= -->
   <div id="content">
     <section class="container">
-      <form id="bookingHotels" method="get" action="{{route('webbedsSearchHotels')}}" style = "position: sticky;top: 80px;z-index: 1000;padding: 15px;">
+      <form id="bookingHotels" method="get" action="{{route('webbedsSearchHotels')}}" style = "position: sticky;top: 71px;z-index: 1000;/* padding: 15px; */">
         <div class="row g-3 pb-3" style="background: white;">
           <div class="col-md-12 col-lg-4">
             <div class="position-relative">
               <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder="{{__('lang.enter_city')}}" value="{{app('request')->input('hotelsCityName')}}">
               <span class="icon-inside"><i class="fas fa-map-marker-alt"></i></span> </div>
               <input type="hidden" class="form-control" id="hotelsCityCode"  name = "hotelsCityCode" value = "{{app('request')->input('hotelsCityCode')}}">
+              <input type="hidden" class="form-control" id="hotelsCityId"  name = "hotelsCityId" value = "{{app('request')->input('hotelsCityId')}}">
           </div>
           <div class="col-md-6 col-lg-2">
             <div class="position-relative">
@@ -177,7 +183,7 @@
           </div>
         </div>
       </form>
-      <div class="row"> 
+      <div class="row" style="padding-top: 10px;"> 
         
         <!-- Side Panel
         ============================================= -->
@@ -211,15 +217,16 @@
                     </p>
                     <div id="slider-range"></div>
                     <div input = "hidden" name = "minvalue"  id ="minvalue">
-                    <div input = "hidden" name = "maxvalue"  id ="maxvalue">
+                      <div input = "hidden" name = "maxvalue"  id ="maxvalue">
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="accordion-item">
+              {{-- <div class="accordion-item">
                 <h2 class="accordion-header" id="propertyTypes">
                   <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#toggleRefund" aria-expanded="true" aria-controls="toggleRefund">{{__('lang.refund')}} </button>
                 </h2>
-              </div>
+              </div> --}}
               <div class="accordion-item">
                 <h2 class="accordion-header" id="starCategory">
                   <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#togglestarCategory" aria-expanded="true" aria-controls="togglestarCategory">{{__('lang.stars')}}</button>
@@ -249,6 +256,42 @@
                   </div>
                 </div>
               </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="bedType">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#togglebedType" aria-expanded="true" aria-controls="togglebedType">Bed Type</button>
+                </h2>
+                <div id="togglebedType" class="accordion-collapse collapse show" aria-labelledby="bedType">
+                  <div class="accordion-body">
+                    
+                    @foreach ($result['filter']['bedType'] as $bedkey => $bedvalue)
+                      <div class="form-check bedTypecheck">
+                        <input type="checkbox" id="{{$bedkey}}" name="bedType" class="form-check-input" value="{{$bedkey}}">
+                        <label class="form-check-label d-block" for="{{$bedkey}}">{{$bedvalue['name']}} ({{ $bedvalue['count']}})</small></label>
+                      </div>
+                    @endforeach
+                   
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="mealType">
+                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#togglemealType" aria-expanded="true" aria-controls="togglemealType">Meal Type</button>
+                </h2>
+                <div id="togglemealType" class="accordion-collapse collapse show" aria-labelledby="mealType">
+                  <div class="accordion-body">
+                    
+                    @foreach ($result['filter']['mealType'] as $mealkey => $mealvalue)
+                      <div class="form-check mealTypecheck">
+                        <input type="checkbox" id="{{$mealkey}}" name="mealType" class="form-check-input" value="{{$mealkey}}">
+                        <label class="form-check-label d-block" for="{{$mealkey}}">{{$mealvalue['name']}} ({{ $mealvalue['count']}})</small></label>
+                      </div>
+                    @endforeach
+                   
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </aside>
@@ -301,7 +344,7 @@
             ?>
 
             <div class="hotels-item bg-white shadow-md rounded p-3" data-pricing = "{{$hotelDetails['markups']['totalPrice']['value']}}" 
-             data-rating = "{{$ratingval}}" data-hotelname ="{{$hotelDetails['hotelName']}}">
+             data-rating = "{{$ratingval}}" data-bedtype = "{{$hotelDetails['bedType']}}" data-mealtype = "{{$hotelDetails['mealType']}}" data-hotelname ="{{$hotelDetails['hotelName']}}">
               <div class="row">
                 <div class="col-md-4"> <a href="#">
                   <img class="img-fluid rounded align-top lazy-image" style="height:187px;width: 250px;" data-src="{{$hotelDetails['image']}}" alt="{{$hotelDetails['hotelName']}}" src="{{ asset('frontEnd/images/no-hotel-image.png') }}">
@@ -333,7 +376,7 @@
                       <div class="text-dark text-4 fw-500 mb-0 mb-sm-2 me-2 me-sm-0 order-0">{{$hotelDetails['markups']['totalPrice']['currency_code']}} </div>
                       <div class="text-dark text-4 fw-500 mb-0 mb-sm-2 me-2 me-sm-0 order-0">{{$hotelDetails['markups']['totalPrice']['value']}}</div>
                       <div class="text-black-50 mb-0 mb-sm-2 order-3 d-none d-sm-block">{{$result['searchRequest']['no_of_rooms']}} {{__('lang.room')}} / {{$result['searchRequest']['no_of_nights']}} {{__('lang.night')}}</div>
-                      <a  target="_blank" rel="noopener noreferrer" href="{{route('GethotelDetails',['hotelCode'=>encrypt($hotelDetails['hotelCode']) , 'searchId' =>encrypt($result['searchId'])])}}" class="btn btn-sm btn-primary order-4 ms-auto gButton"><span class="gButtonloader"></span>{{__('lang.view_rooms')}}</a> </div>
+                      <a target="_blank" rel="noopener noreferrer" href="{{route('GethotelDetails',['hotelCode'=>encrypt($hotelDetails['hotelCode']) , 'searchId' =>encrypt($result['searchId']) ,'type' => encrypt($hotelDetails['type'])])}}" class="btn btn-sm btn-primary order-4 ms-auto gButton"><span class="gButtonloader"></span>{{__('lang.view_rooms')}}</a> </div>
                   </div>
                   <div class="row">
                      <div class="col-6">
@@ -356,6 +399,18 @@
                         @endif
                      </p>
                     </div>
+
+                    @if(auth()->check() && auth()->user()->agency->is_special == '1')
+                    <div class="col-6">
+                      <p class="reviews mb-2 mt-2"> 
+                        <span class="fw-600">Supplier :</span>
+                        <span class="px-2 py-1 rounded fw-600 text-light"  style="background: #0071cc">  {{ucfirst($hotelDetails['type'])}}</span> 
+                     </p>
+                      
+                       
+                        </div>
+
+                    @endif
                   </div>
                 </div>
               </div>
@@ -394,7 +449,8 @@
             //delay: 50,
             source: function( request, response ) {
                 $.ajax({
-                url: "{{route('hotelautoSuggest')}}",
+                //url: "{{route('hotelautoSuggest')}}",
+                 url: "{{route('hotelCityAutoSuggest')}}",
                 dataType: "json",
                 data: {
                     q: request.term
@@ -408,7 +464,7 @@
                             code: item.code,
                             city_name: item.name,
                             country_name:item.country_name,
-                       
+                            id: item.id
                         };
                     }));
                 },
@@ -422,10 +478,29 @@
             open    : function(){$(this).removeClass('preloader');}
         }).data( "ui-autocomplete" )._renderItem = function( ul, item ) 
         {  
-          return $( "<li dir='ltr' role='presentation' tabindex='0' class='sc-iUKqMP hlZHGM'></li>" )  
-              .data( "item.autocomplete", item )  
-              .append( '<div class="sc-iAKWXU iyyKqe"><div class="sc-efQSVx iQoDho"><div class="sc-jObWnj dmPlWU"><p class="sc-dPiLbb kUaZDb"><span class="autoCompleteTitle ">'+item.label+'&nbsp;</span></p><p class="sc-bBHHxi cTvqKV">'+item.country_name+'</p></div></div></div>' )  
-              .appendTo( ul );  
+          // return $( "<li dir='ltr' role='presentation' tabindex='0' class='sc-iUKqMP hlZHGM'></li>" )  
+          //     .data( "item.autocomplete", item )  
+          //     .append( '<div class="sc-iAKWXU iyyKqe"><div class="sc-efQSVx iQoDho"><div class="sc-jObWnj dmPlWU"><p class="sc-dPiLbb kUaZDb"><span class="autoCompleteTitle ">'+item.label+'&nbsp;</span></p><p class="sc-bBHHxi cTvqKV">'+item.country_name+'</p></div></div></div>' )  
+          //     .appendTo( ul );  
+
+              return $("<li dir='ltr' role='presentation' tabindex='0' class='sc-iUKqMP hlZHGM'></li>")
+                      .data("item.autocomplete", item)
+                      .append(
+                          '<div class="sc-iAKWXU iyyKqe">' +
+                              '<div class="sc-efQSVx iQoDho">' +
+                                  '<div class="sc-jObWnj dmPlWU">' +
+                                      '<p class="sc-dPiLbb kUaZDb">' +
+                                          '<span class="autoCompleteTitle">' + item.label + '&nbsp;</span>' +
+                                      '</p>' +
+                                      '<p class="sc-bBHHxi cTvqKV">' + item.country_name + '</p>' +
+                                  '</div>' +
+                              '</div>' +
+                          '</div>'
+                      )
+                      .appendTo(ul);
+
+
+
         }; 
         
          // Depart Date
@@ -529,6 +604,8 @@
 
     var refunds = new Array();
     var ratings = new Array();
+    var bedTypes = new Array();
+    var mealTypes = new Array();
     var filterMinPrice = minprice;
     var filterMaxPrice = maxprice;
 
@@ -538,8 +615,15 @@
     $('.ratingscheck input[type=checkbox]').each(function () {
       ratings.push(this.value);
     });
+    $('.bedTypecheck input[type=checkbox]').each(function () {
+      bedTypes.push(this.value);
+    });
 
-    $('#toggleRefund :checkbox,#togglestarCategory :checkbox,#SearchHotel').change(function () {
+    $('.mealTypecheck input[type=checkbox]').each(function () {
+      mealTypes.push(this.value);
+    });
+
+    $('#toggleRefund :checkbox,#togglestarCategory :checkbox,#togglebedType :checkbox,#togglemealType :checkbox,#SearchHotel').change(function () {
 
         var selectedRefunds = new Array();
         $('.refundscheck input[type=checkbox]:checked').each(function () {
@@ -551,11 +635,20 @@
           selectedRating.push(this.value);
         });
 
+        var selectedBedType = new Array();
+        $('.bedTypecheck input[type=checkbox]:checked').each(function () {
+          selectedBedType.push(this.value);
+        });
+        var selectedMealType = new Array();
+        $('.mealTypecheck input[type=checkbox]:checked').each(function () {
+          selectedMealType.push(this.value);
+        });
+
       var minvalue = parseInt($( "#minvalue" ).val());
       var maxvalue = parseInt($( "#maxvalue" ).val());
       var searchhotel = $("#SearchHotel" ).val();
 
-      filter(selectedRefunds,selectedRating,minvalue,maxvalue,searchhotel);
+      filter(selectedRefunds,selectedRating,selectedBedType,selectedMealType,minvalue,maxvalue,searchhotel);
     });
 
     $("#SearchHotel").on("input", function(e) {
@@ -569,17 +662,28 @@
           selectedRating.push(this.value);
         });
 
+        var selectedBedType = new Array();
+        $('.bedTypecheck input[type=checkbox]:checked').each(function () {
+          selectedBedType.push(this.value);
+        });
+        var selectedMealType = new Array();
+        $('.mealTypecheck input[type=checkbox]:checked').each(function () {
+          selectedMealType.push(this.value);
+        });
+
       var minvalue = parseInt($( "#minvalue" ).val());
       var maxvalue = parseInt($( "#maxvalue" ).val());
       var searchhotel = $("#SearchHotel" ).val();
 
-      filter(selectedRefunds,selectedRating,minvalue,maxvalue,searchhotel);
+      filter(selectedRefunds,selectedRating,selectedBedType,selectedMealType,minvalue,maxvalue,searchhotel);
     });
 
-    function filter(selectedRefunds,selectedRating,filterMinPrice,filterMaxPrice,filterSearchHotel)
+    function filter(selectedRefunds,selectedRating,selectedBedType,selectedMealType,filterMinPrice,filterMaxPrice,filterSearchHotel)
     {
       console.log("selectedRefunds" , selectedRefunds);
       console.log("selectedRating" , selectedRating);
+      console.log("selectedBedType" , selectedBedType);
+      console.log("selectedMealType" , selectedMealType);
       console.log("filterMinPrice" , filterMinPrice);
       console.log("filterMaxPrice" , filterMaxPrice);
       console.log("filterSearchHotel" , filterSearchHotel);
@@ -593,7 +697,7 @@
         var pattern = new RegExp(filterSearchHotel, "gi");
         console.log("paterren" , pattern);
       console.log("jdhjh" , $(this).data('hotelname').match(pattern));
-      if(($(this).data('pricing') > filterMinPrice) && ($(this).data('pricing') < filterMaxPrice) && (selectedRefunds.length==0 || ($.inArray($(this).data('refund'), selectedRefunds) > -1)) && (selectedRating.length==0 || ($.inArray($(this).data('rating'), selectedRating) > -1)) && (filterSearchHotel.length == 0 || ($(this).data('hotelname').match(pattern))))
+      if(($(this).data('pricing') > filterMinPrice) && ($(this).data('pricing') < filterMaxPrice) && (selectedRefunds.length==0 || ($.inArray($(this).data('refund'), selectedRefunds) > -1)) && (selectedRating.length==0 || ($.inArray($(this).data('rating'), selectedRating) > -1)) && (selectedBedType.length==0 || ($.inArray($(this).data('bedtype'), selectedBedType) > -1)) && (selectedMealType.length==0 || ($.inArray($(this).data('mealtype'), selectedMealType) > -1)) && (filterSearchHotel.length == 0 || ($(this).data('hotelname').match(pattern))))
       {
         $(this).css('display','block');
       }

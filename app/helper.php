@@ -1547,23 +1547,39 @@ function is_assoc(array $array): bool
 {
     return array_keys($array) !== range(0, count($array) - 1);
 }
- function formatCancellationRules($cancellationRules): array
+ function formatCancellationRules($cancellationRules , $type ='webbeds'): array
     {
-        if (!$cancellationRules || !isset($cancellationRules['rule'])) {
-            return [];
+        //dd($cancellationRules);
+        if($type == 'webbeds'){
+            if (!$cancellationRules || !isset($cancellationRules['rule'])) {
+                return [];
+            }
+            $rules = is_assoc($cancellationRules['rule']) ? [$cancellationRules['rule']] : $cancellationRules['rule'];
+            $fromDate = 'fromDate';
+            $toDate = 'toDate';
+            $charge = 'charge';
+            $currency = "KWD";
+        }elseif($type == 'dida'){
+            if (empty($cancellationRules)) {
+                return [];
+            }
+            $rules = $cancellationRules;
+            $fromDate = 'FromDate';
+            $toDate = 'ToDate';
+            $charge = 'Amount';
+            $currency = "USD";
         }
 
-        $rules = is_assoc($cancellationRules['rule']) ? [$cancellationRules['rule']] : $cancellationRules['rule'];
         $output = [];
 
         foreach ($rules as $rule) {
             $output[] = [
-                'fromDate' => $rule['fromDate'] ?? null,
-                'toDate' => $rule['toDate'] ?? null,
+                'fromDate' => isset($rule[$fromDate]) ? 'UTC '. Carbon::parse($rule[$fromDate])->utc()->format('Y-m-d') : null,
+                'toDate' => isset($rule[$toDate]) ? 'UTC '. Carbon::parse($rule[$toDate])->utc()->format('Y-m-d') :  null,
                 'noShow' => isset($rule['noShowPolicy']),
                 'amendRestricted' => isset($rule['amendRestricted']),
                 'cancelRestricted' => isset($rule['cancelRestricted']),
-                'charge' => $rule['charge'] ?? ($rule['charge'] ?? null),
+                'charge' => isset($rule[$charge]) ?  $currency ." ". $rule[$charge] : null,
             ];
         }
 
@@ -1576,6 +1592,123 @@ if (!function_exists('clean_string')) {
         return preg_replace($pattern, '', trim($string));
     }
 }
+
+if (!function_exists('didaType')) {
+    function didaType($type, $value) {
+        if($type == 'MealType'){
+            if($value == 1){
+                return 'Room Only';
+            }else if($value == 2){
+                return 'Bed and Breakfast';
+            }else if($value == 3){
+                return 'Half Board';
+            }else if($value == 4){
+                return 'Full Board';
+            }else if($value == 5){
+                return 'All Inclusive';
+            }else if($value == 6){
+                return 'Dinner';
+            }else if($value == 7){
+                return 'Breakfast and Dinner';
+            }else if($value == 8){
+                return 'Breakfast And Lunch';
+            }else if($value == 9){
+                return 'Lunch';
+            }else if($value == 10){
+                return 'Lunch And Dinner';
+            }else if($value == 11){
+                return 'Lunch or Dinner';
+            }else if($value == 12){
+                return 'Breakfast + Lunch / Dinner';
+            }else if($value == 13){
+                return 'Suhur';
+            }else if($value == 14){
+                return 'Iftar';
+            }else if($value == 15){
+                return 'Suhur and Iftar';
+            }else if($value == 16){
+                return 'Suhur or Iftar';
+            }
+           
+        }
+        elseif($type == 'BedType'){
+            // if($value == 0){
+            //     return 'Unknown';
+            // }else if($value == 1){
+            //     return '1 Single';
+            // }else if($value == 2){
+            //     return '1 Double';
+            // }else if($value == 3){
+            //     return '1 Twin';
+            // }else if($value == 4){
+            //     return '3 Single';
+            // }else if($value == 5){
+            //     return '1 Double 1 Single';
+            // }else if($value == 6){
+            //     return '2 Double';
+            // }
+            $bedTypes = include storage_path('app/dida/bedTypes.php');
+            return $bedTypes[$value] ?? 'Unknown';
+        }
+        
+
+        
+    }
+}
+
+if (!function_exists('convertCancellationRulesForDida')) {
+    function convertCancellationRulesForDida($policies,$currency,$noOfRooms = 1, $roomName = "Room 1")
+    {
+        if (!$policies || !is_array($policies)) {
+            return [];
+        }
+
+        $rulesText = [];
+
+        foreach ($policies as $policy) {
+
+            $from = $policy['FromDate'] ?? null;
+            $to   = $policy['ToDate']   ?? null;
+            $charge = $policy['Amount'] ?? 0;
+
+            $chargeFormatted = number_format($charge, 2) / $noOfRooms;
+
+            // Format dates
+            $fromText = !empty($from)  ? Carbon::parse($from)->utc()->format('D, d M Y H:i:s') : null;;
+            $toText   = !empty($to)   ? Carbon::parse($to)->utc()->format('D, d M Y H:i:s')  : null;
+
+            // Build rule text with ToDate support
+            if ($from && $to) {
+
+                // Case: between From → To
+                $rulesText[] =
+                    "Between UTC {$fromText} and UTC {$toText} Cancellation Charge: {$currency} {$chargeFormatted}";
+
+            } elseif ($from && !$to) {
+
+                // Case: after From
+                $rulesText[] =
+                    "After UTC {$fromText} Cancellation Charge: {$currency} {$chargeFormatted}";
+
+            } elseif (!$from && $to) {
+
+                // Case: before To
+                $rulesText[] =
+                    "Before UTC {$toText} Cancellation Charge: {$currency} {$chargeFormatted}";
+            }
+        }
+
+     
+
+        return [
+            
+                "room"  => $roomName,
+                "rules" => $rulesText
+            
+        ];
+    }
+}
+
 
 
 
