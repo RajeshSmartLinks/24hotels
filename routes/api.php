@@ -86,15 +86,31 @@ Route::prefix('v1')->group(function () {
 
     Route::get('/preBooking', [App\Http\Controllers\Api\Land\HomeController::class, 'PreBooking']);
 
+
     Route::post('/savePassanger', [App\Http\Controllers\Api\Land\HomeController::class, 'SavePassanger']);
 
-    Route::get('/hotelBookingPreview', [App\Http\Controllers\Api\Land\HomeController::class, 'HotelBookingPreview']);
+    //Route::get('/hotelBookingPreview', [App\Http\Controllers\Api\Land\HomeController::class, 'HotelBookingPreview']);
+
+   
+    
 
     Route::post('/hotel/paymentGateWay', [App\Http\Controllers\Api\Land\HomeController::class, 'paymentGateWay']);
 
     Route::get('/hotel/bookHotelRooms/{hotelbookingId}', [App\Http\Controllers\Api\Land\HomeController::class, 'bookHotelRooms'])->name('app.hotelRoombooking');
 
-    
+    Route::get('hotel/cityList', [App\Http\Controllers\Api\Hotel\HomeController::class, 'cityList']);
+    Route::get('hotel/cityInfo', [App\Http\Controllers\Api\Hotel\HomeController::class, 'cityInfo']);
+     Route::group([
+        'middleware' => ['auth:api']], function() {
+        
+            Route::get('hotel/search', [App\Http\Controllers\Api\Hotel\HomeController::class, 'SearchHotels']);
+            Route::get('hotel/details', [App\Http\Controllers\Api\Hotel\HomeController::class, 'hotelDeatils']);
+            Route::get('hotel/preBooking', [App\Http\Controllers\Api\Hotel\HomeController::class, 'PreBooking']);
+            Route::post('hotel/savePassanger', [App\Http\Controllers\Api\Hotel\HomeController::class, 'savePassanger']);
+            Route::post('hotel/bookRoom', [App\Http\Controllers\Api\Hotel\HomeController::class, 'hotelPaymentGateWay']);
+            Route::get('hotel/bookingPreview', [App\Http\Controllers\Api\Hotel\HomeController::class, 'bookingPreview']);
+            //Route::get('agentbookHotelRooms/{hotelbookingId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'bookHotelRooms'])->name('agentbookHotelRooms');
+    });
    
 });
 

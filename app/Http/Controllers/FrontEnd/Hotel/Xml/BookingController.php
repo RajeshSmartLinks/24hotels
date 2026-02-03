@@ -15,12 +15,20 @@ class BookingController extends Controller
     //https://www.dotwconnect.com/interface/en/documentation
     public function preBooking($data){
 
-        //hotel details 
-        $bookingCode = $data['booking_code']; 
-        $data['booking_code'] = json_decode($data['booking_code'] , true);
-        $allocationDetails = json_decode($data['booking_code']['allocationDetails'] , true);
+
+ 
+        // $bookingCode = $data['booking_code']; 
+        // if (strpos($data['booking_code'] , '\\"') !== false) {
+        //     $data['booking_code'] = stripslashes($data['booking_code']);
+        // }
+        // $data['booking_code'] = json_decode($data['booking_code'] , true);
+        // $data['booking_code'] = decodeJsonWithDetails($data['booking_code']);
+        // $allocationDetails = json_decode($data['booking_code']['allocationDetails'] , true);
+
        
-        //dd($allocationDetails);
+        $data['booking_code'] = decodeJsonWithDetails($data['booking_code']);
+        $allocationDetails = $data['booking_code']['allocationDetails'];
+
         $code = $data['booking_code']['code'];
         $selectedRateBasis = $data['booking_code']['selectedRateBasis'];
         $hotelCode = $data['hotel_code'];
@@ -138,7 +146,9 @@ class BookingController extends Controller
         $residency = $searchRequest->residency;
 
         $roomRequest = json_decode($searchRequest->rooms_request,true);
+        //
         $bookingCode = json_decode($bookingDetails->booking_code,true);
+        //dd($bookingDetails->booking_code);
 
 
         $xml = <<<EOM
@@ -178,6 +188,7 @@ class BookingController extends Controller
                         $adults++;
                     }
                 }
+                // dd($bookingCode);
                 $allocationDetailsValue = $bookingCode[$roomIndex]['allocationDetails'];
                 $rateBasisIds = $bookingCode[$roomIndex]['rateBasisId'];
                 $roomTypeCodes = $bookingCode[$roomIndex]['roomTypeCode'];
@@ -609,7 +620,13 @@ class BookingController extends Controller
         $bookingId = $data['booking_id'];
         $hotelBookingDetails = HotelBooking::with('Customercountry')->find($bookingId);
         $travelersInfo = HotelBookingTravelsInfo::where("hotel_booking_id", $bookingId)->get();
-        $dida_reference_no = json_decode($hotelBookingDetails->booking_code , true)['dida_ref_id'];
+
+        // $dida_reference_no = json_decode($hotelBookingDetails->booking_code , true)['dida_ref_id'];
+        
+        $BookingCode = json_decode($hotelBookingDetails->booking_code, true);
+        $BookingCode = is_string($BookingCode) ? json_decode($BookingCode, true) : $BookingCode;
+        $dida_reference_no = $BookingCode['dida_ref_id'];
+
         $mainGuest = $travelersInfo->first();
 
         $json = [

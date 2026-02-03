@@ -98,6 +98,9 @@ class Controller extends BaseController
     public $didaPassword ;
     public $didaCompanyCode;
     public $didaAuthToken;
+    public $didaStatic;
+
+
 
 
     public function __construct()
@@ -137,13 +140,14 @@ class Controller extends BaseController
 
         // DIDA
         $this->didaUrl               = env('DIDA_URL');
-        $this->didaStatic               = env('DIDA_STATIC');
+        $this->didaStatic            = env('DIDA_STATIC');
         $this->didaUsername          = env('DIDA_USERNAME');
         $this->didaPassword          = env('DIDA_PASSWORD');
         $this->didaCompanyCode       = env('DIDA_COMPANYCODE');
         $didaCredentials = $this->didaUsername . ':' . $this->didaPassword;
         $encoded = base64_encode($didaCredentials);
         $this->didaAuthToken         = $encoded;
+      
         
     }
 
@@ -1111,7 +1115,7 @@ class Controller extends BaseController
 
     public function DadiApi(array $request)
     {
-        //dd(json_encode($request['payload']));
+
         set_time_limit(400);
 
         try {

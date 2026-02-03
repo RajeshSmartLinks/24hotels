@@ -40,11 +40,12 @@
                     <td width="100%" height="30">&nbsp;</td>
                   </tr>
                   <tr>
-                    <?php $img = isset($result['agency']->logo) && !empty($result['agency']->logo) ? 'uploads/agency/'.$result['agency']->logo : 'frontEnd/images/logomh.png';?>
+                    <?php //$img = isset($result['agency']->logo) && !empty($result['agency']->logo) ? 'uploads/agency/'.$result['agency']->logo : 'frontEnd/images/logomh.png';?>
                       
                     <td valign="top" align="left" style="padding: 9px 0px;"><a href="#">
                         <img 
-                          src="{{ asset($img) }}" 
+                          {{-- src="{{ asset($img) }}"  --}}
+                          src = "{{$result['agencyImgBase64']}}"
                           width="150" 
                           height="100"
                           style="max-width:150px; max-height:100px; display:block;"

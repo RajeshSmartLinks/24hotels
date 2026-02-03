@@ -40,7 +40,12 @@ table td[class="tablepadding"] {
                   <td width="100%" height="30">&nbsp;</td>
                 </tr>
                 <tr>
-                  <td valign="top" align="center"><a href="{{url('/')}}"><img alt="" src="{{asset($result['agencyImg'])}}" style="padding-bottom: 0; display: inline !important;width: 200px;height: 100px;"></a></td>
+                  <td valign="top" align="center">
+                    {{-- <a href="{{url('/')}}">
+                    <img alt="" src="{{asset($result['agencyImg'])}}" style="padding-bottom: 0; display: inline !important;width: 200px;height: 100px;"></a> --}}
+                    <a href="{{url('/')}}">
+                    <img alt="" src="{{ $result['agencyImgBase64'] }}"" style="padding-bottom: 0; display: inline !important;width: 200px;height: 100px;"></a>
+                  </td>
                 </tr>
                 <tr>
                   @if(isset($result['showDownload']) && ($result['showDownload'] == 1))
@@ -65,7 +70,10 @@ table td[class="tablepadding"] {
                   <td style="border:4px solid #eee; border-radius:4px; padding:25px 0px;"><table width="100%" cellspacing="0" cellpadding="0" border="0" align="center">
                       <tbody>
                         <tr>
-                          <td width="50" style="font-size:14px; padding:0px 25px;"><img alt="" src="{{asset("frontEnd/images/hotel-booking-successful.png")}}"></td>
+                          <td width="50" style="font-size:14px; padding:0px 25px;">
+                            {{-- <img alt="" src="{{asset("frontEnd/images/hotel-booking-successful.png")}}"> --}}
+                            <img alt="" src="{{$result['successImgBase64']}}">
+                          </td>
                           <td style="font-size:16px; font-weight:600; color:#777; line-height:26px; padding-right:20px;"><span style="font-size:13px;">Hi {{$result['user']}},</span><br>Thanks! Your reservation is 
                             <span style="color:#28a745;">{{$result['hotel_booking_Details']->reservation_status}}</span>.</td>
                         </tr>

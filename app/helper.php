@@ -1709,6 +1709,76 @@ if (!function_exists('convertCancellationRulesForDida')) {
     }
 }
 
+if (!function_exists('safeJsonDecode')) {
+    function safeJsonDecode($json)
+    {
+        if (!is_string($json)) {
+            return null;
+        }
+
+        // Remove wrapping quotes if any
+        $json = trim($json);
+
+        // Apply stripslashes ONLY if escaped JSON detected
+        if (strpos($json, '\\"') !== false) {
+            $json = stripslashes($json);
+        }
+        return $json;
+    }
+
+}
+
+if (!function_exists('decodeJsonWithDetails')) {
+    function decodeJsonWithDetails($jsonString)
+    {
+        $data = decodeJson($jsonString);
+        
+        if (!$data || !isset($data['allocationDetails'])) {
+            return $data;
+        }
+        
+        // Decode allocationDetails if it's a string
+        if (is_string($data['allocationDetails'])) {
+            $allocationDetails = json_decode($data['allocationDetails'], true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $allocationDetails = json_decode(stripslashes($data['allocationDetails']), true);
+            }
+            
+            $data['allocationDetails'] = $allocationDetails ?? [];
+        }
+        
+        return $data;
+    }
+}
+
+if (!function_exists('decodeJson')) {
+    function decodeJson($jsonString)
+    {
+        // First attempt: direct JSON decode
+        $decoded = json_decode($jsonString, true);
+        
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+        
+        // Second attempt: handle double-escaped JSON
+        $unescaped = stripslashes($jsonString);
+        $decoded = json_decode($unescaped, true);
+        
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            return $decoded;
+        }
+        
+        return null;
+    }
+}
+
+
+
+
+
+
 
 
 

@@ -42,3 +42,13 @@ DROP COLUMN `restel_country_code`,
 DROP COLUMN `restel_provincia_code`;
 
 need to copy webbeds_city ,webbed_countries, dida_hotel_list,dida_hotels
+
+
+
+-----------------------------------------------------------------------
+
+ALTER TABLE `24hotels`.`hotel_bookings` 
+MODIFY COLUMN `user_type` enum('app','web','web_guest','app_guest','api') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL AFTER `user_id`;
+
+ALTER TABLE `24hotels`.`hotel_bookings` 
+ADD COLUMN `hotel_address` varchar(1000) NULL AFTER `penality_currency`;

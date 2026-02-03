@@ -425,6 +425,7 @@ class SearchController extends Controller
         }else{
             $hotelIds = DidaHotel::where('destination_code', $destinationCityCode)->pluck('hotel_id')->toArray();
         }
+        // dd($hotelIds);
 
         
         $rooms = json_decode($serachInfo->rooms_request,true);

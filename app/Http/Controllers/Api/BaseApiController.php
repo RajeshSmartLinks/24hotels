@@ -25,6 +25,7 @@ class BaseApiController extends Controller
         }
         $setting = \config('settings');
         view()->share(['_setting' => $setting]);*/
+        parent::__construct();
 
     }
 
