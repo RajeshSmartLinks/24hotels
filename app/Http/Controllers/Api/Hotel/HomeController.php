@@ -68,6 +68,8 @@ class HomeController extends BaseApiController
         $noOfRooms = $request->input('noOfRooms');
         $cityCode = $result['searchRequest']['city_code'];
         $result['hotelList'] = [];
+
+        $result['searchRequest']['city_code'] = null;
         
        
         //webbeds
@@ -232,7 +234,7 @@ class HomeController extends BaseApiController
             }
         }
      
-        $result['searchRequest']['dida_destination_code'] = '3433';
+        //$result['searchRequest']['dida_destination_code'] = '3433';
         // Dida
         if(!empty($result['searchRequest']['dida_destination_code'])){
             

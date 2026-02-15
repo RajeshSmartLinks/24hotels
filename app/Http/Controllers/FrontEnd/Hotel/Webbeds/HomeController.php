@@ -43,6 +43,8 @@ class HomeController extends Controller
         $search = $request->input('q');
         //$hotel = WebbedsCity::select('code','name',DB::raw('CONCAT (name," - ",country_name) as display_name ,country_name'));
         $hotel = WebbedsCity::select('id','dida_code','long_name',DB::raw('CONCAT (long_name," - ",country_name) as display_name ,country_name'));
+        // dida code is not empty
+        $hotel->where('dida_code', '!=', 0);
         $hotel->having('display_name', 'LIKE', '%'.$search.'%');
         $hotel = $hotel->get()->toArray();
         return $hotel;
@@ -88,6 +90,8 @@ class HomeController extends Controller
         $noOfRooms = $request->input('noOfRooms');
         $cityCode = $result['searchRequest']['city_code'];
         $result['hotelList'] = [];
+
+        $result['searchRequest']['city_code'] = null;
         
        
         //webbeds
