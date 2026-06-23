@@ -356,6 +356,11 @@
         'phone_number' => 'Phone Number',
         'why_book_hotel_with_masilaholidays' => 'لماذا تحجز الفنادق من المسيلة هوليدايز',
         'best_b2b_rates_of_agencies' => 'افضل اسعار فنادق لوكلاء السياحة والسفر',
-        'agent_information' => 'Agent Information'
+        'agent_information' => 'Agent Information',
+        'room_type' => 'نوع الغرفة',
+        'board_basis' => 'نوع الوجبة',
+        'all_room_types' => 'جميع أنواع الغرف',
+        'all_board_basis' => 'جميع أنواع الوجبات',
+        'reset' => 'إعادة تعيين',
    ]; 
 ?>

@@ -2,39 +2,41 @@
 
 namespace App\Http\Controllers\FrontEnd\Hotel\Webbeds;
 
-use PDF;
-use stdClass;
-use DOMDocument;
-use App\Models\User;
+use App\Http\Controllers\Controller;
+use App\Http\Controllers\FrontEnd\Hotel\Xml\BookingController;
+use App\Http\Controllers\FrontEnd\Hotel\Xml\SearchController;
+use App\Http\Controllers\MyFatoorahController;
 use App\Models\Agency;
-use App\Models\Coupon;
 use App\Models\Country;
-use App\Models\TboHotel;
+use App\Models\Coupon;
 use App\Models\DidaHotel;
 use App\Models\GuestUser;
-use App\Models\HotelSearch;
-use App\Models\SeoSettings;
-use App\Models\WebbedsCity;
-use Illuminate\Support\Str;
 use App\Models\HotelBooking;
-use App\Models\WalletLogger;
-use App\Models\WebbedsHotel;
-use Illuminate\Http\Request;
-use App\Models\WebbedsCountry;
-use Illuminate\Support\Carbon;
-use App\Models\HotelXmlRequest;
+use App\Models\HotelBookingTravelsInfo;
+use App\Models\HotelCity;
 use App\Models\HotelReservation;
+use App\Models\HotelRoomBookingInfo;
+use App\Models\HotelSearch;
+use App\Models\HotelXmlRequest;
+use App\Models\PendingHotelRoomBooking;
+use App\Models\SeoSettings;
+use App\Models\TboHotel;
+use App\Models\User;
+use App\Models\WalletLogger;
+use App\Models\WebbedsCity;
+use App\Models\WebbedsCountry;
+use App\Models\WebbedsHotel;
 use App\Models\WebbedsHotelSearch;
+use DOMDocument;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\Controller;
-use App\Models\HotelRoomBookingInfo;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Models\HotelBookingTravelsInfo;
-use App\Http\Controllers\MyFatoorahController;
-use App\Http\Controllers\FrontEnd\Hotel\Xml\SearchController;
-use App\Http\Controllers\FrontEnd\Hotel\Xml\BookingController;
+use Illuminate\Support\Str;
+use PDF;
+use stdClass;
 
 class HomeController extends Controller
 {
@@ -42,16 +44,22 @@ class HomeController extends Controller
     public function AjaxHotelCityList(Request $request){
         $search = $request->input('q');
         //$hotel = WebbedsCity::select('code','name',DB::raw('CONCAT (name," - ",country_name) as display_name ,country_name'));
-        $hotel = WebbedsCity::select('id','dida_code','long_name',DB::raw('CONCAT (long_name," - ",country_name) as display_name ,country_name'));
+        //$hotel = WebbedsCity::select('id','dida_code','long_name',DB::raw('CONCAT (long_name," - ",country_name) as display_name ,country_name'));
+        $hotel = HotelCity::select('id','dida_code','long_name',DB::raw('CONCAT (name," - ",country_name) as display_name ,country_name'));
         // dida code is not empty
         $hotel->where('dida_code', '!=', 0);
-        $hotel->having('display_name', 'LIKE', '%'.$search.'%');
+        // $hotel->having('display_name', 'LIKE', '%'.$search.'%');
+        $hotel->where('name' ,'LIKE', '%'.$search.'%');
+        $hotel->orderBy('preference' ,'desc');
         $hotel = $hotel->get()->toArray();
         return $hotel;
+
+        
     }
 
     public function SearchHotels(Request $request){
         // dd($request->input());
+         set_time_limit(300); 
         $seoData = SeoSettings::where(['page_type' => 'static' , 'static_page_name' => 'hostelListing','status' => 'Active'])->first();
    
         $titles = [
@@ -95,164 +103,164 @@ class HomeController extends Controller
         
        
         //webbeds
-        if(!empty($result['searchRequest']['city_code'])){
-            $searchResponse = $SearchController->Search($request);
-            $searchResponse =  $searchResponse['hotelResponse'];
-            if(isset($searchResponse['hotels']['hotel']['@attributes'])){
-                $searchResponse['hotels']['hotel'] = [$searchResponse['hotels']['hotel']];
-            }
-            if($searchResponse['successful'] == "TRUE" && count($searchResponse['hotels']['hotel']) > 0)
-            {
-                $hotelsdata = $searchResponse['hotels']['hotel'];
-                $roomAvailablelHotelIds = array_map(function ($hotel) {
-                    return $hotel['@attributes']['hotelid'] ?? null;
-                }, $hotelsdata);
+        // if(!empty($result['searchRequest']['city_code'])){
+        //     $searchResponse = $SearchController->Search($request);
+        //     $searchResponse =  $searchResponse['hotelResponse'];
+        //     if(isset($searchResponse['hotels']['hotel']['@attributes'])){
+        //         $searchResponse['hotels']['hotel'] = [$searchResponse['hotels']['hotel']];
+        //     }
+        //     if($searchResponse['successful'] == "TRUE" && count($searchResponse['hotels']['hotel']) > 0)
+        //     {
+        //         $hotelsdata = $searchResponse['hotels']['hotel'];
+        //         $roomAvailablelHotelIds = array_map(function ($hotel) {
+        //             return $hotel['@attributes']['hotelid'] ?? null;
+        //         }, $hotelsdata);
 
-                // Optionally remove nulls (in case of missing hotelid)
-                $roomAvailablelHotelIds = array_filter($roomAvailablelHotelIds);
+        //         // Optionally remove nulls (in case of missing hotelid)
+        //         $roomAvailablelHotelIds = array_filter($roomAvailablelHotelIds);
                 
-                $avialableWebbedsHotel = WebbedsHotel::select('hotel_code')->whereIn('hotel_code' , $roomAvailablelHotelIds)->get();
-                $availableHotelIdList = array_column($avialableWebbedsHotel->toArray() , 'hotel_code');
-                $unavailableHotelIdList = array_diff($roomAvailablelHotelIds , $availableHotelIdList);
+        //         $avialableWebbedsHotel = WebbedsHotel::select('hotel_code')->whereIn('hotel_code' , $roomAvailablelHotelIds)->get();
+        //         $availableHotelIdList = array_column($avialableWebbedsHotel->toArray() , 'hotel_code');
+        //         $unavailableHotelIdList = array_diff($roomAvailablelHotelIds , $availableHotelIdList);
 
-                //fetching unavailable hotels from webbeds
-                $SearchController = new SearchController();
-                $SearchController->fetchUnavailableHotels(['hotelIds' => $unavailableHotelIdList , 'cityCode' => $cityCode]);
+        //         //fetching unavailable hotels from webbeds
+        //         $SearchController = new SearchController();
+        //         $SearchController->fetchUnavailableHotels(['hotelIds' => $unavailableHotelIdList , 'cityCode' => $cityCode]);
                
 
-                //after fetching 
-                $availableHotelDetailsList = DB::table('webbeds_hotels')->select('hotel_code' , 'hotel_name' , 'hotel_rating' , 'address' , 'thumbnail' , 'check_in' , 'check_out','exclusive','preferred','phone_number','pin_code')->whereIn('hotel_code' , $roomAvailablelHotelIds)->get();
-                //dd($roomAvailablelHotelIds ,$availableHotelDetailsList);
-                // dd($searchResponse);
+        //         //after fetching 
+        //         $availableHotelDetailsList = DB::table('webbeds_hotels')->select('hotel_code' , 'hotel_name' , 'hotel_rating' , 'address' , 'thumbnail' , 'check_in' , 'check_out','exclusive','preferred','phone_number','pin_code')->whereIn('hotel_code' , $roomAvailablelHotelIds)->get();
+        //         //dd($roomAvailablelHotelIds ,$availableHotelDetailsList);
+        //         // dd($searchResponse);
                 
                
-                foreach ($searchResponse['hotels']['hotel'] as $key => $value) {
-                    $hotelCode = $value['@attributes']['hotelid'];
-                    $hotelDetails = $availableHotelDetailsList->firstWhere('hotel_code', $hotelCode);
-                    if($hotelDetails){
+        //         foreach ($searchResponse['hotels']['hotel'] as $key => $value) {
+        //             $hotelCode = $value['@attributes']['hotelid'];
+        //             $hotelDetails = $availableHotelDetailsList->firstWhere('hotel_code', $hotelCode);
+        //             if($hotelDetails){
 
-                        $value['rooms']['room'] = nodeConvertion($value['rooms']['room']);
+        //                 $value['rooms']['room'] = nodeConvertion($value['rooms']['room']);
 
-                        foreach($value['rooms']['room'] as $rk => $room){
-                            $value['rooms']['room'][$rk]['roomType'] = nodeConvertion($value['rooms']['room'][$rk]['roomType']);
-                            foreach($value['rooms']['room'][$rk]['roomType'] as $rtk => $roomType){
-                                $value['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis'] = nodeConvertion($value['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis']);
-                            }
-                        }
+        //                 foreach($value['rooms']['room'] as $rk => $room){
+        //                     $value['rooms']['room'][$rk]['roomType'] = nodeConvertion($value['rooms']['room'][$rk]['roomType']);
+        //                     foreach($value['rooms']['room'][$rk]['roomType'] as $rtk => $roomType){
+        //                         $value['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis'] = nodeConvertion($value['rooms']['room'][$rk]['roomType'][$rtk]['rateBases']['rateBasis']);
+        //                     }
+        //                 }
 
-                        $roomInfo = [];
-                        foreach ($value['rooms']['room'] as $rk => $room) {
-                            foreach ($room['roomType'] as $rtk => $roomType) {
-                                foreach ($roomType['rateBases']['rateBasis'] as $rbk => $rateBasis) {
-                                    $roomTypeCode = $roomType['@attributes']['roomtypecode'];
-                                    $rateBasisId = $rateBasis['@attributes']['id'];
-                                    $key = $roomTypeCode . '_' . $rateBasisId;
-                                    // Prepare allocation detail
-                                    if (!isset($roomInfo[$key])) {
-                                        // First time adding this combination
-                                        $roomInfo[$key] = [
-                                            'name' => $roomType['name'],
-                                            'total' => $rateBasis['total'],
-                                            'roomCount' => 1
-                                        ];
-                                    } else {
-                                        // Already exists — add to total and append allocationDetails
-                                        $roomInfo[$key]['total'] += $rateBasis['total'];
-                                        $roomInfo[$key]['roomCount']++;
-                                    }
-                                }
-                            }
-                        }
-                        //dd($roomInfo,$noOfRooms);
-                        $roomInfo = array_values($roomInfo);
+        //                 $roomInfo = [];
+        //                 foreach ($value['rooms']['room'] as $rk => $room) {
+        //                     foreach ($room['roomType'] as $rtk => $roomType) {
+        //                         foreach ($roomType['rateBases']['rateBasis'] as $rbk => $rateBasis) {
+        //                             $roomTypeCode = $roomType['@attributes']['roomtypecode'];
+        //                             $rateBasisId = $rateBasis['@attributes']['id'];
+        //                             $key = $roomTypeCode . '_' . $rateBasisId;
+        //                             // Prepare allocation detail
+        //                             if (!isset($roomInfo[$key])) {
+        //                                 // First time adding this combination
+        //                                 $roomInfo[$key] = [
+        //                                     'name' => $roomType['name'],
+        //                                     'total' => $rateBasis['total'],
+        //                                     'roomCount' => 1
+        //                                 ];
+        //                             } else {
+        //                                 // Already exists — add to total and append allocationDetails
+        //                                 $roomInfo[$key]['total'] += $rateBasis['total'];
+        //                                 $roomInfo[$key]['roomCount']++;
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //                 //dd($roomInfo,$noOfRooms);
+        //                 $roomInfo = array_values($roomInfo);
                         
-                        foreach ($roomInfo as $key => $roomDetails) {
-                            if($roomDetails['roomCount'] != $noOfRooms){
-                                unset($roomInfo[$key]);
-                            }
-                        }
-                        $roomInfo = array_values($roomInfo);
+        //                 foreach ($roomInfo as $key => $roomDetails) {
+        //                     if($roomDetails['roomCount'] != $noOfRooms){
+        //                         unset($roomInfo[$key]);
+        //                     }
+        //                 }
+        //                 $roomInfo = array_values($roomInfo);
 
-                        if(!empty($roomInfo)){
-                            $markup = hotelMarkUpPrice(array('totalPrice' => $roomInfo[0]['total'] , 'currencyCode' => 'KWD' , 'totalTax' => $roomInfo[0]['totalTaxes'] ?? 0));
+        //                 if(!empty($roomInfo)){
+        //                     $markup = hotelMarkUpPrice(array('totalPrice' => $roomInfo[0]['total'] , 'currencyCode' => 'KWD' , 'totalTax' => $roomInfo[0]['totalTaxes'] ?? 0));
                             
-                            $result['hotelList'][] = [
-                                'hotelName' => $hotelDetails->hotel_name,
-                                'hotelRating' => $hotelDetails->hotel_rating,
-                                'address' => $hotelDetails->address,
-                                'image' => !empty($hotelDetails->thumbnail) ? $hotelDetails->thumbnail : null,
-                                'hotelCode' => $hotelDetails->hotel_code,
-                                'checkIn' => $hotelDetails->check_in,
-                                'checkOut' => $hotelDetails->check_out,
-                                //'bookingCode' => $value['Rooms'][0]['BookingCode'],
-                                'rooms' => $value['rooms']['room'][0]['roomType'][0]['name']??null,
-                                //'totalFare' => sprintf("%.3f", $value['Rooms'][0]['TotalFare']),
-                                'currenceCode' => '769',
-                                //'isRefundable' => $value['Rooms'][0]['IsRefundable'] ??null,
-                                'markups' => $markup,
-                                'exclusive' => $hotelDetails->exclusive,
-                                'preferred' => $hotelDetails->preferred,
-                                'phone_number' => $hotelDetails->phone_number,
-                                'pin_code' => $hotelDetails->pin_code,
-                                'type' => 'webbeds',
-                                'mealType' => null,
-                                'bedType' => null
-                                //'roomPromotion' => isset($value['Rooms'][0]['RoomPromotion']) ? $value['Rooms'][0]['RoomPromotion'] :[]
-                            ];
+        //                     $result['hotelList'][] = [
+        //                         'hotelName' => $hotelDetails->hotel_name,
+        //                         'hotelRating' => $hotelDetails->hotel_rating,
+        //                         'address' => $hotelDetails->address,
+        //                         'image' => !empty($hotelDetails->thumbnail) ? $hotelDetails->thumbnail : null,
+        //                         'hotelCode' => $hotelDetails->hotel_code,
+        //                         'checkIn' => $hotelDetails->check_in,
+        //                         'checkOut' => $hotelDetails->check_out,
+        //                         //'bookingCode' => $value['Rooms'][0]['BookingCode'],
+        //                         'rooms' => $value['rooms']['room'][0]['roomType'][0]['name']??null,
+        //                         //'totalFare' => sprintf("%.3f", $value['Rooms'][0]['TotalFare']),
+        //                         'currenceCode' => '769',
+        //                         //'isRefundable' => $value['Rooms'][0]['IsRefundable'] ??null,
+        //                         'markups' => $markup,
+        //                         'exclusive' => $hotelDetails->exclusive,
+        //                         'preferred' => $hotelDetails->preferred,
+        //                         'phone_number' => $hotelDetails->phone_number,
+        //                         'pin_code' => $hotelDetails->pin_code,
+        //                         'type' => 'webbeds',
+        //                         'mealType' => null,
+        //                         'bedType' => null
+        //                         //'roomPromotion' => isset($value['Rooms'][0]['RoomPromotion']) ? $value['Rooms'][0]['RoomPromotion'] :[]
+        //                     ];
                             
 
-                            switch ($hotelDetails->hotel_rating) {
-                                case '1':
-                                    $rating1++;
-                                    break;
-                                case '2':
-                                    $rating2++;
-                                    break;
-                                case '3':
-                                    $rating3++;
-                                    break;
-                                case '4':
-                                    $rating4++;
-                                    break;
-                                case '5':
-                                    $rating5++;
-                                    break; 
-                            }
+        //                     switch ($hotelDetails->hotel_rating) {
+        //                         case '1':
+        //                             $rating1++;
+        //                             break;
+        //                         case '2':
+        //                             $rating2++;
+        //                             break;
+        //                         case '3':
+        //                             $rating3++;
+        //                             break;
+        //                         case '4':
+        //                             $rating4++;
+        //                             break;
+        //                         case '5':
+        //                             $rating5++;
+        //                             break; 
+        //                     }
 
-                            if($markup)
-                            {
-                                $price = $markup['totalPrice']['value'];
-                                //minprice
-                                if($minPrice == 0)
-                                {
-                                    $minPrice = $price;
-                                }
-                                elseif($price < $minPrice)
-                                {
-                                    $minPrice = $price;
-                                }
-                                //maxprice
-                                if($maxPrice == 0)
-                                {
-                                    $maxPrice = $price;
-                                }
-                                elseif($price > $maxPrice)
-                                {
-                                    $maxPrice = $price;
-                                }
-                            }   
-                        }
-                    }
-                }
+        //                     if($markup)
+        //                     {
+        //                         $price = $markup['totalPrice']['value'];
+        //                         //minprice
+        //                         if($minPrice == 0)
+        //                         {
+        //                             $minPrice = $price;
+        //                         }
+        //                         elseif($price < $minPrice)
+        //                         {
+        //                             $minPrice = $price;
+        //                         }
+        //                         //maxprice
+        //                         if($maxPrice == 0)
+        //                         {
+        //                             $maxPrice = $price;
+        //                         }
+        //                         elseif($price > $maxPrice)
+        //                         {
+        //                             $maxPrice = $price;
+        //                         }
+        //                     }   
+        //                 }
+        //             }
+        //         }
               
-                usort($result['hotelList'], function($a, $b) {
-                    return $a['markups']['totalPrice']['value'] <=> $b['markups']['totalPrice']['value'];
-                });
-            }else{
+        //         usort($result['hotelList'], function($a, $b) {
+        //             return $a['markups']['totalPrice']['value'] <=> $b['markups']['totalPrice']['value'];
+        //         });
+        //     }else{
               
-                //no hotels found in webbeds
-            }
-        }
+        //         //no hotels found in webbeds
+        //     }
+        // }
      
         //Restel
         // if(!empty($result['searchRequest']['restel_city_code'])){
@@ -355,134 +363,168 @@ class HomeController extends Controller
         //     }
         // }
         // Dida
-        if(!empty($result['searchRequest']['dida_destination_code'])){
+        // if(!empty($result['searchRequest']['dida_destination_code'])){
+            
+        //     $didaHotels = $SearchController->didaSearch($request);
+        //     if(!empty($didaHotels['response'])){
+        //         $response = $didaHotels['response'] ?? [];
+
+        //         // Step 1: Extract all HotelIDs
+        //         $hotelIds = collect($response)->pluck('HotelID')->toArray();
+
+        //         // Step 2: Fetch ratings from your database
+        //         // (Assuming your model is DidaHotel and has columns: hotel_id and rating)
+        //         $hotelInfos = DidaHotel::whereIn('hotel_id', $hotelIds)->select('hotel_id', 'star_rating', 'address' ,'telephone', 'zip_code', 'name','images','thumbnail')->get()->keyBy('hotel_id')
+        //                         ->map(function ($hotel) {
+        //                             return [
+        //                                 'star_rating' => $hotel->star_rating,
+        //                                 'address' => $hotel->address,
+        //                                 'telephone' => $hotel->telephone,
+        //                                 'zip_code' => $hotel->zip_code,
+        //                                 'name' => $hotel->name,
+        //                                 'images' => $hotel->images,
+        //                                 'thumbnail' => $hotel->thumbnail
+        //                             ];
+        //                         })->toArray();
+        //         //dd($hotelInfos);
+        //         foreach($response as $hotel){
+        //             //dd($hotel);
+
+        //             $markup = hotelMarkUpPrice(array('totalPrice' => $result['searchRequest']['no_of_rooms']*$hotel['RatePlanList'][0]['TotalPrice'] , 'currencyCode' => 'USD' , 'totalTax' => 0));
+
+        //             $bedTypeName = didaType('BedType' , $hotel['RatePlanList'][0]['BedType']);
+                    
+        //             $bedTypeCode = Str::slug($bedTypeName);
+        //             if(!isset($bedType[$bedTypeCode]))
+        //             {
+        //                 $bedType[$bedTypeCode] = ['code' => $bedTypeCode,'name' => $bedTypeName ,'count' => 1];
+        //             }else{
+        //                 $bedType[$bedTypeCode]['count']++;
+        //             }
+
+        //             $mealTypeName = didaType('MealType' , $hotel['RatePlanList'][0]['PriceList'][0]['MealType']);
+        //             $mealTypeCode = Str::slug($mealTypeName);
+        //             if(!isset($mealType[$mealTypeCode]))
+        //             {
+        //                 $mealType[$mealTypeCode] = ['code' => $mealTypeCode,'name' => $mealTypeName ,'count' => 1];
+        //             }else{
+        //                 $mealType[$mealTypeCode]['count']++;
+        //             }
+
+        //             $thumbnail = asset('frontEnd/images/no-hotel-image.png');
+                    
+        //             if(!empty($hotelInfos[$hotel['HotelID']]['thumbnail']))
+        //             {
+        //                 $thumbnail = $hotelInfos[$hotel['HotelID']]['thumbnail'];
+        //             }elseif(!empty($hotelInfos[$hotel['HotelID']]['images'])){
+        //                 $thumbnail = explode("," , $hotelInfos[$hotel['HotelID']]['images'])[0] ?? asset('frontEnd/images/no-hotel-image.png');
+        //             }
+        //             //dd($thumbnail,$hotelInfos[$hotel['HotelID']]['images'],$hotelInfos);
+        //             $result['hotelList'][] = [
+        //                 'hotelName' => $hotelInfos[$hotel['HotelID']]['name'] ?? '',
+        //                 'hotelRating' => $hotelInfos[$hotel['HotelID']]['star_rating'] ?? 0,
+        //                 'address' => $hotelInfos[$hotel['HotelID']]['address'] ?? 0,
+        //                 //'image' => !empty($hotelDetails->thumbnail) ? $hotelDetails->thumbnail : null,
+        //                 'image' =>  $thumbnail,
+        //                 'hotelCode' => $hotel['HotelID'],
+        //                 'checkIn' => $result['searchRequest']['check_in'] ,
+        //                 'checkOut' => $result['searchRequest']['check_out'],
+        //                 'rooms' => $hotel['RatePlanList'][0]['RoomName']??null,
+        //                 //'totalFare' => sprintf("%.3f", $value['Rooms'][0]['TotalFare']),
+        //                 'currenceCode' => '769',
+        //                 //'isRefundable' => $value['Rooms'][0]['IsRefundable'] ??null,
+        //                 'markups' => $markup,
+        //                 'exclusive' => null,
+        //                 'preferred' => null,
+        //                 'phone_number' => $hotelInfos[$hotel['HotelID']]['telephone'] ?? 0,
+        //                 'pin_code' => $hotelInfos[$hotel['HotelID']]['zip_code'] ?? 0,
+        //                 'type' => 'dida',
+        //                 'mealType' => $mealTypeCode,
+        //                 'bedType' => $bedTypeCode
+        //             ];
+        //             switch ($hotelInfos[$hotel['HotelID']]['star_rating']) {
+        //                 case '1':
+        //                     $rating1++;
+        //                     break;
+        //                 case '2':
+        //                     $rating2++;
+        //                     break;
+        //                 case '3':
+        //                     $rating3++;
+        //                     break;
+        //                 case '4':
+        //                     $rating4++;
+        //                     break;
+        //                 case '5':
+        //                     $rating5++;
+        //                     break; 
+        //             }
+
+        //             if($markup)
+        //             {
+        //                 $price = $markup['totalPrice']['value'];
+        //                 //minprice
+        //                 if($minPrice == 0)
+        //                 {
+        //                     $minPrice = $price;
+        //                 }
+        //                 elseif($price < $minPrice)
+        //                 {
+        //                     $minPrice = $price;
+        //                 }
+        //                 //maxprice
+        //                 if($maxPrice == 0)
+        //                 {
+        //                     $maxPrice = $price;
+        //                 }
+        //                 elseif($price > $maxPrice)
+        //                 {
+        //                     $maxPrice = $price;
+        //                 }
+        //             } 
+        //         }   
+        //          usort($result['hotelList'], function($a, $b) {
+        //             return $a['markups']['totalPrice']['value'] <=> $b['markups']['totalPrice']['value'];
+        //         }); 
+        //     } 
+        // }
+        if (!empty($result['searchRequest']['dida_destination_code'])) {
             
             $didaHotels = $SearchController->didaSearch($request);
-            if(!empty($didaHotels['response'])){
-                $response = $didaHotels['response'] ?? [];
 
-                // Step 1: Extract all HotelIDs
-                $hotelIds = collect($response)->pluck('HotelID')->toArray();
+            if (!empty($didaHotels['response'])) {
 
-                // Step 2: Fetch ratings from your database
-                // (Assuming your model is DidaHotel and has columns: hotel_id and rating)
-                $hotelInfos = DidaHotel::whereIn('hotel_id', $hotelIds)->select('hotel_id', 'star_rating', 'address' ,'telephone', 'zip_code', 'name','images','thumbnail')->get()->keyBy('hotel_id')
-                                ->map(function ($hotel) {
-                                    return [
-                                        'star_rating' => $hotel->star_rating,
-                                        'address' => $hotel->address,
-                                        'telephone' => $hotel->telephone,
-                                        'zip_code' => $hotel->zip_code,
-                                        'name' => $hotel->name,
-                                        'images' => $hotel->images,
-                                        'thumbnail' => $hotel->thumbnail
-                                    ];
-                                })->toArray();
-                //dd($hotelInfos);
-                foreach($response as $hotel){
-                    //dd($hotel);
+                $response = $didaHotels['response'];
 
-                    $markup = hotelMarkUpPrice(array('totalPrice' => $result['searchRequest']['no_of_rooms']*$hotel['RatePlanList'][0]['TotalPrice'] , 'currencyCode' => 'USD' , 'totalTax' => 0));
+                // Process DIDA hotels with optimized method
+                $didaProcessed = $this->processDidaHotels(
+                    $response,
+                    $result['searchRequest'],
+                    $mealType,
+                    $bedType,
+                    $rating1,
+                    $rating2,
+                    $rating3,
+                    $rating4,
+                    $rating5
+                );
 
-                    $bedTypeName = didaType('BedType' , $hotel['RatePlanList'][0]['BedType']);
-                    
-                    $bedTypeCode = Str::slug($bedTypeName);
-                    if(!isset($bedType[$bedTypeCode]))
-                    {
-                        $bedType[$bedTypeCode] = ['code' => $bedTypeCode,'name' => $bedTypeName ,'count' => 1];
-                    }else{
-                        $bedType[$bedTypeCode]['count']++;
-                    }
-
-                    $mealTypeName = didaType('MealType' , $hotel['RatePlanList'][0]['PriceList'][0]['MealType']);
-                    $mealTypeCode = Str::slug($mealTypeName);
-                    if(!isset($mealType[$mealTypeCode]))
-                    {
-                        $mealType[$mealTypeCode] = ['code' => $mealTypeCode,'name' => $mealTypeName ,'count' => 1];
-                    }else{
-                        $mealType[$mealTypeCode]['count']++;
-                    }
-
-                    $thumbnail = asset('frontEnd/images/no-hotel-image.png');
-                    
-                    if(!empty($hotelInfos[$hotel['HotelID']]['thumbnail']))
-                    {
-                        $thumbnail = $hotelInfos[$hotel['HotelID']]['thumbnail'];
-                    }elseif(!empty($hotelInfos[$hotel['HotelID']]['images'])){
-                        $thumbnail = explode("," , $hotelInfos[$hotel['HotelID']]['images'])[0] ?? asset('frontEnd/images/no-hotel-image.png');
-                    }
-                    //dd($thumbnail,$hotelInfos[$hotel['HotelID']]['images'],$hotelInfos);
-                    $result['hotelList'][] = [
-                        'hotelName' => $hotelInfos[$hotel['HotelID']]['name'] ?? '',
-                        'hotelRating' => $hotelInfos[$hotel['HotelID']]['star_rating'] ?? 0,
-                        'address' => $hotelInfos[$hotel['HotelID']]['address'] ?? 0,
-                        //'image' => !empty($hotelDetails->thumbnail) ? $hotelDetails->thumbnail : null,
-                        'image' =>  $thumbnail,
-                        'hotelCode' => $hotel['HotelID'],
-                        'checkIn' => $result['searchRequest']['check_in'] ,
-                        'checkOut' => $result['searchRequest']['check_out'],
-                        'rooms' => $hotel['RatePlanList'][0]['RoomName']??null,
-                        //'totalFare' => sprintf("%.3f", $value['Rooms'][0]['TotalFare']),
-                        'currenceCode' => '769',
-                        //'isRefundable' => $value['Rooms'][0]['IsRefundable'] ??null,
-                        'markups' => $markup,
-                        'exclusive' => null,
-                        'preferred' => null,
-                        'phone_number' => $hotelInfos[$hotel['HotelID']]['telephone'] ?? 0,
-                        'pin_code' => $hotelInfos[$hotel['HotelID']]['zip_code'] ?? 0,
-                        'type' => 'dida',
-                        'mealType' => $mealTypeCode,
-                        'bedType' => $bedTypeCode
-                    ];
-                    switch ($hotelInfos[$hotel['HotelID']]['star_rating']) {
-                        case '1':
-                            $rating1++;
-                            break;
-                        case '2':
-                            $rating2++;
-                            break;
-                        case '3':
-                            $rating3++;
-                            break;
-                        case '4':
-                            $rating4++;
-                            break;
-                        case '5':
-                            $rating5++;
-                            break; 
-                    }
-
-                    if($markup)
-                    {
-                        $price = $markup['totalPrice']['value'];
-                        //minprice
-                        if($minPrice == 0)
-                        {
-                            $minPrice = $price;
-                        }
-                        elseif($price < $minPrice)
-                        {
-                            $minPrice = $price;
-                        }
-                        //maxprice
-                        if($maxPrice == 0)
-                        {
-                            $maxPrice = $price;
-                        }
-                        elseif($price > $maxPrice)
-                        {
-                            $maxPrice = $price;
-                        }
-                    } 
-                }   
-                 usort($result['hotelList'], function($a, $b) {
-                    return $a['markups']['totalPrice']['value'] <=> $b['markups']['totalPrice']['value'];
-                }); 
+                $result['hotelList'] = $didaProcessed['hotelList'];
+                $mealType = $didaProcessed['mealType'];
+                $bedType = $didaProcessed['bedType'];
+                $rating1 = $didaProcessed['rating1'];
+                $rating2 = $didaProcessed['rating2'];
+                $rating3 = $didaProcessed['rating3'];
+                $rating4 = $didaProcessed['rating4'];
+                $rating5 = $didaProcessed['rating5'];
+                $minPrice = $didaProcessed['minPrice'] ?? 0;
+                $maxPrice = $didaProcessed['maxPrice'] ?? 0;
             } 
         }
 
         
-        $cityDetails = DB::table('webbeds_cities')->where('code',$request->input('hotelsCityCode'))->first();
+        //$cityDetails = DB::table('webbeds_cities')->where('code',$request->input('hotelsCityCode'))->first();
+        $cityDetails = HotelCity::where('id',$request->input('hotelsCityId'))->first();
         if(!empty($cityDetails))
         {
             $result['cityName'] = $cityDetails->name;
@@ -508,6 +550,170 @@ class HomeController extends Controller
         return view('front_end.hotel.webbeds.search',compact('titles','result'));
     }
 
+    
+    private function processDidaHotels(
+        $response,
+        $searchRequest,
+        &$mealType,
+        &$bedType,
+        &$rating1,
+        &$rating2,
+        &$rating3,
+        &$rating4,
+        &$rating5) 
+    {
+        $result = [
+            'hotelList' => [],
+            'mealType' => $mealType,
+            'bedType' => $bedType,
+            'rating1' => $rating1,
+            'rating2' => $rating2,
+            'rating3' => $rating3,
+            'rating4' => $rating4,
+            'rating5' => $rating5,
+            'minPrice' => 0,
+            'maxPrice' => 0,
+        ];
+
+        // Extract hotel IDs and fetch in single query
+        $hotelIds = array_column($response, 'HotelID');
+        
+        $hotelInfos = DidaHotel::whereIn('hotel_id', $hotelIds)
+            ->select('hotel_id', 'star_rating', 'address', 'telephone', 'zip_code', 'name', 'images', 'thumbnail')
+            ->get()
+            ->keyBy('hotel_id')
+            ->toArray(); // Convert to array for faster access
+
+        $defaultImage = asset('frontEnd/images/no-hotel-image.png');
+        $bedTypeCache = [];
+        $mealTypeCache = [];
+        $noOfRooms = $searchRequest['no_of_rooms'];
+        $checkIn = $searchRequest['check_in'];
+        $checkOut = $searchRequest['check_out'];
+
+        $prices = []; // Collect all prices for min/max calculation
+
+        // Process hotels in a single pass
+        foreach ($response as $hotel) {
+            $hotelId = $hotel['HotelID'];
+            $hotelInfo = $hotelInfos[$hotelId] ?? null;
+
+            // Skip if hotel info not found
+            if (!$hotelInfo) {
+                continue;
+            }
+
+            // Get rate plan safely
+            $ratePlan = $hotel['RatePlanList'][0] ?? [];
+            
+            // Calculate total price
+            $totalPrice = $noOfRooms * ($ratePlan['TotalPrice'] ?? 0);
+
+            // Calculate markup
+            $markup = hotelMarkUpPrice([
+                'totalPrice' => $totalPrice,
+                'currencyCode' => 'USD',
+                'totalTax' => 0,
+            ]);
+
+            // Get or cache bed type
+            $bedTypeId = $ratePlan['BedType'] ?? null;
+            if (!isset($bedTypeCache[$bedTypeId])) {
+                $bedTypeCache[$bedTypeId] = didaType('BedType', $bedTypeId);
+            }
+            
+            $bedTypeName = $bedTypeCache[$bedTypeId];
+            $bedTypeCode = Str::slug($bedTypeName);
+            
+            // Update bed type filter
+            if (!isset($result['bedType'][$bedTypeCode])) {
+                $result['bedType'][$bedTypeCode] = [
+                    'code' => $bedTypeCode,
+                    'name' => $bedTypeName,
+                    'count' => 1
+                ];
+            } else {
+                $result['bedType'][$bedTypeCode]['count']++;
+            }
+
+            // Get or cache meal type
+            $mealTypeId = $ratePlan['PriceList'][0]['MealType'] ?? null;
+            if (!isset($mealTypeCache[$mealTypeId])) {
+                $mealTypeCache[$mealTypeId] = didaType('MealType', $mealTypeId);
+            }
+            
+            $mealTypeName = $mealTypeCache[$mealTypeId];
+            $mealTypeCode = Str::slug($mealTypeName);
+            
+            // Update meal type filter
+            if (!isset($result['mealType'][$mealTypeCode])) {
+                $result['mealType'][$mealTypeCode] = [
+                    'code' => $mealTypeCode,
+                    'name' => $mealTypeName,
+                    'count' => 1
+                ];
+            } else {
+                $result['mealType'][$mealTypeCode]['count']++;
+            }
+
+            // Optimize thumbnail handling
+            $thumbnail = $defaultImage;
+            if (!empty($hotelInfo['thumbnail'])) {
+                $thumbnail = $hotelInfo['thumbnail'];
+            } elseif (!empty($hotelInfo['images'])) {
+                $thumbnail = strtok($hotelInfo['images'], ',') ?: $defaultImage;
+            }
+
+            // Build hotel item
+            $hotelItem = [
+                'hotelName' => $hotelInfo['name'] ?? '',
+                'hotelRating' => (int)($hotelInfo['star_rating'] ?? 0),
+                'address' => $hotelInfo['address'] ?? '',
+                'image' => $thumbnail,
+                'hotelCode' => $hotelId,
+                'checkIn' => $checkIn,
+                'checkOut' => $checkOut,
+                'rooms' => $ratePlan['RoomName'] ?? null,
+                'currenceCode' => '769',
+                'markups' => $markup,
+                'exclusive' => null,
+                'preferred' => null,
+                'phone_number' => $hotelInfo['telephone'] ?? '',
+                'pin_code' => $hotelInfo['zip_code'] ?? '',
+                'type' => 'dida',
+                'mealType' => $mealTypeCode,
+                'bedType' => $bedTypeCode,
+            ];
+
+            $result['hotelList'][] = $hotelItem;
+
+            // Update rating counters using array
+            $ratingKey = [1 => 'rating1', 2 => 'rating2', 3 => 'rating3', 4 => 'rating4', 5 => 'rating5'];
+            $starRating = (int)($hotelInfo['star_rating'] ?? 0);
+            if (isset($ratingKey[$starRating])) {
+                $result[$ratingKey[$starRating]]++;
+            }
+
+            // Collect prices for later min/max calculation
+            if (!empty($markup['totalPrice']['value'])) {
+                $prices[] = $markup['totalPrice']['value'];
+            }
+        }
+
+        // Calculate min/max efficiently using array functions
+        if (!empty($prices)) {
+            $result['minPrice'] = min($prices);
+            $result['maxPrice'] = max($prices);
+        }
+
+        // Sort hotels by price using usort (more efficient for large arrays)
+        usort($result['hotelList'], static function ($a, $b) {
+            return ($a['markups']['totalPrice']['value'] ?? 0) <=> ($b['markups']['totalPrice']['value'] ?? 0);
+        });
+
+        return $result;
+    }
+
     public function SaveSearch(Request $request){
         $cityCode = $request->input('hotelsCityCode');
         $cityId = $request->input('hotelsCityId');
@@ -518,7 +724,8 @@ class HomeController extends Controller
         $residency = $request->input('residency');
         $residencyInfo = WebbedsCountry::where('code', $residency)->first();
 
-        $cityDetails = DB::table('webbeds_cities')->where('id',$cityId)->first();
+        // $cityDetails = DB::table('webbeds_cities')->where('id',$cityId)->first();
+         $cityDetails = HotelCity::where('id',$cityId)->first();
 
         $noOfGuests = 0;
         //preprating json forrequest
@@ -547,7 +754,7 @@ class HomeController extends Controller
         $hotelSearch->no_of_nights                  = $CIn->diffInDays($COut);
         $hotelSearch->nationality                   = $nationality;
         $hotelSearch->residency                     = $residency;
-        $hotelSearch->city_code                     = $cityDetails->code;
+        $hotelSearch->city_code                     = $cityDetails->id;
         $hotelSearch->no_of_guests                  = $noOfGuests;
         $hotelSearch->city_name                     = $cityDetails->long_name;
         $hotelSearch->country                       = $cityDetails->country_name;
@@ -602,7 +809,8 @@ class HomeController extends Controller
 
             //$cityDetails = DB::table('webbeds_cities')->where('code',$cityCode)->first();
             $residencyInfo = WebbedsCountry::where('code', $residency)->first();
-            $cityDetails = DB::table('webbeds_cities')->where('id',$cityId)->first();
+            //$cityDetails = DB::table('webbeds_cities')->where('id',$cityId)->first();
+            $cityDetails = HotelCity::where('id',$cityId)->first();
 
             $noOfGuests = 0;
             //preprating json forrequest
@@ -633,7 +841,7 @@ class HomeController extends Controller
             $hotelSearch->no_of_nights           = $CIn->diffInDays($COut);
             $hotelSearch->nationality            = $nationality;
             $hotelSearch->residency              = $residency;
-            $hotelSearch->city_code              = $cityDetails->code;
+            $hotelSearch->city_code              = $cityDetails->id;
             $hotelSearch->no_of_guests           = $noOfGuests;
             $hotelSearch->city_name              = $cityDetails->long_name;
             $hotelSearch->country                = $cityDetails->country_name;
@@ -857,7 +1065,7 @@ class HomeController extends Controller
                     $result['hotelDeatils']['hotel_name'] = $hotelDetails['name'];
                     $result['hotelDeatils']['hotel_rating'] = $hotelDetails['starRating'];
                     $result['hotelDeatils']['address'] = $hotelDetails['location']['address'];
-                    $result['hotelDeatils']['images'] = implode(",",array_column($hotelDetails['images'],'url')) ?? null;
+                    $result['hotelDeatils']['images'] = implode(",", array_column($hotelDetails['images'] ?? [], 'url')) ?: null;
                     $result['hotelDeatils']['check_in'] = $result['searchRequest']->check_in;
                     $result['hotelDeatils']['check_out'] = $result['searchRequest']->check_out;
                     $result['hotelDeatils']['description'] = $description;
@@ -877,6 +1085,7 @@ class HomeController extends Controller
                 
                 $result['availablerooms'] = [] ;
                 $roomDetails = $hotelDetailsAndRooms['response'][0]['RatePlanList'];
+
                 foreach($roomDetails as $r => $roomInfo){
                     $markup = hotelMarkUpPrice(array('totalPrice' =>  $result['searchRequest']->no_of_rooms * $roomInfo['TotalPrice'] , 'currencyCode' => $roomInfo['Currency'] , 'totalTax' =>  0));
                     $roomPrice = [];
@@ -912,6 +1121,7 @@ class HomeController extends Controller
 
                 }
             }
+           // dd($roomDetails,$result['availablerooms']);
         }
         //dd($result['availablerooms']);
        
@@ -1151,13 +1361,16 @@ class HomeController extends Controller
                     $roomPrice[] =  $ratePlanList['TotalPrice'];
                     $RatePlanID[] =  $ratePlanList['RatePlanID'];
                 }
-               // dd($pricingInfo);
+                
                 $cancellationRules = formatCancellationRules($pricingInfo[0]['CancellationPolicyList'] ?? [] , 'dida');
-                for($i=0; $i<$result['searchRequest']->no_of_rooms; $i++){
-                    $cancellationpolicies[] = $cancellationRules;
-                }
+                
+                // for($i=0; $i<$result['searchRequest']->no_of_rooms; $i++){
+                //     $cancellationpolicies[] = $cancellationRules;
+                // }
+                $cancellationpolicies[] = $cancellationRules;
                 //$roomPrice = array_column($pricingInfo[0]['RatePlanList'][0]['PriceList'], 'Price');
                 $formatedBookingCode = ['RatePlanID' =>  $RatePlanID , 'metadata' => null , 'type' => 'dida' ,'dida_ref_id' => $prebookingDetails['response']['Success']['PriceDetails']['ReferenceNo']];
+                $excludedFees = formatExcludedFees($pricingInfo[0]['ExcludedFeeList'] ?? []);
 
                 $result['roomDetails'][] = [
                     'Name' => $pricingInfo[0]['RatePlanList'][0]['RatePlanName'] ?? null,
@@ -1175,11 +1388,11 @@ class HomeController extends Controller
                     'supplment_charges' => [],
                     'specialPromotion' => null,
                     'validForOccupancy' => null,
-                    'extraFee' => 0,
+                    'extraFee' => $excludedFees['total_excluded_amount']??null,
                     'markups' =>  hotelMarkUpPrice(array('totalPrice' =>  $totalprice , 'currencyCode' => 'USD' , 'totalTax' =>   0)),
-                    'type' => 'dida'
+                    'type' => 'dida',
+                    'excludedFees' => $excludedFees,
                 ];
-                //dd($cancellationpolicies);
                 $result['roomDetails'] = array_values($result['roomDetails']);
                 foreach($result['roomDetails'] as $r=>$room){
                     foreach($room['roomPrice'] as $rp => $fbc){
@@ -1254,7 +1467,7 @@ class HomeController extends Controller
             $prebookingDetails = json_decode($hotelXmlRequest->json_response, true);
             $hotelDetails = DidaHotel::where('hotel_id' , $hotelCode)->first()->toArray();
             $hotelName = $hotelDetails['name'];
-            $hotelAddress = $hotelDetails['hotel_address'];
+            $hotelAddress = $hotelDetails['address'];
             $currency = 'USD';
             $bookingCode = json_encode($bookingCode);
             if(isset($prebookingDetails['Error']))
@@ -1277,7 +1490,7 @@ class HomeController extends Controller
         $hotelRoomBooking->search_id = $searchId;
         $hotelRoomBooking->hotel_code = $hotelCode;
         $hotelRoomBooking->hotel_name = $hotelName ?? '';
-        $hotelRoomBooking->hotel_name = $hotelAddress ?? '';
+        $hotelRoomBooking->hotel_address = $hotelAddress ?? '';
         $hotelRoomBooking->check_in = $searchDetails->check_in;
         $hotelRoomBooking->check_out = $searchDetails->check_out;
         $hotelRoomBooking->booking_code =$bookingCode;
@@ -1482,10 +1695,11 @@ class HomeController extends Controller
             //$roomPrice = array_column($pricingInfo[0]['RatePlanList'][0]['PriceList'], 'Price');
             $formatedBookingCode = ['RatePlanID' =>  $RatePlanID , 'metadata' => null , 'type' => 'dida'];
             $cancellationRules = formatCancellationRules($pricingInfo[0]['CancellationPolicyList'] ?? [] , 'dida');
-                for($i=0; $i<$result['searchRequest']->no_of_rooms; $i++){
-                    $cancellationpolicies[] = $cancellationRules;
-                }
-
+                // for($i=0; $i<$result['searchRequest']->no_of_rooms; $i++){
+                //     $cancellationpolicies[] = $cancellationRules;
+                // }
+            $cancellationpolicies[] = $cancellationRules;
+            $excludedFees = formatExcludedFees($pricingInfo[0]['ExcludedFeeList'] ?? []);
 
             $result['roomDetails'][] = [
                 'Name' => $pricingInfo[0]['RatePlanList'][0]['RatePlanName'] ?? null,
@@ -1503,8 +1717,10 @@ class HomeController extends Controller
                 'supplment_charges' => [],
                 'specialPromotion' => null,
                 'validForOccupancy' => null,
-                'extraFee' => 0,
-                'markups' =>  hotelMarkUpPrice(array('totalPrice' =>  $totalprice , 'currencyCode' => 'USD' , 'totalTax' =>   0))
+                'extraFee' => $excludedFees['total_excluded_amount']??null,
+                'markups' =>  hotelMarkUpPrice(array('totalPrice' =>  $totalprice , 'currencyCode' => 'USD' , 'totalTax' =>   0)),
+                'excludedFees' => $excludedFees,
+                
             ];
             $result['roomDetails'] = array_values($result['roomDetails']);
             foreach($result['roomDetails'] as $r=>$room){
@@ -1922,11 +2138,15 @@ class HomeController extends Controller
                         else{
                             $isFailure = true;
                         }
-                    }elseif($hotelbookingdetails->supplier == 'dida'){
+                    }
+                    elseif($hotelbookingdetails->supplier == 'dida')
+                    {
                         $confirmBookingDetails = $confirmBooking->DidaBooking(['booking_id' => $hotelBookingId]);
                         $hotelbookingdetails->webbeds_booking_request_id = $confirmBookingDetails['hotelRequest']['id'] ?? null;
-                        if($confirmBookingDetails['response']['Success']){
-                            switch ($confirmBookingDetails['response']['Success']['BookingDetails']['Status']) {
+
+                        $bookingDetails = $confirmBookingDetails['response']['Success']['BookingDetails'] ?? [];
+                        if(!empty($bookingDetails)){
+                            switch ($bookingDetails['Status']) {
                                 case 2:
                                     $booking_status = 'booking_completed';
                                     $reservation_status = 'Confirmed';
@@ -1947,85 +2167,161 @@ class HomeController extends Controller
                                     $reservation_status = 'Pending';
                                     $room_status = 'pending';
                                     break;
+                                case 6:
+                                    $booking_status = 'booking_pending';
+                                    $reservation_status = 'OnRequest';
+                                    $room_status = 'pending';
+                                    break;    
                             }
+
                             $hotelbookingdetails->booking_status = $booking_status;
                             $hotelbookingdetails->reservation_status = $reservation_status;
-                            $hotelbookingdetails->booking_reference_number = $confirmBookingDetails['response']['Success']['BookingDetails']['BookingID'] ?? null;
+                            $hotelbookingdetails->booking_reference_number = $bookingDetails['BookingID'] ?? null;
+                            $hotelbookingdetails->save();
+                            $result = [];
                             $hotelCustomersInfo = HotelBookingTravelsInfo::where("hotel_booking_id" , $hotelbookingdetails->id)->get();
                             $user = $hotelCustomersInfo[0]->first_name .' '.$hotelCustomersInfo[0]->last_name;
-
-                            $hotelInfo = DidaHotel::where('hotel_id' , $hotelbookingdetails->hotel_code)->first();
-                            $result['hotel_details'] = new \stdClass();
-                   
-                            $result['hotel_details']->hotel_name = $hotelInfo->name;
-                            $result['hotel_details']->address = $hotelInfo->address;
-                            $result['hotel_details']->check_in = $confirmBookingDetails['response']['Success']['BookingDetails']['CheckInDate'];
-                            $result['hotel_details']->check_out = $confirmBookingDetails['response']['Success']['BookingDetails']['CheckOutDate'];
-
-                            $result['hotel_booking_Details'] =$hotelbookingdetails;
-                       
-                            $result['hotel_booking_travelers_info'] = HotelBookingTravelsInfo::where("hotel_booking_id" , $hotelbookingdetails->id)->get();
-                            $result['user'] = $user;
-                            if(auth()->user()->agency){
-                                $result['agencyName'] = auth()->user()->agency->name ?? null;
-                                $result['agencyImg'] = !empty(auth()->user()->agency->logo) ? 'uploads/agency/'.auth()->user()->agency->logo : 'frontEnd/images/logomh.png';
-                            }else{
-                                $result['agencyName'] = null;
-                                $result['agencyImg'] = 'frontEnd/images/logomh.png';
-                            }
-                            $cancellation_rules = [];
-                            $noOfRooms = $hotelbookingdetails->no_of_rooms;
-
-                            foreach($confirmBookingDetails['response']['Success']['BookingDetails']['Hotel']['RatePlanList'] as $rm => $roomDetails){
-                                $hotelroomBookingInfo = new HotelRoomBookingInfo();
-                                $hotelroomBookingInfo->hotel_booking_id = $hotelbookingdetails->id;
-                                $hotelroomBookingInfo->room_no = $rm+1;
-                                $hotelroomBookingInfo->booking_code = $roomDetails['RatePlanID'];
-                                $hotelroomBookingInfo->booking_reference_no = $confirmBookingDetails['response']['Success']['BookingDetails']['BookingID'] ?? null;
-                                $hotelroomBookingInfo->status = $room_status;
-                                $hotelroomBookingInfo->meal_type = didaType('MealType',$roomDetails['PriceList'][0]['MealType']) ?? null;
-                                $hotelroomBookingInfo->room_name = $roomDetails['RatePlanName'];
-                                $hotelroomBookingInfo->save();
-
-                               $cancellation_rules[] = convertCancellationRulesForDida($confirmBookingDetails['response']['Success']['BookingDetails']['Hotel']['CancellationPolicyList'] ,$roomDetails['Currency'],(int)$noOfRooms, 'Room '.($rm+1));
-                            
-                            }
-                            
-
-                           //sending Invoice
+                            //sending Invoice
                             $this->invoice($result,$user,$hotelbookingdetails);
-                            $hotelbookingdetails->save();
 
-                            $hotelbookingdetails->cancellation_rules = $cancellation_rules;
-                            
-                            
-                            $hotelbookingdetails->hotelroomBookingInfo = HotelRoomBookingInfo::where('hotel_booking_id', $hotelbookingdetails->id)->get();
-                            
-                            
-                           
-                            $filename = "Reservation_".$hotelbookingdetails->booking_ref_id.".pdf";
-                            $pdf = PDF::loadView('front_end.hotel.webbeds.email_templates.hotel_reservation', compact('titles','result'));
-                            $pdf->save('pdf/hotel_reservation/' . $filename);
-                            Mail::send('front_end.hotel.webbeds.email_templates.hotel_reservation', compact('titles','result'), function($message)use($pdf,$hotelbookingdetails,$filename) {
-                                $message->to($hotelbookingdetails->email)
-                                        ->subject('Hotel Reservation')
-                                        ->attachData($pdf->output(), $filename);
-                            });
+                            if($hotelbookingdetails->booking_status == 'canceled' || $hotelbookingdetails->booking_status == 'booking_failure'){
+                                $isFailure = true;
+                            }elseif($hotelbookingdetails->booking_status == 'booking_pending'){
+                                 $titles = [
+                                    'title' => "pending Reservation Details",
+                                ];
+                                $pendingBooking = new PendingHotelRoomBooking();
+                                $pendingBooking->hotel_booking_id = $hotelbookingdetails->id;
+                                if($reservation_status == 'OnRequest'){
+                                    $result['reservation_message'] = "Your reservation is on request, we will try to confirm it as soon as possible. It will take more time than usual to confirm the reservation, usually it takes around 2 to 3 hours but in some cases it may take more time depending on the hotel response. We will keep you updated regarding the status of your reservation.";
+                                    $pendingBooking->enable_request_on = now()->addHours(2.5);
+                                }else{
+                                    $result['reservation_message'] = "Your reservation is pending, we will try to confirm it as soon as possible. It usually takes around 30 minutes to confirm the reservation but in some cases it may take more time depending on the hotel response. We will keep you updated regarding the status of your reservation.";
+                                    $pendingBooking->enable_request_on = now()->addMinutes(15);
+                                }
+                                $pendingBooking->save();
+                                return view('front_end.hotel.pending_reservation',compact('titles','result'));
+                            }else{
+                                /*
+                                |--------------------------------------------------------------------------
+                                | Dida Recommendation
+                                | Perform Booking Search after confirmation to get latest booking status
+                                |--------------------------------------------------------------------------
+                                */
+                                $bookingSearchDetails = $confirmBooking->DidaBookingSearch([
+                                    'booking_id' => $hotelbookingdetails->booking_reference_number,
+                                    'search_id' => $hotelbookingdetails->search_id
+                                ]);
+                                $bookingDetails = $bookingSearchDetails['response']['Success']['BookingDetailsList'][0] ?? [];
+                                if(!empty($bookingDetails)){
+                                    $hotelbookingdetails->booking_search_request_id = $bookingSearchDetails['hotelRequest']['id'] ?? null;
+                                    $bookingDetails = $bookingSearchDetails['response']['Success']['BookingDetailsList'][0] ?? [];
+                                    $result['hotel_booking_travelers_info'] = HotelBookingTravelsInfo::where("hotel_booking_id" , $hotelbookingdetails->id)->get();
+                                    
+                                    $user = $result['hotel_booking_travelers_info'][0]->first_name .' '.$result['hotel_booking_travelers_info'][0]->last_name;
+                                    $result['hotel_details'] = new \stdClass();
+                                    $result['hotel_details']->hotel_name = $hotelbookingdetails->name;
+                                    $result['hotel_details']->address = $hotelbookingdetails->address;
+                                    $result['hotel_details']->check_in = $bookingDetails['CheckInDate'];
+                                    $result['hotel_details']->check_out = $bookingDetails['CheckOutDate'];
+                                    $result['hotel_booking_Details'] =$hotelbookingdetails;
+                                
+                                    $result['user'] = $user;
+                                    if(auth()->user()->agency){
+                                        $result['agencyName'] = auth()->user()->agency->name ?? null;
+                                        $result['agencyImg'] = !empty(auth()->user()->agency->logo) ? 'uploads/agency/'.auth()->user()->agency->logo : 'frontEnd/images/logomh.png';
+                                    }else{
+                                        $result['agencyName'] = null;
+                                        $result['agencyImg'] = 'frontEnd/images/logomh.png';
+                                    }
+                                    $cancellation_rules = [];
+                                    $noOfRooms = $hotelbookingdetails->no_of_rooms;
+                                    $insertRooms = [];
+                                    foreach($bookingDetails['Hotel']['RatePlanList'] as $rm => $roomDetails){
+                                        $insertRooms[] = [
+                                            'hotel_booking_id' => $hotelbookingdetails->id,
+                                            'room_no' =>  $rm + 1,
+                                            'booking_code' =>  $roomDetails['RatePlanID'] ?? null,
+                                            'booking_reference_no' => $bookingDetails['BookingID'] ?? null,
+                                            'status' => $room_status,
+                                            'meal_type' => didaType( 'MealType', $roomDetails['PriceList'][0]['MealType'] ?? null ),
+                                            'room_name' => $roomDetails['RatePlanName'] ?? null,
+                                        ];
+                                        $cancellation_rules[] = convertCancellationRulesForDida($bookingDetails['Hotel']['CancellationPolicyList'] ,$roomDetails['Currency'],(int)$noOfRooms, 'Room '.($rm+1));
+                                    }
+                                 
+                                    if (!empty($insertRooms)) {
+                                        HotelRoomBookingInfo::insert($insertRooms);
+                                    }
+                                    
+                                    $hotelbookingdetails->save();
+                                    $result['cancellation_rules'] = $cancellation_rules;
+                                    $result['excludedFees'] = [];
+                                    if(isset($bookingDetails['Hotel']['ExcludedFeeList']) && !empty($bookingDetails['Hotel']['ExcludedFeeList'])){
+                                        $result['excludedFees'] = formatExcludedFees($bookingDetails['Hotel']['ExcludedFeeList']);
+                                    }
 
-                            $hotelDetailsInfo = HotelBooking::find($hotelbookingdetails->id);
+                                    
 
-                            $hotelDetailsInfo->hotel_room_booking_path = 'pdf/hotel_reservation/' . $filename;
-                            $hotelDetailsInfo->save();
-                            
-                            $hotelbookingdetails->hotel_room_booking_path = 'pdf/hotel_reservation/' . $filename;
-                            
+                                    $hotelbookingdetails->hotelroomBookingInfo = HotelRoomBookingInfo::where('hotel_booking_id', $hotelbookingdetails->id)->get();
+                                    
+                                    $filename = "Reservation_".$hotelbookingdetails->booking_ref_id.".pdf";
+                                    $hotelbookingdetails->hotel_room_booking_path = 'pdf/hotel_reservation/' . $filename;   
+                                    $result['hotelbookingdetails'] = $hotelbookingdetails;
 
-                            $result['hotelbookingdetails'] = $hotelbookingdetails;
+                                    $agentImg = $result['agencyImg'];
+                                    $successImg = 'frontEnd/images/hotel-booking-successful.png';
+                                    //for pdf generation
+                                    $result['agencyImg'] = asset($agentImg);
+                                    $result['successImg'] = asset($successImg);
 
-                            $result['confirmationHtml'] = view('front_end.hotel.webbeds.email_templates.hotel_reservation',compact('titles','result'));
+                                    $broswerHtml = $pdfhtml = view('front_end.hotel.webbeds.email_templates.hotel_reservation',compact('titles', 'result'))->render();
 
-                            return view('front_end.hotel.webbeds.hotelConfirmation',compact('titles','result'));
-                        
+                                    //for broswer display
+                                    // $result['agencyImg'] = asset($agentImg);
+                                    // $result['successImg'] = asset($successImg);
+
+                                    // $broswerHtml = view('front_end.hotel.webbeds.email_templates.hotel_reservation',compact('titles', 'result'))->render();
+
+                                    $pdf = PDF::loadHTML($pdfhtml);
+                                    
+                                    $pdfPath = 'pdf/hotel_reservation/' . $filename;
+                                    $pdf->save($pdfPath);
+
+                                    Mail::send([], [], function ($message)
+                                        use ($hotelbookingdetails,$filename,$pdfPath,$broswerHtml) {
+                                        $message->to($hotelbookingdetails->email)
+                                            ->subject('Hotel Reservation');
+                                        // HTML BODY
+                                        $message->setBody(
+                                            $broswerHtml,
+                                            'text/html'
+                                        );
+
+                                        // PDF ATTACHMENT
+                                        $message->attach(
+                                            publicFilePath($pdfPath),
+                                            [
+                                                'as' => $filename,
+                                                'mime' => 'application/pdf',
+                                            ]
+                                        );
+                                    });
+
+                                    HotelBooking::where('id', $hotelbookingdetails->id)->update([
+                                        'hotel_room_booking_path' => 'pdf/hotel_reservation/' . $filename
+                                    ]);
+
+                                    
+                                    $hotelbookingdetails->hotel_room_booking_path = 'pdf/hotel_reservation/' . $filename;
+                                    $result['confirmationHtml'] = $broswerHtml;
+
+                                    return view('front_end.hotel.webbeds.hotelConfirmation',compact('titles','result'));
+                                    
+                                }else{
+                                    //booking Success but booking Search Failure
+                                }
+                            }
                         }else{
                             $isFailure = true;
                         }
@@ -2074,7 +2370,7 @@ class HomeController extends Controller
         $invoiceId = $hotelbookingdetails->internal_booking == 1 ? $hotelbookingdetails->booking_ref_id :$hotelbookingdetails->invoice_id;
         $filename = "Invoice_".$invoiceId.".pdf";
         $completePath = null;
-        if(env('APP_ENV') != 'local'){
+        //if(env('APP_ENV') != 'local'){
            
 
             $result['hotelbookingdetails'] = $hotelbookingdetails; 
@@ -2099,23 +2395,69 @@ class HomeController extends Controller
                 $result['hotel_details']->check_out = $result['hotelbookingdetails']->check_out;
             }
 
-            $pdf = PDF::loadView('front_end.hotel.webbeds.email_templates.invoice', compact('result'));
-                $completePath = 'pdf/invoice/' . $filename;
-                $hotelbookingdetails->invoice_path = $completePath;
-                $hotelbookingdetails->save();
-                $pdf->save('pdf/invoice/' . $filename);
+            $agentImg = isset($result['agency']->logo) && !empty($result['agency']->logo) ? 'uploads/agency/'.$result['agency']->logo : 'frontEnd/images/logomh.png';
 
-                return Mail::send('front_end.hotel.webbeds.email_templates.invoice', compact('result'), function($message)use($pdf,$hotelbookingdetails,$filename) {
-                    $message->to($hotelbookingdetails->email)
-                            ->subject('Invoice')
-                            ->attachData($pdf->output(), $filename);
-                });
-        }else{
-            return 1;
-        }
+            $result['agencyImg'] = asset($agentImg);
+
+            $broswerHtml = $pdfhtml = view('front_end.hotel.webbeds.email_templates.invoice',compact('result'))->render();
+            
+            $pdf = PDF::loadHTML($pdfhtml);
+
+            // $result['agencyImg'] = asset($agentImg);
+            // $broswerHtml = view('front_end.hotel.webbeds.email_templates.invoice',compact('result'))->render();
+
+            $completePath = 'pdf/invoice/' . $filename;
+            $hotelbookingdetails->invoice_path = $completePath;
+            $hotelbookingdetails->save();
+            $pdf->save('pdf/invoice/' . $filename);
+
+            return Mail::send([], [], function ($message)
+                use (
+                    $hotelbookingdetails,
+                    $filename,
+                    $completePath,
+                    $broswerHtml
+                ) {
+
+                $message->to($hotelbookingdetails->email)
+                    ->subject('Invoice');
+
+                // HTML BODY
+                $message->setBody(
+                    $broswerHtml,
+                    'text/html'
+                );
+
+                // PDF ATTACHMENT
+                $message->attach(
+                    publicFilePath($completePath),
+                    [
+                        'as' => $filename,
+                        'mime' => 'application/pdf',
+                    ]
+                );
+            });
+
+
+
+            
+
+                            
+
+            // $pdf = PDF::loadView('front_end.hotel.webbeds.email_templates.invoice', compact('result'));
+
+
+                // return Mail::send('front_end.hotel.webbeds.email_templates.invoice', compact('result'), function($message)use($pdf,$hotelbookingdetails,$filename) {
+                //     $message->to($hotelbookingdetails->email)
+                //             ->subject('Invoice')
+                //             ->attachData($pdf->output(), $filename);
+                // });
+        // }else{
+        //     return 1;
+        // }
     }
 
-    private function refund($bookingId)
+    private function refund($bookingId,$userid = null)
     {
         $hotelBookingdetails = HotelBooking::find($bookingId);
     
@@ -2123,14 +2465,17 @@ class HomeController extends Controller
         $hotelBookingdetails->save();
     
         if($hotelBookingdetails->type_of_payment == 'wallet'){
-            $wallet = auth()->user()->agency->wallet_balance + $hotelBookingdetails->sub_total;
+
+            $user = $userid ? User::find($userid) : auth()->user();
+            $wallet_balance = $user->agency->wallet_balance;
+            $wallet = $wallet_balance + $hotelBookingdetails->sub_total;
           
-            $agency = Agency::find(auth()->user()->agency_id);
+            $agency = Agency::find($user->agency_id);
             $agency->wallet_balance = $wallet;
             $agency->save();
      
             $walletDetails = WalletLogger::create([
-                'user_id' => auth()->user()->id,
+                'user_id' => $user->id,
                 'reference_id' => $hotelBookingdetails->id,
                 'reference_type' => 'hotel',
                 'amount' => $hotelBookingdetails->sub_total,
@@ -2148,254 +2493,263 @@ class HomeController extends Controller
     
     }
 
-    // public function HotelBookingPreview($hotelbookingId){
-    //     $titles = [
-    //         'title' => "Traveller Preview ",
-    //     ];
-    //     $result =[];
+    /**
+     * Process 10 pending hotel room bookings via DIDA API
+     * Fetches pending bookings, calls DIDA booking confirmation API, and updates their status
+     */
+    public function processPendingHotelBookings()
+    {
+        try {
+            // Fetch 10 pending booking records
+            $pendingBookings = PendingHotelRoomBooking::where('cron_status', 'pending')
+                ->where('status', 'pending')
+                ->limit(10)
+                ->get();
 
-    //     $hotelbookingId = decrypt($hotelbookingId);
-
-    //     $result['bookingDetails'] = $bookingDetails = HotelBooking::with('Customercountry','CouponDetails')->find($hotelbookingId);
-    //     $result['passengersInfo'] = $passengersInfo = HotelBookingTravelsInfo::whereHotelBookingId($hotelbookingId)->get();
-
-    //     $prebooking = new BookingController();
-    //     $prebookingDeatails = $prebooking->TboPreBooking(['hotel_code' => $bookingDetails->hotel_code ,'search_id' => $bookingDetails->search_id , 'booking_code'=> $bookingDetails->booking_code]);
-
-    //     $hotelDetails = TboHotel::where('hotel_code' , $bookingDetails->hotel_code)->first()->toArray();
-    //     $result['hotelDetails'] = $hotelDetails;
-    //     $result['hotelDetails']['image'] = !empty(json_decode($hotelDetails['images'])) ? json_decode($hotelDetails['images'])[0] : null;
-    //     if(!isset($prebookingDeatails['preBooking'][0]['Rooms'][0]))
-    //     {
-    //         //error page
-    //         //session expire
-    //         $data['errorresponse'] = 'Session Expired';
-    //         $titles = [
-    //             'title' => "Error Page",
-    //         ];
-
-    //         return view('front_end.error',compact('titles','data'));
-
-    //     }
-    //     if($prebookingDeatails['preBooking'][0]['Rooms'][0]){
-
-    //         $prebookingDeatails['preBooking'][0]['Rooms'][0]['markups'] = hotelMarkUpPrice(array('totalPrice' =>  isset($prebookingDeatails['preBooking'][0]['Rooms'][0]['RecommendedSellingRate']) ? $prebookingDeatails['preBooking'][0]['Rooms'][0]['RecommendedSellingRate']:$prebookingDeatails['preBooking'][0]['Rooms'][0]['TotalFare'] , 'currencyCode' => 'USD' , 'totalTax' =>  $prebookingDeatails['preBooking'][0]['Rooms'][0]['TotalTax'] ,'paymentType' => $bookingDetails->type_of_payment ?? 'k_net' , 'couponCode' =>  $bookingDetails->CouponDetails->coupon_code ?? null));
-    //         //$supplments = $prebookingDeatails['preBooking'][0]['Rooms'][0]['Supplements'];
-    //         if(isset($prebookingDeatails['preBooking'][0]['Rooms'][0]['Supplements']))
-    //         {
-    //             $supplments = $prebookingDeatails['preBooking'][0]['Rooms'][0]['Supplements'];
-    //             unset($prebookingDeatails['preBooking'][0]['Rooms'][0]['Supplements']);
-    //             $supplmentAmout = 0.000;
-    //             $currency = '';
-    //             foreach ($supplments as $skey => $svalue) {
-    //                 if($svalue[0]['Type'] == 'AtProperty' &&  ($svalue[0]['Description'] == 'mandatory_fee' || $svalue[0]['Description'] == 'mandatory_tax'))
-    //                 {
-    //                     $supplmentAmout+=$svalue[0]['Price'] ;
-    //                     $currency = $svalue[0]['Currency'];
-
-    //                 }
-    //             }
-    //             $prebookingDeatails['preBooking'][0]['Rooms'][0]['supplment_charges'] = $currency.' '.$supplmentAmout;
-    //         }
-    //         else{
-    //             $prebookingDeatails['preBooking'][0]['Rooms'][0]['supplment_charges'] = null;
-    //         }
-    //         $prebookingDeatails['preBooking'][0]['Rooms'][0]['roomPromotion'] = isset($prebookingDeatails['preBooking'][0]['Rooms'][0]['RoomPromotion']) ? $prebookingDeatails['preBooking'][0]['Rooms'][0]['RoomPromotion'] :[];
-    //         $poilcy = $prebookingDeatails['preBooking'][0]['Rooms'][0]['CancelPolicies'];
-    //         unset($prebookingDeatails['preBooking'][0]['Rooms'][0]['CancelPolicies']);
-    //         $calcelationPolicys = [];
-    //         if(isset($poilcy)){
-    //             foreach ($poilcy as $key => $value) {
-    //                 if($value['ChargeType'] == 'Percentage')
-    //                 {
-    //                     $calcelationPolicys[] = 'From '.$value['FromDate']. ' cancellation charge '.$value['CancellationCharge'].'%';
-    //                 }else{
-    //                     $calcelationPolicys[] = 'From '.$value['FromDate']. ' cancellation charge '.$value['CancellationCharge'];
-    //                 }
-    //             }
-    //         }
-    //         $prebookingDeatails['preBooking'][0]['Rooms'][0]['CancelPolicies'] = $calcelationPolicys ;
-    //         $prebookingDeatails['preBooking'][0]['Rooms'][0]['RoomPromotion'] = isset($prebookingDeatails['preBooking'][0]['Rooms'][0]['RoomPromotion']) ? $prebookingDeatails['preBooking'][0]['Rooms'][0]['RoomPromotion'] : [] ;
-    //     }
-
-    //     $result['roomDetails'] = $prebookingDeatails['preBooking'][0]['Rooms'][0] ?? [];
-        
-    //     $result['RateConditions'] = $prebookingDeatails['preBooking'][0]['RateConditions'] ?? [];
-    //     $result['searchRequest'] = HotelSearch::find($bookingDetails->search_id);
-
-
-    //     return view('front_end.hotel.preview',compact('titles','result'));
-
-    // }
-
-    // public function CountryList(Request $request){
-    //     $hotel = WebbedsCity::select('country_name')->groupBy('country_name')->get()->toArray();
-    //     return $hotel;
-    // }
-    
-
-
-    //                 $dom = new DOMDocument();
-    // $dom->loadXML($response);
-
-    // $result = [];
-
-    // // Convert basic XML to array
-    // $simpleXml = simplexml_import_dom($dom);
-    // $result = json_decode(json_encode($simpleXml), true);
-
-    // // Manually fetch and insert raw CDATA content
-    // $confirmationTextNodes = $dom->getElementsByTagName('confirmationText');
-    // if ($confirmationTextNodes->length > 0) {
-    //     $result['confirmationText_raw'] = $confirmationTextNodes->item(0)->nodeValue;
-    // }
-
-    public function test(){
-         $titles = [
-                'title' => "Error Page",
-            ];
-
-        $result['hotelbookingdetails'] = hotelBooking::find(189);
-
-        $result['confirmationHtml'] = "<h1>hello</h1>";
-
-        return view('front_end.hotel.webbeds.hotelConfirmation',compact('titles','result'));
-
-
-
-        $filename = "Invoicekk_".time().".pdf";
-        $result['hotelbookingdetails'] = $hotelbookingdetails = hotelBooking::find(185); 
-        $result['user'] = 'Rajesh';
-        $result['agency'] = auth()->user()->agency;
-        $result['agent'] = auth()->user();
-       
-        $result['supplier_booking_ids'] = HotelRoomBookingInfo::where('hotel_booking_id', 140)->selectRaw('GROUP_CONCAT(DISTINCT booking_reference_no ORDER BY booking_reference_no) AS supplier_ids')->value('supplier_ids');
-        
-        $hotelInfo = DidaHotel::where('hotel_id' , $result['hotelbookingdetails']->hotel_code)->first();
-        $result['hotel_details'] = new \stdClass();
-
-        $result['hotel_details']->hotel_name = $hotelInfo->name;
-        $result['hotel_details']->address = $hotelInfo->address;
-        $result['hotel_details']->check_in = $result['hotelbookingdetails']->check_in;
-        $result['hotel_details']->check_out = $result['hotelbookingdetails']->check_out;
-
-
-
-        //return view('front_end.hotel.webbeds.email_templates.invoice',compact('result'));
-
-        $pdf = PDF::loadView('front_end.hotel.webbeds.email_templates.invoice', compact('result'));
-            $completePath = 'pdf/invoice/' . $filename;
-            // $hotelbookingdetails->invoice_path = $completePath;
-            // $hotelbookingdetails->save();
-            $pdf->save('pdf/invoice/' . $filename);
-
-            return Mail::send('front_end.hotel.webbeds.email_templates.invoice', compact('result'), function($message)use($pdf,$hotelbookingdetails,$filename) {
-                $message->to($hotelbookingdetails->email)
-                        ->subject('Invoice')
-                        ->attachData($pdf->output(), $filename);
-            });
-        dd($info);
-        
-
-        $roomBookingInformation = file_get_contents(public_path('roomsinfo.xml'));
-        $roomBookingInformation =  XmlToArrayWithHTML($roomBookingInformation);
-       
-
-
-        $confirmationHtml = $roomBookingInformation['confirmationText_html'] ?? null;
-      
-
-                        // Original HTML content
-                        $cleanedHtml = $confirmationHtml;
-
-                        // 1. Remove the entire DAILY RATES <tr> block
-                        $cleanedHtml = preg_replace(
-                            '/<tr>\s*<td align="center">\s*<table[^>]*?>.*?DAILY RATES.*?<\/table>\s*<table[^>]*?>.*?<\/table>\s*<\/td>\s*<\/tr>/is',
-                            '',
-                            $cleanedHtml
-                        );
-
-                        // 2. Remove the Total Payable paragraph
-                        $cleanedHtml = preg_replace(
-                            '/<p><strong>Total Payable for this Booking:.*?<\/strong><\/p>/i',
-                            '',
-                            $cleanedHtml
-                        );
-
-                        // 3. Replace Webbeds Customer Service with your label
-                        $agentName = "Rajesh";
-                        $cleanedHtml = str_replace(
-                            '<p>Webbeds Customer Service</p>',
-                            '<p>'.$agentName.'</p>',
-                            $cleanedHtml
-                        );
-                          
-                             return view('front_end.hotel.testhtml', ['htmlContent' => $cleanedHtml]);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            if ($pendingBookings->isEmpty()) {
+                Log::info('No pending hotel bookings found to process');
+                return [
+                    'success' => true,
+                    'message' => 'No pending bookings found',
+                ];
+            }
 
         
-        $decodedJson = json_decode($jsonString, true); // decode as array
 
-        $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
+            foreach ($pendingBookings as $pendingBooking) {
+                try {
+                    // Update cron status to processing
+                    $pendingBooking->cron_status = 'processing';
+                    $pendingBooking->save();
 
+                    // Get hotel booking details
+                    $hotelBooking = HotelBooking::find($pendingBooking->hotel_booking_id);
+
+
+                    if (!$hotelBooking) {
+                      
+                        Log::error("Hotel booking not found for pending booking ID: {$pendingBooking->id}");
+                        $pendingBooking->cron_status = 'failed';
+                        $pendingBooking->status = 'failed';
+                        $pendingBooking->execuated_on = Carbon::now();
+                        $pendingBooking->save();
+                        continue;
+                    }
+
+                    // Call DIDA booking API
+                    $bookingController = new BookingController();
+                    $confirmBookingDetails = $bookingController->DidaBookingSearch([
+                        'booking_id' => $hotelBooking->booking_reference_number,
+                        'search_id' => $pendingBooking->search_id
+                    ]);
+                    $bookingDetails = $confirmBookingDetails['response']['Success']['BookingDetailsList'][0] ?? [];
             
 
-
-        $allRooms = $decodedJson['result']['hotel']['rooms']['room'] ?? [];
-        
-            $mergedRoomData = [];
-
-            foreach ($allRooms as $roomIndex => $room) {
-                foreach ($room['roomType'] as $roomType) {
-                    $roomTypeCode = $roomType['_roomtypecode'];
-                    $roomName = $roomType['name'];
-
-                    foreach ($roomType['rateBases']['rateBasis'] as $rateBasis) {
-                        $rateBasisId = $rateBasis['_id'];
-                        $allocationDetails = $rateBasis['allocationDetails'];
-                        $totalPrice = floatval($rateBasis['total']['__text']);
-
-                        $key = $roomTypeCode . '_' . $rateBasisId;
-
-                        if (!isset($mergedRoomData[$key])) {
-                            $mergedRoomData[$key] = [
-                                'roomTypeCode' => $roomTypeCode,
-                                'roomName' => $roomName,
-                                'rateBasisId' => $rateBasisId,
-                                'total' => 0,
-                                'allocationDetails' => [],
-                                'roomCount' => 0
-                            ];
+                    if (!empty($bookingDetails)) {
+                        // Booking successful - save room booking info
+                        $hotelBooking->booking_search_request_id = $bookingSearchDetails['hotelRequest']['id'] ?? null;
+                        switch ($bookingDetails['Status']) 
+                        {
+                            case 2:
+                                $booking_status = 'booking_completed';
+                                $reservation_status = 'Confirmed';
+                                $room_status = 'confirmed';
+                                break;
+                            case 3:
+                                $booking_status = 'canceled';
+                                $reservation_status = 'Canceled';
+                                $room_status = 'cancelled';
+                                break;
+                            case 4:
+                                $booking_status = 'booking_failure';
+                                $reservation_status = 'Failed';
+                                $room_status = 'failed';
+                                break;
+                            case 5:
+                                $booking_status = 'booking_pending';
+                                $reservation_status = 'Pending';
+                                $room_status = 'pending';
+                                break;
+                            case 6:
+                                $booking_status = 'booking_pending';
+                                $reservation_status = 'OnRequest';
+                                $room_status = 'pending';
+                                break;    
                         }
+                        $hotelBooking->booking_status = $booking_status;
+                        $hotelBooking->reservation_status = $reservation_status;
+                        $hotelBooking->booking_reference_number = $bookingDetails['BookingID'] ?? null;
+                        $hotelBooking->save();
+                        if($hotelBooking->booking_status == 'canceled' || $hotelBooking->booking_status == 'booking_failure'){
+                            if($hotelBooking->type_of_payment == 'wallet'){
+                                $this->refund($hotelBooking->id , $hotelBooking->user_id); ;
+                            }
+                             // Update pending booking status
+                            $pendingBooking->cron_status = "completed";
+                            $pendingBooking->status = "cancelled";
+                            $pendingBooking->execuated_on = Carbon::now();
+                            $pendingBooking->save();
+                            Log::info("Successfully processed booking ID: {$hotelBooking->id}");
+                        }elseif($hotelBooking->booking_status == 'booking_pending'){
+                            if($reservation_status == 'OnRequest'){
+                                $pendingBooking->enable_request_on = now()->addHours(2.5);
+                            }else{
+                                $pendingBooking->enable_request_on = now()->addMinutes(15);
+                            }
+                            // Update pending booking status
+                            $pendingBooking->cron_status = "pending";
+                            $pendingBooking->status = "pending";
+                            $pendingBooking->execuated_on = Carbon::now();
+                            $pendingBooking->save();
+                        }else
+                        {
+                            $result = [];
+                            $result['hotel_booking_travelers_info'] = HotelBookingTravelsInfo::where("hotel_booking_id" , $hotelBooking->id)->get();
+                            
+                            $user = $result['hotel_booking_travelers_info'][0]->first_name .' '.$result['hotel_booking_travelers_info'][0]->last_name;
+                            $result['hotel_details'] = new \stdClass();
+                            $result['hotel_details']->hotel_name = $hotelBooking->name;
+                            $result['hotel_details']->address = $hotelBooking->address;
+                            $result['hotel_details']->check_in = $bookingDetails['CheckInDate'];
+                            $result['hotel_details']->check_out = $bookingDetails['CheckOutDate'];
+                            $result['hotel_booking_Details'] =$hotelBooking;
+                        
+                            $result['user'] = $user;
+                            $result['agencyName'] = 'MasilaHolidays';
+                            $result['agencyImg']    =  "frontEnd/images/logomh.png";
 
-                        // Merge totals and allocationDetails
-                        $mergedRoomData[$key]['total'] += $totalPrice;
-                        $mergedRoomData[$key]['allocationDetails'][] = $allocationDetails;
-                        $mergedRoomData[$key]['roomCount'] += 1;
+                            $userID = $hotelBooking->user_id;
+                            if(!empty($userID) && $userID){
+                                $userInfo = User::where('id', $userID)->first();
+                                if(!empty($userInfo) && $userInfo->agency_id){  
+                                    $agenceInfo = Agency::where('id', $userInfo->agency_id)->first();
+                                    if(!empty($agenceInfo)){
+                                        $result['agencyName'] = $agenceInfo->name ?? null;
+                                        $result['agencyImg'] = !empty($agenceInfo->logo) ? 'uploads/agency/'.$agenceInfo->logo : 'frontEnd/images/logomh.png';
+                                    }
+                                }
+                            }
+                            //  if(auth()->user()->agency){
+                            //     $result['agencyName'] = auth()->user()->agency->name ?? null;
+                            //     $result['agencyImg'] = !empty(auth()->user()->agency->logo) ? 'uploads/agency/'.auth()->user()->agency->logo : 'frontEnd/images/logomh.png';
+                            // }else{
+                            //     $result['agencyName'] = null;
+                            //     $result['agencyImg'] = 'frontEnd/images/logomh.png';
+                            // } 
+                            $cancellation_rules = [];
+                            $noOfRooms = $hotelBooking->no_of_rooms;
+                            $insertRooms = [];
+                            foreach($bookingDetails['Hotel']['RatePlanList'] as $rm => $roomDetails){
+                                $insertRooms[] = [
+                                    'hotel_booking_id' => $hotelBooking->id,
+                                    'room_no' =>  $rm + 1,
+                                    'booking_code' =>  $roomDetails['RatePlanID'] ?? null,
+                                    'booking_reference_no' => $bookingDetails['BookingID'] ?? null,
+                                    'status' => $room_status,
+                                    'meal_type' => didaType( 'MealType', $roomDetails['PriceList'][0]['MealType'] ?? null ),
+                                    'room_name' => $roomDetails['RatePlanName'] ?? null,
+                                ];
+                                $cancellation_rules[] = convertCancellationRulesForDida($bookingDetails['Hotel']['CancellationPolicyList'] ,$roomDetails['Currency'],(int)$noOfRooms, 'Room '.($rm+1));
+                            }
+                            if (!empty($insertRooms)) {
+                                HotelRoomBookingInfo::insert($insertRooms);
+                            }
+                            
+                            $hotelBooking->save();
+                            $result['cancellation_rules'] = $cancellation_rules;
+                            $result['excludedFees'] = [];
+                            if(isset($bookingDetails['Hotel']['ExcludedFeeList']) && !empty($bookingDetails['Hotel']['ExcludedFeeList'])){
+                                $result['excludedFees'] = formatExcludedFees($bookingDetails['Hotel']['ExcludedFeeList']);
+                            }
+
+                            $hotelBooking->hotelroomBookingInfo = HotelRoomBookingInfo::where('hotel_booking_id', $hotelBooking->id)->get();
+                            
+                            $filename = "Reservation_".$hotelBooking->booking_ref_id.".pdf";
+                            $hotelBooking->hotel_room_booking_path = 'pdf/hotel_reservation/' . $filename;   
+                            $result['hotelbookingdetails'] = $hotelBooking;
+
+                            $agentImg = $result['agencyImg'];
+                            $successImg = 'frontEnd/images/hotel-booking-successful.png';
+                            //for pdf generation
+                            $result['agencyImg'] = asset($agentImg);
+                            $result['successImg'] = asset($successImg);
+
+                            $broswerHtml = $pdfhtml = view('front_end.hotel.webbeds.email_templates.hotel_reservation',compact( 'result'))->render();
+
+                            $result['confirmationHtml'] = $broswerHtml;
+                            $titles = [
+                                'title' => "Hotel Reservation Details",
+                            ];
+                            $pdf = PDF::loadHTML($pdfhtml);
+                            
+                            $pdfPath = 'pdf/hotel_reservation/' . $filename;
+                            $pdf->save($pdfPath);
+
+                            Mail::send([], [], function ($message)
+                                use ($hotelBooking,$filename,$pdfPath,$broswerHtml) {
+                                $message->to($hotelBooking->email)
+                                    ->subject('Hotel Reservation');
+                                // HTML BODY
+                                $message->setBody(
+                                    $broswerHtml,
+                                    'text/html'
+                                );
+                                // PDF ATTACHMENT
+                                $message->attach(
+                                    publicFilePath($pdfPath),
+                                    [
+                                        'as' => $filename,
+                                        'mime' => 'application/pdf',
+                                    ]
+                                );
+                            });
+                            HotelBooking::where('id', $hotelBooking->id)->update([
+                                'hotel_room_booking_path' => 'pdf/hotel_reservation/' . $filename
+                            ]);
+                                  // Update pending booking status
+                            $pendingBooking->cron_status = "completed";
+                            $pendingBooking->status = "confirmed";
+                            $pendingBooking->execuated_on = Carbon::now();
+                            $pendingBooking->save();
+                            Log::info("DIDA booking Success for hotel booking ID: {$hotelBooking->id}");
+                        }
+                       
+                        
+                    } else {
+                        // Booking failed
+                        $pendingBooking->cron_status = 'failed';
+                        $pendingBooking->status = 'failed';
+                        $pendingBooking->execuated_on = Carbon::now();
+                        $pendingBooking->save();
+
+                        Log::error("DIDA booking failed for hotel booking ID: {$hotelBooking->id}", [
+                            'response' => $confirmBookingDetails
+                        ]);
                     }
+                } catch (\Exception $e) {
+                    Log::error("Error processing pending booking ID: {$pendingBooking->id}", [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+
+                    $pendingBooking->cron_status = 'failed';
+                    $pendingBooking->status = 'failed';
+                    $pendingBooking->execuated_on = Carbon::now();
+                    $pendingBooking->save();
                 }
             }
 
-            $result = $mergedRoomData;
-
-        dd($result) ;
-
-    
-   
+            return [
+                'success' => true,
+                'message' => 'Pending bookings processing completed',
+            ];
+        } catch (\Exception $e) {
+            Log::error("Error in processPendingHotelBookings: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Error processing pending bookings',
+                'error' => $e->getMessage()
+            ];
+        }
     }
 }

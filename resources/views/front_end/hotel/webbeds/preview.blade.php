@@ -207,7 +207,7 @@
                                   @endforeach
                                 @endforeach
                                 
-                                <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: booking@24flights.com">booking@24Flights.com</a></strong></li>
+                                <li>{{__('lang.cancellation_policy_1')}}<strong><a href="tel:+965 6704 1515" >+965 6704 1515 </a></strong> (or) <strong><a href="mailto: {{env('SUPPORT_MAIL_ID')}}">{{env('SUPPORT_MAIL_ID')}}</a></strong></li>
                                 <li>{{__('lang.cancellation_policy_2')}}</li>
                               </ul>
                             </div>
@@ -226,6 +226,18 @@
               <div class="col-6 col-xl-4"><span class="text-muted text-3 me-2"><i class="fas fa-sign-in-alt"></i></span>{{__('lang.checkin_time')}} {{$result['hotelDetails']['check_in']}}</div>
               <div class="col-6 col-xl-4"><span class="text-muted text-3 me-2"><i class="fas fa-sign-out-alt"></i></span>{{__('lang.checkout_time')}}  {{$result['hotelDetails']['check_out']}}</div>
             </div>
+            @if(isset($result['roomDetails']['excludedFees']['fees']) && !empty($result['roomDetails']['excludedFees']['fees']))
+            <hr>
+            <h3 class="text-5 mb-4 mt-4">Excluded Fees</h3>
+            <ol class="lh-lg">
+              @foreach($result['roomDetails']['excludedFees']['fees'] as $excludedFees)
+              <li>
+                {{$excludedFees['display_text']}}
+              </li>
+              @endforeach
+            </ol>
+             <hr>
+            @endif
             @if(!empty($result['roomDetails']))
             <div class="alert alert-info mt-4"> <span class="badge bg-info">{{__('lang.note')}} </span>{{__('lang.preview_descrption')}}  </div>
             <h2 class="text-6 mb-3 mt-5">{{__('lang.contact_details')}} </h2>

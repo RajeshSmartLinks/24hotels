@@ -150,7 +150,13 @@ $(document).ready(function() {
  
 
   $(document).ready(function(){
-    $("#bookingHotels").on("submit", function(){
+    $("#bookingHotels").on("submit", function(e){
+      if ($('#hotelsCityId').val() == '') {
+          e.preventDefault();
+          alert('Please select a city from the suggested list.');
+          $('#hotelsCityName').focus();
+          return false;
+      }
       $("#hotelsearchbutton").prop('disabled',true);
       $("#hotelsearchbutton").find('span').append( '<i class="fa fa-spinner fa-spin"></i>' );
     });//submit

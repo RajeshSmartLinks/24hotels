@@ -30,7 +30,7 @@
       <div class="container text-center">
        
         <h2 class="text-8 fw-600 mb-3">{{__('lang.hotel_booking_is_in_progress')}}</h2>
-        <h3 class="text-6 fw-600 mb-3">{{__('lang.you_will_get_confirmation_mail_in_5_min')}}</h3>
+        <h3 class="text-6 fw-600 mb-3">{{isset($result['reservation_message']) ? $result['reservation_message'] : __('lang.you_will_get_confirmation_mail_in_5_min')}}</h3>
         <p class="text-3 text-muted">{{__('lang.Dont_be_panic')}}</p>
 
         <a href="{{url('/')}}" class="btn btn-primary shadow-none px-5 m-2">{{__('lang.home')}}</a> <a href="{{url('/')}}" class="btn btn-outline-dark shadow-none px-5 m-2">{{__('lang.back')}}</a> </div>

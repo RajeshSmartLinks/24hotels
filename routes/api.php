@@ -110,6 +110,8 @@ Route::prefix('v1')->group(function () {
             Route::post('hotel/bookRoom', [App\Http\Controllers\Api\Hotel\HomeController::class, 'hotelPaymentGateWay']);
             Route::get('hotel/bookingPreview', [App\Http\Controllers\Api\Hotel\HomeController::class, 'bookingPreview']);
             //Route::get('agentbookHotelRooms/{hotelbookingId}', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'bookHotelRooms'])->name('agentbookHotelRooms');
+
+             Route::get('hotel/search2', [App\Http\Controllers\Api\Hotel\HomeController::class, 'Testing']);
     });
    
 });

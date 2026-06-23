@@ -1532,16 +1532,6 @@ if(! function_exists('XmlToArrayWithHTML')){
 
 // Helper function to check if array is associative
 
-
-   
-
-
-
-
-
-
-
-
 }
 function is_assoc(array $array): bool
 {
@@ -1574,16 +1564,89 @@ function is_assoc(array $array): bool
 
         foreach ($rules as $rule) {
             $output[] = [
-                'fromDate' => isset($rule[$fromDate]) ? 'UTC '. Carbon::parse($rule[$fromDate])->utc()->format('Y-m-d') : null,
-                'toDate' => isset($rule[$toDate]) ? 'UTC '. Carbon::parse($rule[$toDate])->utc()->format('Y-m-d') :  null,
+                // 'fromDate' => isset($rule[$fromDate]) ? 'UTC '. Carbon::parse($rule[$fromDate])->utc()->format('Y-m-d') : null,
+                // 'toDate' => isset($rule[$toDate]) ? 'UTC '. Carbon::parse($rule[$toDate])->utc()->format('Y-m-d') :  null,
+                //included Time also
+                'fromDate' => isset($rule[$fromDate]) ? 'UTC '. Carbon::parse($rule[$fromDate])->utc()->format('Y-m-d H:i:s') : null,
+                'toDate' => isset($rule[$toDate]) ? 'UTC '. Carbon::parse($rule[$toDate])->utc()->format('Y-m-d H:i:s') : null,
                 'noShow' => isset($rule['noShowPolicy']),
                 'amendRestricted' => isset($rule['amendRestricted']),
                 'cancelRestricted' => isset($rule['cancelRestricted']),
-                'charge' => isset($rule[$charge]) ?  $currency ." ". $rule[$charge] : null,
+                'charge' => isset($rule[$charge]) ?  convertingAmountToCurrency( $rule[$charge], $currency) : null, //$currency ." ". $rule[$charge] : null,
             ];
         }
 
         return $output;
+    }
+    if (!function_exists('convertingAmountToCurrency')) {
+
+        function convertingAmountToCurrency($amount, $currencyCode)
+        {
+      
+            $appCurrency = config('app.currency');
+
+            if ($amount === null || $amount === '') {
+                return $appCurrency . ' 0.00';
+            }
+
+            $amount = str_replace(',', '', trim((string)$amount));
+
+            if (!is_numeric($amount)) {
+                return $appCurrency . ' ' . $amount;
+            }
+
+            $amount = (float) $amount;
+
+            // No conversion needed
+            if ($currencyCode === $appCurrency) {
+                return $appCurrency . ' ' . number_format($amount, 2, '.', '');
+            }
+
+            $rates = cache()->remember('currency_rates', 3600, function () {
+                return Currency::pluck('conversion_rate', 'currency_code_en')->toArray();
+            });
+
+            $sourceRate = $rates[$currencyCode] ?? null;
+            $targetRate = $rates[$appCurrency] ?? null;
+            // dd($sourceRate, $targetRate);
+            // Return original amount if rates not found
+            if (!$sourceRate || !$targetRate) {
+                return $appCurrency . ' ' . number_format($amount, 2, '.', '');
+            }
+
+            $convertedAmount = ($amount / $sourceRate) * $targetRate;
+
+            return $appCurrency . ' ' . number_format($convertedAmount, 2, '.', '');
+        }
+    }
+
+    if (!function_exists('formatExcludedFees')) {
+        function formatExcludedFees(array $excludedFeeList = [])
+        {
+            if(empty($excludedFeeList)) {
+                return [
+                    'total_excluded_amount' => null,
+                    'fees' => [],
+                    'display_text' => ''
+                ];
+            }
+            $fees = [];
+            $totalAmount = 0;
+            foreach ($excludedFeeList as $fee) {
+                $totalAmount += $fee['Amount'] ?? 0;
+                $fees[] = [
+                    'title' => $fee['FeeTypeName'] ?? '',
+                    'display_amount' => ($fee['Currency'] ?? '') . ' ' . number_format($fee['Amount'] ?? 0, 2, '.', ''),
+                    'display_text' =>  ($fee['FeeTypeName'] ?? '') . ' - ' . ($fee['Currency'] ?? '') . ' ' . number_format($fee['Amount'] ?? 0, 2, '.', '')
+                ];
+                
+            }
+            return [
+                'total_excluded_amount' => ($fee['Currency']??'') . ' ' . number_format($totalAmount, 2, '.', ''),
+                'fees' => $fees,
+                'display_text' => implode(', ', array_column($fees, 'display_text'))
+            ];
+        }
     }
 
 if (!function_exists('clean_string')) {
@@ -1671,7 +1734,7 @@ if (!function_exists('convertCancellationRulesForDida')) {
             $to   = $policy['ToDate']   ?? null;
             $charge = $policy['Amount'] ?? 0;
 
-            $chargeFormatted = number_format($charge, 2) / $noOfRooms;
+            $chargeFormatted = number_format(((float)$charge / (float)$noOfRooms), 2);
 
             // Format dates
             $fromText = !empty($from)  ? Carbon::parse($from)->utc()->format('D, d M Y H:i:s') : null;;
@@ -1772,6 +1835,30 @@ if (!function_exists('decodeJson')) {
         
         return null;
     }
+}
+function formatTimeToAmPm($time)
+{
+    if (empty($time)) {
+        return $time;
+    }
+
+    try {
+        // detect format automatically
+        $format = strlen($time) === 5 ? 'H:i' : 'H:i:s';
+        return Carbon::createFromFormat($format, $time)->format('h:i A');
+    } catch (\Exception $e) {
+        return $time;
+    }
+}
+
+
+function publicFilePath($path = '')
+{
+    if (app()->environment('local')) {
+        return public_path($path);
+    }
+
+    return $_SERVER['DOCUMENT_ROOT'] . '/' . ltrim($path, '/');
 }
 
 

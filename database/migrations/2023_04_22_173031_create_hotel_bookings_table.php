@@ -75,6 +75,7 @@ class CreateHotelBookingsTable extends Migration
             $table->tinyInteger('is_cancel')->default('0')->nullable();
             $table->decimal('penality_amount',18,3)->nullable();
             $table->enum('cancellation_status',['partially_cancellation','cancellation_completed','cancellation_failure'])->nullable();
+            $table->string('booking_search_request_id')->nullable();
         });
     }
 

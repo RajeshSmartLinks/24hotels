@@ -399,100 +399,328 @@ class SearchController extends Controller
     } 
 
 
-    public function didaSearch(Request $request)
-    {
-        // $cityCode = $request->input('hotelsCityCode');
-        // $checkIn = $request->input('hotelsCheckIn');
-        // $checkOut = $request->input('hotelsCheckOut');
-        // $noOfRooms = (int) $request->input('noOfRooms', 1);
-        // $nationality = $request->input('nationality', 'IN');
-        // $currency = $request->input('currency', 'USD');
-        $searchId = $request->input('search_request_id');
-        $serachInfo = WebbedsHotelSearch::where('id', $searchId)->first();
-        $nationality = WebbedsCountry::where('code', $serachInfo->nationality)->first()->alpha_code ?? 'IN';
+    // public function didaSearch(Request $request)
+    // {
+    //     // $cityCode = $request->input('hotelsCityCode');
+    //     // $checkIn = $request->input('hotelsCheckIn');
+    //     // $checkOut = $request->input('hotelsCheckOut');
+    //     // $noOfRooms = (int) $request->input('noOfRooms', 1);
+    //     // $nationality = $request->input('nationality', 'IN');
+    //     // $currency = $request->input('currency', 'USD');
+    //     $searchId = $request->input('search_request_id');
+    //     $serachInfo = WebbedsHotelSearch::where('id', $searchId)->first();
+    //     $nationality = WebbedsCountry::where('code', $serachInfo->nationality)->first()->alpha_code ?? 'IN';
 
-        // $cityCode = $serachInfo->input('hotelsCityCode');
-        $checkIn = $serachInfo->check_in;
-        $checkOut = $serachInfo->check_out;
-        $noOfRooms = (int) $serachInfo->no_of_rooms ?? 1;
-        $currency = 'USD';
+    //     // $cityCode = $serachInfo->input('hotelsCityCode');
+    //     $checkIn = $serachInfo->check_in;
+    //     $checkOut = $serachInfo->check_out;
+    //     $noOfRooms = (int) $serachInfo->no_of_rooms ?? 1;
+    //     $currency = 'USD';
 
 
-        $destinationCityCode = $serachInfo->dida_destination_code;
-        //$destinationCityCode = 3433; 
-        if($request->input('hotel_code')){
-            $hotelIds = [$request->input('hotel_code')];
-        }else{
-            $hotelIds = DidaHotel::where('destination_code', $destinationCityCode)->pluck('hotel_id')->toArray();
-        }
-        // dd($hotelIds);
+    //     $destinationCityCode = $serachInfo->dida_destination_code;
+    //     $destinationCityCode = 3433; 
+    //     if($request->input('hotel_code')){
+    //         $hotelIds = [$request->input('hotel_code')];
+    //     }else{
+    //         $hotelIds = DidaHotel::where('destination_code', $destinationCityCode)->pluck('hotel_id')->toArray();
+    //     }
+    //     // dd($hotelIds);
 
         
-        $rooms = json_decode($serachInfo->rooms_request,true);
-        //dd($rooms);
+    //     $rooms = json_decode($serachInfo->rooms_request,true);
+    //     //dd($rooms);
 
 
-        // Default occupancy
+    //     // Default occupancy
+    //     $maxAdults = 0;
+    //     $maxChildren = 0;
+    //     $childAges = [];
+
+    //      // Combine occupancy across rooms (per Dida spec)
+    //     foreach ($rooms as $room) {
+    //         $adults = (int)($room['Adults'] ?? 0);
+    //         $children = (int)($room['Children'] ?? 0);
+    //         $ages = $room['ChildrenAges'] ?? [];
+
+    //         $maxAdults = max($maxAdults, $adults);
+    //         $maxChildren = max($maxChildren, $children);
+    //         $childAges = array_merge($childAges, $ages);
+    //     }
+
+    //     // Remove duplicates and limit to required number of children
+    //     $childAges = array_slice(array_unique($childAges), 0, $maxChildren);
+
+    //     $hotelIdsChunks = array_chunk($hotelIds, 50);
+    //     $respList = [];
+    //     foreach($hotelIdsChunks as $hotelIds){
+    //         $data['payload'] = [
+    //             "Header" => [
+    //                 "ClientID" => env('DIDA_USERNAME', 'DidaApiTestID'),
+    //                 "LicenseKey" => env('DIDA_PASSWORD', 'TestKey'),
+    //             ],
+    //             "HotelIDList" => $hotelIds,
+    //             "CheckInDate" => $checkIn,
+    //             "CheckOutDate" => $checkOut,
+    //             "IsRealTime" => [
+    //                 "Value" => true,
+    //                 "RoomCount" => $noOfRooms,
+    //             ],
+    //             "RealTimeOccupancy" => [
+    //                 "AdultCount" => $maxAdults,
+    //                 "ChildCount" => $maxChildren,
+    //                 "ChildAgeDetails" => $childAges,
+    //             ],
+    //             "Currency" => $currency,
+    //             "Nationality" => $nationality,
+    //         ];
+    //         $data['end_point'] = 'rate/pricesearch';
+    //         $data['serachId'] = $searchId;
+    //         $data['method'] = 'POST';
+    //         $data['request_type'] = 'search';
+    //         $hotelSearchRsp = $this->DadiApi($data);
+           
+      
+    //         if($hotelSearchRsp['status']){
+    //             $hotels = $hotelSearchRsp['response']['Success']['PriceDetails']['HotelList'] ?? [];
+    //             $respList = array_merge($respList, $hotels);
+    //         }
+            
+    //     }
+    //     return ['status' => true, 'response' => $respList];
+
+        
+        
+
+    //    // return response()->json($payload, 200, [], JSON_PRETTY_PRINT);
+    // }
+    //updated code for dida search with parallel request execution and hotel details fetch
+    public function didaSearch(Request $request)
+    {
+        $searchId = $request->input('search_request_id');
+
+        $serachInfo = WebbedsHotelSearch::select(
+            'nationality',
+            'check_in',
+            'check_out',
+            'no_of_rooms',
+            'dida_destination_code',
+            'rooms_request'
+        )->find($searchId);
+
+        if (!$serachInfo) {
+            return [
+                'status' => false,
+                'response' => [],
+                'message' => 'Search record not found'
+            ];
+        }
+
+        $nationality = WebbedsCountry::where(
+            'code',
+            $serachInfo->nationality
+        )->value('alpha_code') ?? 'IN';
+
+        $checkIn = $serachInfo->check_in;
+        $checkOut = $serachInfo->check_out;
+        $noOfRooms = (int) ($serachInfo->no_of_rooms ?: 1);
+        $destinationCityCode = $serachInfo->dida_destination_code;
+        if(env('APP_ENV') == 'local'){
+            $destinationCityCode = 3433;
+        }
+        $currency = 'USD';
+
+        /*
+        |--------------------------------------------------------------------------
+        | Hotel IDs
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('hotel_code')) {
+
+            $hotelIds = [
+                $request->input('hotel_code')
+            ];
+
+        } else {
+
+            $hotelIds = DidaHotel::where(
+                'destination_code',
+                $destinationCityCode
+            )
+            ->pluck('hotel_id')
+            ->all();
+        }
+
+        if (empty($hotelIds)) {
+            return [
+                'status' => true,
+                'response' => []
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Room Occupancy
+        |--------------------------------------------------------------------------
+        */
+
+        $rooms = json_decode(
+            $serachInfo->rooms_request,
+            true
+        ) ?? [];
+
         $maxAdults = 0;
         $maxChildren = 0;
         $childAges = [];
 
-         // Combine occupancy across rooms (per Dida spec)
         foreach ($rooms as $room) {
-            $adults = (int)($room['Adults'] ?? 0);
-            $children = (int)($room['Children'] ?? 0);
-            $ages = $room['ChildrenAges'] ?? [];
+
+            $adults = (int) ($room['Adults'] ?? 0);
+            $children = (int) ($room['Children'] ?? 0);
 
             $maxAdults = max($maxAdults, $adults);
             $maxChildren = max($maxChildren, $children);
-            $childAges = array_merge($childAges, $ages);
+
+            if (!empty($room['ChildrenAges'])) {
+                $childAges = array_merge(
+                    $childAges,
+                    $room['ChildrenAges']
+                );
+            }
         }
 
-        // Remove duplicates and limit to required number of children
-        $childAges = array_slice(array_unique($childAges), 0, $maxChildren);
+        $childAges = array_slice(
+            array_unique($childAges),
+            0,
+            $maxChildren
+        );
 
-        $hotelIdsChunks = array_chunk($hotelIds, 50);
+        /*
+        |--------------------------------------------------------------------------
+        | Base Payload
+        |--------------------------------------------------------------------------
+        */
+
+        $basePayload = [
+            "Header" => [
+                "ClientID" => env('DIDA_USERNAME', 'DidaApiTestID'),
+                "LicenseKey" => env('DIDA_PASSWORD', 'TestKey'),
+            ],
+            "CheckInDate" => $checkIn,
+            "CheckOutDate" => $checkOut,
+            "IsRealTime" => [
+                "Value" => true,
+                "RoomCount" => $noOfRooms,
+            ],
+            "RealTimeOccupancy" => [
+                "AdultCount" => $maxAdults,
+                "ChildCount" => $maxChildren,
+                "ChildAgeDetails" => $childAges,
+            ],
+            "Currency" => $currency,
+            "Nationality" => $nationality,
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Build Requests
+        |--------------------------------------------------------------------------
+        */
+
+        $hotelChunks = array_chunk($hotelIds, 50);
+
+        $requests = [];
+
+        foreach ($hotelChunks as $chunk) {
+
+            $payload = $basePayload;
+            $payload['HotelIDList'] = $chunk;
+
+            $requests[] = [
+                'payload' => $payload,
+                'end_point' => 'rate/pricesearch',
+                'searchId' => $searchId,
+                'method' => 'POST',
+                'request_type' => 'search',
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Execute Requests In Parallel
+        |--------------------------------------------------------------------------
+        */
+
         $respList = [];
-        foreach($hotelIdsChunks as $hotelIds){
-            $data['payload'] = [
+
+        // 5 concurrent requests at a time
+        $requestGroups = array_chunk($requests, 8);
+
+        foreach ($requestGroups as $group) {
+
+            $responses = $this->DadiApiPool($group);
+
+            foreach ($responses as $hotelSearchRsp) {
+
+                if (
+                    !empty($hotelSearchRsp['status']) &&
+                    !empty(
+                        $hotelSearchRsp['response']['Success']['PriceDetails']['HotelList']
+                    )
+                ) {
+
+                    $respList = array_merge(
+                        $respList,
+                        $hotelSearchRsp['response']['Success']['PriceDetails']['HotelList']
+                    );
+                }
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Return Result
+        |--------------------------------------------------------------------------
+        */
+
+        return [
+            'status' => true,
+            'response' => $respList,
+            'total_hotels' => count($respList)
+        ];
+    }
+
+
+    public function didaSearch2(Request $request)
+    {
+        
+
+        $data['payload'] = [
                 "Header" => [
                     "ClientID" => env('DIDA_USERNAME', 'DidaApiTestID'),
                     "LicenseKey" => env('DIDA_PASSWORD', 'TestKey'),
                 ],
-                "HotelIDList" => $hotelIds,
+               
                 "CheckInDate" => $checkIn,
                 "CheckOutDate" => $checkOut,
-                "IsRealTime" => [
-                    "Value" => true,
-                    "RoomCount" => $noOfRooms,
+                "Destination" => [
+                    "CityCode" => '6138970'
                 ],
-                "RealTimeOccupancy" => [
-                    "AdultCount" => $maxAdults,
-                    "ChildCount" => $maxChildren,
-                    "ChildAgeDetails" => $childAges,
-                ],
+                
                 "Currency" => $currency,
                 "Nationality" => $nationality,
             ];
-            $data['end_point'] = 'rate/pricesearch';
+             $data['end_point'] = 'rate/pricesearch';
             $data['serachId'] = $searchId;
             $data['method'] = 'POST';
             $data['request_type'] = 'search';
             $hotelSearchRsp = $this->DadiApi($data);
-           
-      
-            if($hotelSearchRsp['status']){
-                $hotels = $hotelSearchRsp['response']['Success']['PriceDetails']['HotelList'] ?? [];
-                $respList = array_merge($respList, $hotels);
-            }
-            
-        }
-        return ['status' => true, 'response' => $respList];
+            dd($hotelSearchRsp);
 
-        
-        
 
-       // return response()->json($payload, 200, [], JSON_PRETTY_PRINT);
+   
+
     }
 
 }

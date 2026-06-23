@@ -689,6 +689,31 @@ class BookingController extends Controller
     }
 
 
+    public function DidaBookingSearch($data){
+        $bookingId = $data['booking_id'];
+        $searchId = $data['search_id'] ?? null;
+        $json = [
+            "Header" => [
+                'ClientID'   => env('DIDA_USERNAME', 'DidaApiTestID'),
+                'LicenseKey' => env('DIDA_PASSWORD', 'TestKey'),
+            ],
+            "SearchBy"=> [
+                "BookingID" => $bookingId
+            ]
+        ];
+
+        $data['payload'] = $json;
+        $data['end_point'] = 'booking/HotelBookingSearch';
+        $data['serachId'] = $searchId;
+        $data['method'] = 'POST';
+        $data['request_type'] = 'BookingSearch';
+
+        $bookingSearch = $this->DadiApi($data);
+        return $bookingSearch;
+
+    }
+
+
     public function DidaCancelBooking($data){
         $bookingId = $data['hotel_booking_id'];
 

@@ -359,6 +359,10 @@
         '24flights_best_mobile_app_for_flight_booking' => '24Flights - Best Mobile App for Flight Bookings',
         'download_description' => 'Download our app for the fastest, most convenient way to Book Flights',
         'view_rooms' => 'View Rooms',
-
+        'room_type' => 'Room Type',
+        'board_basis' => 'Board Basis',
+        'all_room_types' => 'All Room Types',
+        'all_board_basis' => 'All Board Basis',
+        'reset' => 'Reset',
    ];
 ?>

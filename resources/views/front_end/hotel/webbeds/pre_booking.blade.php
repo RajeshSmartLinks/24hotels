@@ -169,8 +169,11 @@
                               <ul>
                                 @foreach($result['roomDetails']['CancelPolicies'] as $ck => $cv)
 
+                                @if($result['roomDetails']['type'] != 'dida')
+
                                 <span style="font-weight: bold">Room {{$ck+1}} &nbsp; <span>Cancellation Policy</span></span>
                                 <br>
+                                @endif
                                   
                                 @foreach($cv as $policy)
                                   <li>
@@ -223,6 +226,17 @@
               <div class="col-6 col-xl-4"><span class="text-muted text-3 me-2"><i class="fas fa-sign-in-alt"></i></span>Check In {{$result['hotelDetails']['check_in']}}</div>
               <div class="col-6 col-xl-4"><span class="text-muted text-3 me-2"><i class="fas fa-sign-out-alt"></i></span>Check Out  {{$result['hotelDetails']['check_out']}}</div>
             </div>
+            @if(isset($result['roomDetails']['excludedFees']['fees']) && !empty($result['roomDetails']['excludedFees']['fees']))
+            <hr>
+            <h3 class="text-5 mb-4 mt-4">Excluded Fees</h3>
+            <ol class="lh-lg">
+              @foreach($result['roomDetails']['excludedFees']['fees'] as $excludedFees)
+              <li>
+                {{$excludedFees['display_text']}}
+              </li>
+              @endforeach
+            </ol>
+            @endif
             @if(!empty($result['roomDetails']))
             <hr>
             <h2 class="text-6 mb-3">{{__('lang.traveller_details')}}
@@ -294,13 +308,14 @@
                          <option value = "Mr">Mr</option>
                         <option value = "Ms">Ms</option>
                         <option value = "Mrs">Mrs</option>
-                        <option value = "Dr">Dr</option>
+                        <option value = "Child">Child</option>
+                        <!-- <option value = "Dr">Dr</option>
                         <option value = "Madame">Madame</option>
                         <option value = "Sir">Sir</option>
                         <option value = "Sir/Madam">Sir/Madam</option>
                         <option value = "Messrs">Messrs</option>
                         <option value = "Monsieur">Monsieur</option>
-                        <option value = "Mademoiselle">Mademoiselle</option>
+                        <option value = "Mademoiselle">Mademoiselle</option> -->
                       </select>
                      
                     </div>
@@ -335,13 +350,14 @@
                         <option value = "Mr">Mr</option>
                         <option value = "Ms">Ms</option>
                         <option value = "Mrs">Mrs</option>
-                        <option value = "Dr">Dr</option>
+                        <option value = "Child">Child</option>
+                        <!-- <option value = "Dr">Dr</option>
                         <option value = "Madame">Madame</option>
                         <option value = "Sir">Sir</option>
                         <option value = "Sir/Madam">Sir/Madam</option>
                         <option value = "Messrs">Messrs</option>
                         <option value = "Monsieur">Monsieur</option>
-                        <option value = "Mademoiselle">Mademoiselle</option>
+                        <option value = "Mademoiselle">Mademoiselle</option> -->
                        
                       </select>
                     

@@ -61,6 +61,8 @@ class GeneralController extends Controller
     {
         Cache::forget('currencyDetails');
         session(['currency' => $currency]);
+        // Update config dynamically
+        config(['app.currency' => $currency]);
         return redirect()->back();
     }
 

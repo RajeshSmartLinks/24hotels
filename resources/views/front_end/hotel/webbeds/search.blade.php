@@ -1,9 +1,25 @@
 @extends('front_end.layouts.master')
 @section('content')
+<meta name="referrer" content="no-referrer">
 <style>
   .ui-autocomplete {
     z-index: 99999 !important;
 }
+.cursor-pointer {
+          cursor: pointer;
+        }
+        .icon-inside{
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+        .position-relative{
+            position: relative;
+        }
 
 </style>
   <!-- Page Header
@@ -34,8 +50,10 @@
         <div class="row g-3 pb-3" style="background: white;">
           <div class="col-md-12 col-lg-4">
             <div class="position-relative">
-              <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder="{{__('lang.enter_city')}}" value="{{app('request')->input('hotelsCityName')}}">
-              <span class="icon-inside"><i class="fas fa-map-marker-alt"></i></span> </div>
+              <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder="{{__('lang.enter_city')}}" value="{{app('request')->input('hotelsCityName')}}" style="padding-right: 32px;">
+              <span class="icon-inside cursor-pointer" id="hotelsCityIcon">
+                <i class="fas fa-times text-danger"></i></span> </div>
+                
               <input type="hidden" class="form-control" id="hotelsCityCode"  name = "hotelsCityCode" value = "{{app('request')->input('hotelsCityCode')}}">
               <input type="hidden" class="form-control" id="hotelsCityId"  name = "hotelsCityId" value = "{{app('request')->input('hotelsCityId')}}">
           </div>
@@ -179,7 +197,7 @@
             </div>
           </div>
           <div class="col-md-6 col-lg-2 d-grid">
-            <button class="btn btn-primary" type="submit"  id= "searchbutton"> <span></span>{{__('lang.update')}}</button>
+            <button class="btn btn-primary" type="submit"  id= "hotelsearchbutton"> <span></span>{{__('lang.update')}}</button>
           </div>
         </div>
       </form>
@@ -347,7 +365,7 @@
              data-rating = "{{$ratingval}}" data-bedtype = "{{$hotelDetails['bedType']}}" data-mealtype = "{{$hotelDetails['mealType']}}" data-hotelname ="{{$hotelDetails['hotelName']}}">
               <div class="row">
                 <div class="col-md-4"> <a href="#">
-                  <img class="img-fluid rounded align-top lazy-image" style="height:187px;width: 250px;" data-src="{{$hotelDetails['image']}}" alt="{{$hotelDetails['hotelName']}}" src="{{ asset('frontEnd/images/no-hotel-image.png') }}">
+                  <img class="img-fluid rounded align-top lazy-image" style="height:187px;width: 250px;" data-src="{{$hotelDetails['image']}}" alt="{{$hotelDetails['hotelName']}}" src="{{ asset('frontEnd/images/no-hotel-image.png') }}" referrerpolicy="no-referrer">
                 </a> </div>
                 <div class="col-md-8 ps-3 ps-md-0 mt-3 mt-md-0">
                   <div class="row g-0">
@@ -378,38 +396,40 @@
                       <div class="text-black-50 mb-0 mb-sm-2 order-3 d-none d-sm-block">{{$result['searchRequest']['no_of_rooms']}} {{__('lang.room')}} / {{$result['searchRequest']['no_of_nights']}} {{__('lang.night')}}</div>
                       <a target="_blank" rel="noopener noreferrer" href="{{route('GethotelDetails',['hotelCode'=>encrypt($hotelDetails['hotelCode']) , 'searchId' =>encrypt($result['searchId']) ,'type' => encrypt($hotelDetails['type'])])}}" class="btn btn-sm btn-primary order-4 ms-auto gButton"><span class="gButtonloader"></span>{{__('lang.view_rooms')}}</a> </div>
                   </div>
+                  @php
+                    $user = auth()->user();
+                  @endphp
                   <div class="row">
-                     <div class="col-6">
-                      <p class="reviews mb-2 mt-2"> 
-                        <span class="fw-600">{{__('lang.phone_number')}}</span>
-                        <span class=" px-2 py-1 fw-600 "> : {{$hotelDetails['phone_number']}}</span> 
-                     </p>
-                    </div>
+                     @if($user && $user->agency && $user->agency->is_special == '1')
+                      <div class="col-6">
+                        <p class="reviews mb-2 mt-2"> 
+                          <span class="fw-600">{{__('lang.phone_number')}}</span>
+                          <span class=" px-2 py-1 fw-600 "> : {{$hotelDetails['phone_number']}}</span> 
+                        </p>
+                      </div>
+                    @endif
+                    @if($hotelDetails['exclusive'] == 'yes' || $hotelDetails['preferred'] == 'yes')
                     <div class="col-6">
-                          <p class="reviews mb-2 mt-2"> 
-                      
-                         @if($hotelDetails['exclusive'] == 'yes')
-                   
-                            <span class="reviews-score px-2 py-1 rounded fw-600" style="background:#8fdc55">{{__('lang.exclusive')}}</span> 
-                        
+                      <p class="reviews mb-2 mt-2"> 
+                        @if($hotelDetails['exclusive'] == 'yes')
+                          <span class="reviews-score px-2 py-1 rounded fw-600" style="background:#8fdc55">{{__('lang.exclusive')}}</span> 
                         @endif
-                          @if($hotelDetails['preferred'] == 'yes')
-                       
-                            <span class="px-2 py-1 rounded fw-600 text-light" style="background: #aa92fc">{{__('lang.preferred')}}</span> 
+                        @if($hotelDetails['preferred'] == 'yes')
+                          <span class="px-2 py-1 rounded fw-600 text-light" style="background: #aa92fc">{{__('lang.preferred')}}</span> 
                         @endif
-                     </p>
+                      </p>
                     </div>
+                    @endif
 
-                    @if(auth()->check() && auth()->user()->agency->is_special == '1')
+                    {{-- @if(auth()->check() && auth()->user()->agency->is_special == '1') --}}
+                    
+                    @if($user && $user->agency && $user->agency->is_special == '1')
                     <div class="col-6">
                       <p class="reviews mb-2 mt-2"> 
                         <span class="fw-600">Supplier :</span>
                         <span class="px-2 py-1 rounded fw-600 text-light"  style="background: #0071cc">  {{ucfirst($hotelDetails['type'])}}</span> 
-                     </p>
-                      
-                       
-                        </div>
-
+                      </p>
+                    </div>
                     @endif
                   </div>
                 </div>
@@ -472,6 +492,8 @@
             },
             select: function( event, ui ) {
                 $("input[name='hotelsCityCode']").val(ui.item.code);
+                $('#hotelsCityIcon').html('<i class="fas fa-times text-danger"></i>').css('cursor', 'pointer');
+                $("input[name='hotelsCityId']").val(ui.item.id);
                 $("#hotelsCheckIn").focus();
             },
             search  : function(){$(this).addClass('preloader');},
@@ -502,6 +524,25 @@
 
 
         }; 
+        $(document).on('click', '#hotelsCityIcon', function(e) {
+          e.stopPropagation();
+          // Only reset if it's the times icon (meaning a city is selected)
+          if ($(this).find('i').hasClass('fa-times')) {
+              $('#hotelsCityName').val('').focus();
+              $('#hotelsCityCode').val('');
+              $('#hotelsCityId').val('');
+              $(this).html('<i class="fas fa-map-marker-alt"></i>').css('cursor', 'default');
+          }
+      });
+
+      // Reset icon back to marker if input is cleared manually
+      $(document).on('input', '#hotelsCityName', function() {
+          if ($(this).val() === '') {
+              $('#hotelsCityIcon').html('<i class="fas fa-map-marker-alt"></i>').css('cursor', 'default');
+              $('#hotelsCityCode').val('');
+              $('#hotelsCityId').val('');
+          }
+      });
         
          // Depart Date
          var start = moment("{{app('request')->input('hotelsCheckIn')}}");
@@ -680,15 +721,6 @@
 
     function filter(selectedRefunds,selectedRating,selectedBedType,selectedMealType,filterMinPrice,filterMaxPrice,filterSearchHotel)
     {
-      console.log("selectedRefunds" , selectedRefunds);
-      console.log("selectedRating" , selectedRating);
-      console.log("selectedBedType" , selectedBedType);
-      console.log("selectedMealType" , selectedMealType);
-      console.log("filterMinPrice" , filterMinPrice);
-      console.log("filterMaxPrice" , filterMaxPrice);
-      console.log("filterSearchHotel" , filterSearchHotel);
-
-
 
       $(".hotels-item").css('display','none');
       $('.hotels-item').each(function(){
@@ -703,12 +735,12 @@
       }
       });
     }
-    $(document).ready(function(){
-      $("#bookingHotels").on("submit", function(){
-        $("#searchbutton").prop('disabled',true);
-        $("#searchbutton").find('span').append( '<i class="fa fa-spinner fa-spin"></i>' );
-      });//submit
-    });//document ready
+    // $(document).ready(function(){
+    //   $("#bookingHotels").on("submit", function(){
+    //     $("#searchbutton").prop('disabled',true);
+    //     $("#searchbutton").find('span').append( '<i class="fa fa-spinner fa-spin"></i>' );
+    //   });//submit
+    // });//document ready
 
     function getsort(sel)
     {

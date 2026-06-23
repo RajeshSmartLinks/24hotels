@@ -40,12 +40,10 @@
                     <td width="100%" height="30">&nbsp;</td>
                   </tr>
                   <tr>
-                    <?php //$img = isset($result['agency']->logo) && !empty($result['agency']->logo) ? 'uploads/agency/'.$result['agency']->logo : 'frontEnd/images/logomh.png';?>
                       
                     <td valign="top" align="left" style="padding: 9px 0px;"><a href="#">
                         <img 
-                          {{-- src="{{ asset($img) }}"  --}}
-                          src = "{{$result['agencyImgBase64']}}"
+                          src = "{{$result['agencyImg']}}"
                           width="150" 
                           height="100"
                           style="max-width:150px; max-height:100px; display:block;"
@@ -117,54 +115,6 @@
               Booking Summary
               </h3></td>
           </tr>
-          {{-- <tr>
-            <td class="tablepadding" style="padding:20px 0px 25px;"><table class="" style="border-collapse:collapse;width:100%;border-top:1px solid #dddddd;border-left:1px solid #dddddd;">
-                <thead>
-                  <tr>
-                    <td style="font-size:13px;border-right:1px solid #dddddd;border-bottom:1px solid #dddddd;background-color:#efefef;font-weight:bold;padding:7px;color:#777777">Flight Details</td>
-                    <td align="center" style="font-size:13px;border-right:1px solid #dddddd;border-bottom:1px solid #dddddd;background-color:#efefef;font-weight:bold;padding:7px;color:#777777">Base Fare</td>
-                    <td align="center" style="font-size:13px;border-right:1px solid #dddddd;border-bottom:1px solid #dddddd;background-color:#efefef;font-weight:bold;padding:7px;color:#777777">Taxes & Fee</td>
-                    <td align="center" style="font-size:13px;border-right:1px solid #dddddd;border-bottom:1px solid #dddddd;background-color:#efefef;font-weight:bold;padding:7px;color:#777777">Amount</td>
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach($result['segments'] as $k => $segment)
-                  <tr>
-                    <td width="55%" valign="middle" style="border-right:1px solid #dddddd;border-bottom:1px solid #dddddd;text-align:left;padding:7px;line-height:22px;">{{$segment['AirLine']->name .' '.$segment['Carrier'].'-'. $segment['FlightNumber']}} -{{$segment['OriginAirportDetails']->city_name .' to '.$segment['DestinationAirportDetails']->city_name }} <br>
-                      Travel Date (From) - {{date('d M D Y', strtotime($segment['DepartureDate']))}} , {{$segment['DepartureTime']}} <br>
-                      Travel Date (To)- {{date('d M D Y', strtotime($segment['ArrivalDate']))}} , {{$segment['ArrivalTime']}}</td>
-                      @if($k == 0)
-                      <td width="15%" valign="middle"  rowspan="{{count($result['segments'])}}"  align="center" style="border-right:1px solid #dddddd;border-bottom:1px solid #dddddd;padding:7px;line-height:22px;">{{$result['hotelbookingdetails']->currency_code .' '.$result['hotelbookingdetails']->basefare}} </td>
-                    <td width="15%" valign="middle"  rowspan="{{count($result['segments'])}}"  align="center" style="border-right:1px solid #dddddd;border-bottom:1px solid #dddddd;padding:7px;line-height:22px;">{{$result['hotelbookingdetails']->currency_code .' '.$result['hotelbookingdetails']->tax}} </td>
-                    <td width="15%" valign="middle"  rowspan="{{count($result['segments'])}}"  align="center" style="border-right:1px solid #dddddd;border-bottom:1px solid #dddddd;padding:7px;line-height:22px;"> {{$result['hotelbookingdetails']->currency_code .' '.$result['hotelbookingdetails']->sub_total}} </td>
-                    @endif
-                  </tr>
-                  
-
-                  @endforeach
-
-                  <tr>
-                    <td style="font-size:13px;border-bottom:1px solid #dddddd;background-color:#efefef;font-weight:bold;padding:7px;color:#777777" colspan="3" align="right">
-                     <strong>Sub Total:</strong> </td>
-                    <td style="font-size:13px;border-bottom:1px solid #dddddd;border-right:1px solid #dddddd;background-color:#efefef;font-weight:bold;padding:7px;color:#777777" >{{$result['hotelbookingdetails']->currency_code .' '.$result['hotelbookingdetails']->actual_amount}}</td>
-                  </tr>
-                  <tr>
-                    <td style="font-size:13px;border-bottom:1px solid #dddddd;background-color:#efefef;font-weight:bold;padding:7px;color:#777777" colspan="3" align="right">
-                     <strong>Coupon Amount:</strong> </td>
-                    <td style="font-size:13px;border-bottom:1px solid #dddddd;border-right:1px solid #dddddd;background-color:#efefef;font-weight:bold;padding:7px;color:#777777" >- {{$result['hotelbookingdetails']->currency_code . !empty($result['hotelbookingdetails']->coupon_amount)?$result['hotelbookingdetails']->coupon_amount:0 }}</td>
-                  </tr>
-                  <tr>
-                    <td style="font-size:13px;border-bottom:1px solid #dddddd;background-color:#efefef;font-weight:bold;padding:7px;color:#777777" colspan="3" align="right">
-                     <strong>Total:</strong> </td>
-                    <td style="font-size:13px;border-bottom:1px solid #dddddd;border-right:1px solid #dddddd;background-color:#efefef;font-weight:bold;padding:7px;color:#777777" >{{$result['hotelbookingdetails']->currency_code .' '.$result['hotelbookingdetails']->total_amount}}</td>
-                  </tr>
-                  
-
-                  
-                  
-                </tbody>
-              </table></td>
-          </tr> --}}
           <tr>
           <td class="tablepadding" style="border-top:1px solid #e9e9e9;border-bottom:1px solid #e9e9e9;"><table width="100%" align="center" cellpadding="0" cellspacing="0" border="0">
               <tbody>

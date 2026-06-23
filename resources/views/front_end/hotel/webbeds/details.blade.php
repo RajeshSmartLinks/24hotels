@@ -1,5 +1,6 @@
 @extends('front_end.layouts.master')
 @section('content')
+<meta name="referrer" content="no-referrer">
 <style>
     /* .owl-carousel .owl-stage {
       display: flex;
@@ -59,10 +60,22 @@
                   <?php $result['hotelDeatils']['images'] = explode("," , $result['hotelDeatils']['images'])?>
                     @foreach($result['hotelDeatils']['images'] as $k=>$image)
                       @if($k<15)
-                      <div class="item"><a href="#">
+                      
+                      {{-- <div class="item"><a href="#">
                         <img class="img-fluid lazy-image" data-src="{{$image}}" alt="Hotel photo" onError="this.onerror=null;this.src='{{ asset('frontEnd/images/no-hotel-image.png') }}';" src="{{ asset('frontEnd/images/no-hotel-image.png') }}"/></a>
+                      </div> --}}
 
-                       
+                        <div class="item">
+                          <a href="#">
+                              <img 
+                                  class="img-fluid lazy-image" 
+                                  data-src="{{ $image }}" 
+                                  alt="Hotel photo" 
+                                  referrerpolicy="no-referrer"
+                                  onError="this.onerror=null;this.src='{{ asset('frontEnd/images/no-hotel-image.png') }}';"
+                                  src="{{ asset('frontEnd/images/no-hotel-image.png') }}"
+                              />
+                          </a>
                       </div>
                       @endif
                     @endforeach
@@ -276,8 +289,35 @@
               <h2 id="choose-room" class="text-6 mb-4 mt-2">{{__('lang.choose_room')}}</h2>
               @if(!empty($result['availablerooms']))
               
+              <!-- Room Filters Interface -->
+              <div class="room-filters-container bg-light rounded p-3 mb-4 shadow-sm border">
+                <div class="row g-3 align-items-end">
+                  <div class="col-md-5">
+                    <label for="filter-room-type" class="form-label fw-bold text-secondary text-2 mb-1">
+                      <i class="fas fa-bed me-1"></i> {{__('lang.room_type')}}
+                    </label>
+                    <select id="filter-room-type" class="form-select shadow-none">
+                      <option value="">{{__('lang.all_room_types')}}</option>
+                    </select>
+                  </div>
+                  <div class="col-md-5">
+                    <label for="filter-board-basis" class="form-label fw-bold text-secondary text-2 mb-1">
+                      <i class="fas fa-utensils me-1"></i> {{__('lang.board_basis')}}
+                    </label>
+                    <select id="filter-board-basis" class="form-select shadow-none">
+                      <option value="">{{__('lang.all_board_basis')}}</option>
+                    </select>
+                  </div>
+                  <div class="col-md-2 d-grid">
+                    <button id="btn-reset-filters" class="btn btn-outline-danger btn-sm shadow-none" style="height: 49px;">
+                      <i class="fas fa-sync-alt me-1"></i> {{__('lang.reset')}}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
               <div class="table-responsive">
-                <table class="table">
+                <table class="table" id="rooms-table">
                   <thead>
                     <tr>
                       <th>#</th>
@@ -293,8 +333,8 @@
                   </thead>
                   <tbody>
                       @foreach($result['availablerooms'] as $r=>$roomDetails)
-                        <tr>
-                          <th scope="row">{{$loop->iteration}}</th>
+                        <tr class="room-row" data-room-type="{{$roomDetails['name']}}" data-board-basis="{{$roomDetails['boardbasis']}}">
+                          <th scope="row" class="row-index">{{$loop->iteration}}</th>
                           <td>{{$roomDetails['name']}}</td>
                           <td>{{$roomDetails['boardbasis']}}</td>
                           <td>
@@ -558,8 +598,87 @@
       $("#searchbutton").find('span').append( '<i class="fa fa-spinner fa-spin"></i>' );
     });//submit
   });//document ready
-    $(function() {
-        $('.lazy-image').lazy();
+    // $(function() {
+    //     $('.lazy-image').lazy();
+    // });
+    $(function () {
+    $('.lazy-image').lazy({
+        effect: "fadeIn",
+        effectTime: 300,
+        threshold: 0
+    });
+});
+
+    $(document).ready(function() {
+        var roomTypes = new Set();
+        var boardBasis = new Set();
+
+        // Collect all unique Room Types and Board Basis options
+        $('.room-row').each(function() {
+            var rt = $(this).attr('data-room-type');
+            var bb = $(this).attr('data-board-basis');
+            if (rt) roomTypes.add(rt.trim());
+            if (bb) boardBasis.add(bb.trim());
+        });
+
+        // Populate Room Type dropdown (sorted alphabetically)
+        Array.from(roomTypes).sort().forEach(function(type) {
+            $('#filter-room-type').append($('<option>', {
+                value: type,
+                text: type
+            }));
+        });
+
+        // Populate Board Basis dropdown (sorted alphabetically)
+        Array.from(boardBasis).sort().forEach(function(basis) {
+            $('#filter-board-basis').append($('<option>', {
+                value: basis,
+                text: basis
+            }));
+        });
+
+        function applyFilters() {
+            var selectedType = $('#filter-room-type').val();
+            var selectedBasis = $('#filter-board-basis').val();
+            var visibleCount = 0;
+
+            // Remove any existing "No matching rooms" message row
+            $('#no-matching-rooms-row').remove();
+
+            $('.room-row').each(function() {
+                var rowType = $(this).attr('data-room-type');
+                var rowBasis = $(this).attr('data-board-basis');
+
+                var matchType = !selectedType || rowType === selectedType;
+                var matchBasis = !selectedBasis || rowBasis === selectedBasis;
+
+                if (matchType && matchBasis) {
+                    $(this).show();
+                    visibleCount++;
+                    $(this).find('.row-index').text(visibleCount);
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            // If no rooms are matching, show a user-friendly message row
+            if (visibleCount === 0) {
+                var colCount = $('#rooms-table thead tr th').length || 7;
+                var noResultsText = "{{ __('lang.no_available_rooms_for_given_criteria') }}";
+                var msgHtml = '<tr id="no-matching-rooms-row"><td colspan="' + colCount + '" class="text-center py-4 fw-bold text-muted">' + noResultsText + '</td></tr>';
+                $('#rooms-table tbody').append(msgHtml);
+            }
+        }
+
+        // Bind filter event change handlers
+        $('#filter-room-type, #filter-board-basis').on('change', applyFilters);
+
+        // Bind reset button
+        $('#btn-reset-filters').on('click', function() {
+            $('#filter-room-type').val('');
+            $('#filter-board-basis').val('');
+            applyFilters();
+        });
     });
   </script>
 <script src='{{ asset('frontEnd/js/hotel.js') }}?ver={{ config('app.version') }}'></script>

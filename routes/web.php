@@ -190,6 +190,10 @@ Route::get('dumpDadiCity', [App\Http\Controllers\FrontEnd\Hotel\StaticController
 Route::get('dumpDadiHotelsList', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'DidaStoreHotelList']);
 Route::get('dumpDadiHotelsDetails', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'DidaStoreHotelDetails']);
 
+Route::get('dumpDadiCityNew', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'addingDidaCodes']);
+
+Route::get('processPendingHotelBookings', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'processPendingHotelBookings'])->name('didaHotelSearch');
+
 
 
 

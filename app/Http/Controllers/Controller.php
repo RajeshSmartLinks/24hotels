@@ -22,6 +22,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Client\Pool;
 
 
 class Controller extends BaseController
@@ -1188,6 +1189,94 @@ class Controller extends BaseController
                 'message'  => $e->getMessage(),
                 'hotelRequest' => []
             ];
+        }
+    }
+
+    public function DadiApiPool(array $requests)
+    {
+        set_time_limit(400);
+
+        $baseUrl = rtrim($this->didaUrl, '/') . '/';
+
+        $headers = [
+            'Accept' => 'application/json',
+            'Authorization' => 'Basic ' . $this->didaAuthToken,
+            'Accept-Encoding' => 'gzip, deflate',
+        ];
+
+        try {
+
+            $responses = Http::pool(function (Pool $pool) use ($requests, $headers, $baseUrl) {
+
+                $poolRequests = [];
+
+                foreach ($requests as $index => $request) {
+
+                    $url = $baseUrl
+                        . ltrim($request['end_point'], '/')
+                        . '?'
+                        . http_build_query(['$format' => 'json']);
+
+                    $method = strtoupper($request['method'] ?? 'POST');
+
+                    $client = $pool
+                        ->as($index)
+                        ->withHeaders($headers);
+
+                    if ($method === 'POST') {
+
+                        $poolRequests[] = $client
+                            ->timeout(300)
+                            ->withoutVerifying()
+                            ->post($url, $request['payload'] ?? []);
+
+                    } else {
+
+                        $poolRequests[] = $client
+                            ->timeout(300)
+                            ->withoutVerifying()
+                            ->get($url);
+                    }
+                }
+
+                return $poolRequests;
+            });
+
+            $result = [];
+
+            foreach ($responses as $index => $response) {
+
+                $request = $requests[$index];
+
+                $HotelXmlRequest = new HotelXmlRequest();
+                $HotelXmlRequest->json_request = json_encode($request['payload'] ?? []);
+                $HotelXmlRequest->json_response = $response->body() ?? '';
+                $HotelXmlRequest->ip_address = request()->ip();
+                $HotelXmlRequest->request_type = $request['request_type'] ?? null;
+                $HotelXmlRequest->supplier = 'dida';
+                $HotelXmlRequest->formate_type = 'json';
+                $HotelXmlRequest->hotel_search_id = $request['searchId'] ?? null;
+                $HotelXmlRequest->save();
+
+                $result[] = [
+                    'status' => $response->successful(),
+                    'response' => $response->successful()
+                        ? $response->json()
+                        : [],
+                    'message' => $response->successful()
+                        ? 'Success'
+                        : 'HTTP '.$response->status(),
+                    'hotelRequest' => $HotelXmlRequest
+                ];
+            }
+
+            return $result;
+
+        } catch (\Throwable $e) {
+
+            \Log::error('Dida Pool Error: '.$e->getMessage());
+
+            return [];
         }
     }
 }

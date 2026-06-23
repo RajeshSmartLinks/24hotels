@@ -59,6 +59,22 @@
           color: black;
         }
 
+        .cursor-pointer {
+          cursor: pointer;
+        }
+        .icon-inside{
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+        .position-relative{
+            position: relative;
+        }
+
 </style>
 
 
@@ -80,10 +96,14 @@
                   <div class="row g-3">
                     <div class="col-md-12 col-lg-4">
                       <div class="position-relative">
-                        <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder=" {{__('lang.enter_city')}}">
-                        <span class="icon-inside"><i class="fas fa-map-marker-alt"></i></span> </div>
+                        <input type="text" class="form-control" name = "hotelsCityName" id="hotelsCityName" required placeholder=" {{__('lang.enter_city')}}" style="padding-right: 32px;">
+                        <span class="icon-inside cursor-pointer" id="hotelsCityIcon">
+                          <i class="fas fa-map-marker-alt"></i></span> </div>
                         <input type="hidden" class="form-control" id="hotelsCityCode"  name = "hotelsCityCode" value = "">
-                        <input type="hidden" class="form-control" id="hotelsCityId"  name = "hotelsCityId" value = "">
+                        <input type="hidden" class="form-control" id="hotelsCityId"  name = "hotelsCityId" value = "" >
+                        <div class="invalid-feedback">
+                            Please select a valid city from the suggestions.
+                        </div>
                     </div>
                     <div class="col-md-6 col-lg-4">
                       <div class="position-relative">
@@ -837,6 +857,7 @@ $("#bookingFlight").validate({
           },
           select: function(event, ui) {
               $("input[name='hotelsCityCode']").val(ui.item.code);
+              $('#hotelsCityIcon').html('<i class="fas fa-times text-danger"></i>').css('cursor', 'pointer');
               $("input[name='hotelsCityId']").val(ui.item.id);
               $("#hotelsCheckIn").focus();
           },
@@ -865,6 +886,31 @@ $("#bookingFlight").validate({
                       )
                       .appendTo(ul);
               };
+          }
+      });
+
+      // Handle hotel city icon change and reset
+      // $(document).on('autocompleteselect', '#hotelsCityName', function(event, ui) {
+      //    $('#hotelsCityIcon').html('<i class="fas fa-times"></i>').css('cursor', 'pointer'); 
+      // });
+
+      $(document).on('click', '#hotelsCityIcon', function(e) {
+          e.stopPropagation();
+          // Only reset if it's the times icon (meaning a city is selected)
+          if ($(this).find('i').hasClass('fa-times')) {
+              $('#hotelsCityName').val('').focus();
+              $('#hotelsCityCode').val('');
+              $('#hotelsCityId').val('');
+              $(this).html('<i class="fas fa-map-marker-alt"></i>').css('cursor', 'default');
+          }
+      });
+
+      // Reset icon back to marker if input is cleared manually
+      $(document).on('input', '#hotelsCityName', function() {
+          if ($(this).val() === '') {
+              $('#hotelsCityIcon').html('<i class="fas fa-map-marker-alt"></i>').css('cursor', 'default');
+              $('#hotelsCityCode').val('');
+              $('#hotelsCityId').val('');
           }
       });
 
@@ -1180,6 +1226,17 @@ $("#bookingFlight").validate({
       });
 
     });
+
+    // $('#bookingHotels').on('submit', function(e) {
+    //     if ($('#hotelsCityId').val() == '') {
+    //         e.preventDefault();
+    //         alert('Please select a city from the suggested list.');
+    //         $('#hotelsCityName').focus();
+    //             // .addClass('is-invalid');
+
+    //         return false;
+    //     }
+    // });
 
 
 </script>

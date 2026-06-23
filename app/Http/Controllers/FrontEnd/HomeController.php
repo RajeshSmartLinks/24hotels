@@ -70,14 +70,21 @@ class HomeController extends Controller
             else{
                 $currency = "USD";
             }
-            session(['currency' => $currency]);
-            Config::set('app.currency' , $currency);
+            // session(['currency' => $currency]);
+            // Config::set('app.currency' , $currency);
         }
         else{
             $currency = 'USD';
-            session(['currency' => $currency]);
-            Config::set('app.currency' , $currency);
+            // session(['currency' => $currency]);
+            // Config::set('app.currency' , $currency);
 
+        }
+
+        if (session()->has('currency')) {
+            Config::set('app.currency', session('currency'));
+        }else{
+            session(['currency' => $currency]);
+            Config::set('app.currency', $currency);
         }
 
         $seoData = SeoSettings::where(['page_type' => 'static' , 'static_page_name' => 'home','status' => 'Active'])->first();

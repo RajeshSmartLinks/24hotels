@@ -2,21 +2,23 @@
 
 namespace App\Http\Controllers\FrontEnd\Hotel;
 
-use App\Models\TboHotel;
-use App\Models\DidaHotel;
-use App\Models\WebbedsCity;
-use App\Models\WebbedsHotel;
-use Illuminate\Http\Request;
-use App\Models\DidaHotelList;
-use App\Models\TboHotelsCity;
-use App\Models\TboHotelsCode;
-use App\Models\WebbedsCountry;
-use Illuminate\Support\Carbon;
-use App\Models\TboHotelsCountry;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\FrontEnd\Hotel\Xml\SearchController;
+use App\Models\DidaCity;
+use App\Models\DidaHotel;
+use App\Models\DidaHotelList;
+use App\Models\HotelCity;
+use App\Models\TboHotel;
+use App\Models\TboHotelsCity;
+use App\Models\TboHotelsCode;
+use App\Models\TboHotelsCountry;
+use App\Models\WebbedsCity;
+use App\Models\WebbedsCountry;
+use App\Models\WebbedsHotel;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class StaticController extends Controller
 {
@@ -508,9 +510,7 @@ class StaticController extends Controller
         
 
         // Fetch countries that need city data
-         $countries = WebbedsCountry::where('dida_city_dumped', 0)->where('alpha_code', '!=', null)->limit(15)->get();
-        //$countries = WebbedsCountry::where('id', 144)->limit(15)->get();
-        //where('dida_city_dumped', 0)->
+        $countries = WebbedsCountry::where('dida_city_dumped', 0)->where('alpha_code', '!=', null)->limit(15)->get();
 
         foreach ($countries as $country) {
             // Fetch city list from Dida API
@@ -524,7 +524,6 @@ class StaticController extends Controller
             if ($cityList['status'] && isset($cityList['response']['data'])) {
                 if (count($cityList['response']['data']) != 0) {
                     $cities = $cityList['response']['data'];
-                     dd($cities);
 
                     // Split into smaller chunks to prevent memory overload
                     $cityChunks = array_chunk($cities, 100);
@@ -537,12 +536,12 @@ class StaticController extends Controller
                         foreach ($chunk as $cityInfo) {
                             // echo "ddd";
                             $insertData[] = [
-                                'name'          => $cityInfo['name'] ?? null,
-                                'country_name'  => $country->name,
-                                'country_code'  => $country->code,
                                 'dida_code'     => $cityInfo['code'] ?? null,
-                                'is_dida'       => 1,
+                                'name'          => $cityInfo['name'] ?? null,
                                 'long_name'     => $cityInfo['longName'] ?? null,
+                                'country_code'  => $country->alpha_code ?? null,
+                                'country_name'  => $country->name ?? null,
+                                'is_dida'        => 1,
                                 'created_at'    => now(),
                                 'updated_at'    => now(),
                             ];
@@ -551,7 +550,7 @@ class StaticController extends Controller
 
                         // ✅ Bulk insert all 100 cities in one go
                         if (!empty($insertData)) {
-                            WebbedsCity::insert($insertData);
+                            HotelCity::insert($insertData);
                         }
                     }
                     echo "Inserted cities for country: {$country->name}\n";
@@ -638,10 +637,18 @@ class StaticController extends Controller
         header('Cache-Control: max-age=0,no-store');
 
         // Fetch hotels needing detail dump
-        $hotelList = DidaHotelList::where('is_hotel_details_dumped', 0)
+        $hotelList = 
+        //DidaHotelList::where('is_hotel_details_dumped', 0)
+        //DidaHotelList::where('hotel_id', 2788658)
+        DidaHotelList::where('is_hotel_details_dumped', 0)
+            ->where("country_alpha_code" ,"AE")
             ->whereNotNull('hotel_id')
-            ->limit(500)
+            ->limit(100)
             ->get();
+        
+        
+            
+    
 
         if ($hotelList->isEmpty()) {
             return response()->json(['message' => 'No pending hotel details to process.']);
@@ -649,6 +656,9 @@ class StaticController extends Controller
 
         $hotelList->chunk(50)->each(function ($chunk, $chunkIndex) {
             $hotelIds = $chunk->pluck('hotel_id')->toArray();
+  
+            
+            
 
             $payload = [
                 'language' => 'en-US',
@@ -674,18 +684,54 @@ class StaticController extends Controller
 
                 foreach ($hotels as $hotel) {
                   
-                    $thumbnail = null;
 
-                    $imagesCsv = implode(',', array_column(
-                        array_filter($hotel['images'], function ($img) use (&$thumbnail) {
-                            if (($img['isDefault'] ?? false) === true) {
-                                $thumbnail = $img['url'];
-                                return false;
-                            }
-                            return true;
-                        }),
-                        'url'
-                    )) ?: null;
+                    $imagesCsv = null;
+                    $thumbnail = null;
+                    $hotelImages = null;
+                    if(isset($hotel['images']) && !empty($hotel['images'])){
+                        $hotelImages = array_column(
+                            array_filter($hotel['images'], function ($img) use (&$thumbnail) {
+                                if (($img['isDefault'] ?? false) === true) {
+                                    $thumbnail = $img['url'];
+                                    return false;
+                                }
+                                return true;
+                            }),
+                            'url'
+                        ) ?: null;
+                    }
+                    
+
+                    if($thumbnail == null && !empty($hotelImages)){
+                        $thumbnail = $hotelImages[0];
+                    }
+                    if(!empty($hotelImages)){
+                        $imagesCsv = implode(',', $hotelImages);
+                    }
+                    
+                    if(empty($imagesCsv) && (!empty($thumbnail)) ){
+                        $imagesCsv = $thumbnail;
+                    }
+                    
+                //    dd([
+                //             'language'          => $hotel['language'] ?? 'en-US',
+                //             'name'              => $hotel['name'] ?? null,
+                //             'country_code'      => $hotel['location']['country']['code'] ?? null,
+                //             'country_name'      => $hotel['location']['country']['name'] ?? null,
+                //             'destination_code'  => $hotel['location']['destination']['code'] ?? null,
+                //             'destination_name'  => $hotel['location']['destination']['name'] ?? null,
+                //             'longitude'         => $hotel['location']['coordinate']['longitude'] ?? null,
+                //             'latitude'          => $hotel['location']['coordinate']['latitude'] ?? null,
+                //             'state_code'        => $hotel['location']['stateCode'] ?? null,
+                //             'address'           => $hotel['location']['address'] ?? null,
+                //             'telephone'         => $hotel['telephone'] ?? null,
+                //             'star_rating'       => $hotel['starRating'] ?? null,
+                //             'zip_code'          => $hotel['zipCode'] ?? null,
+                //             'images'            => $imagesCsv ?? null,
+                //             'thumbnail'         => $thumbnail ?? null
+                //         ]);
+                   
+                    //dd($hotel ,$thumbnail ,$imagesCsv);
                     // 🔹 Flatten JSON and save to DB
                     $hotelInfo = DidaHotel::updateOrCreate(
                         ['hotel_id' => $hotel['id']],
@@ -727,6 +773,58 @@ class StaticController extends Controller
 
         return response()->json(['message' => 'Hotel details imported successfully.']);
     }
+
+
+    // public function addingDidaCodes(){
+    //     header('Cache-Control: max-age=0,no-store');
+    //     $didaCityList = DidaCity::where("is_moved", 0)->limit(100)->get();
+    //     dd($didaCityList);
+
+    //     foreach($didaCityList as $city){
+
+    //         $webbedsCity = WebbedsCity::where(['name' => $city->name , 'country_name' => $city->country])->get();
+          
+    //         if(count($webbedsCity) > 0){
+    //             // if(count($webbedsCity) == 1){
+    //             //     WebbedsCity::where('id', $webbedsCity->id)->update(['dida_code' => $city->code , 'is_dida' => 1 , 'updated_at' => now(),'long_name' => $city->longName]);
+    //             // }else{
+    //             //     foreach($webbedsCity as $webbedCityData){
+    //             //         if($webbedCityData->code != null){
+    //             //             DidaCity::where('id', $city->id)->update(['webbeds_city_code' => $webbedCityData->code]);
+    //             //             echo "Webbeds city code added for city: {$city->name}\n";
+    //             //         }
+    //             //     }
+    //             // }
+    //             if(count($webbedsCity) == 1){
+    //                 WebbedsCity::where('id', $webbedsCity->first()->id)->update(['dida_code' => $city->code , 'is_dida' => 1 , 'updated_at' => now(),'long_name' => $city->longName]);
+    //             }else{
+
+    //             }
+                
+    //         }else{
+
+    //             // adding new
+    //             $newWebbedsCity = [
+    //                 'name'          => $city->name,
+    //                 'country_name'  => $city->country,
+    //                 'country_code'  => $city->countryCode,
+    //                 'dida_code'     => $city->code, // code will be null for now, can be updated later
+    //                 'long_name'     => $city->longName,
+    //                 'country_code'  => $city->countryCode,
+    //                 'is_dida'       => 1,
+    //                 'created_at'    => now(),
+    //                 'updated_at'    => now()
+    //             ];
+    //             WebbedsCity::create($newWebbedsCity);
+    //         }
+
+    //         $didaCityList->update(['is_moved' => 1]);
+
+           
+    //     }
+
+    //     echo "✅ All DIDA codes added successfully.\n";
+    // }
 
 
 
