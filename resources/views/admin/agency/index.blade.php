@@ -31,6 +31,7 @@
                                                     <th>Name</th>
                                                     <th>Logo</th>
                                                     <th>Phone Number</th>
+                                                    <th>Wallet Balance</th>
                                                     <th>status</th>
                                                     <th>Action</th>
                                                 </tr>
@@ -46,6 +47,7 @@
                                                                     width="50"/>
                                                             </td>
                                                             <td>{{$agency->country->phone_code}} &nbsp; {{$agency->phone_number}} </td>
+                                                            <td>KWD {{number_format($agency->wallet_balance, 3)}} </td>
                                                             <td>{{$agency->status}} </td>
                                                             {{-- <td class="product-img"><img
                                                                     src="{{$brand->image ?  asset('uploads/brand/'.$brand->image) : $noImage}} "
