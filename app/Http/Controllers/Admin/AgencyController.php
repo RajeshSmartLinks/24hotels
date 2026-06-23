@@ -318,7 +318,7 @@ class AgencyController extends Controller
         $this->validate($request, [
             'wallet_balance' => 'required',
         ]);
-        $amount = (float) $request->wallet_balance_kwd;
+        $amount = (float) str_replace(',', '', $request->wallet_balance_kwd);
         $agency = Agency::with('masterAgent')->find($id);
 
         $agency->wallet_balance = $amount + $agency->wallet_balance;
