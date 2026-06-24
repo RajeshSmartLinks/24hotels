@@ -97,9 +97,9 @@
                   <td valign="top" width="33%" style="font-size:14px; line-height:20px;"><span style="color:#909090; font-size:13px;">No. of rooms and nights:</span><br />
                     {{$result['hotel_booking_Details']->no_of_rooms}} room for {{$result['hotel_booking_Details']->no_of_nights}} nights</td>
                 </tr>
-                <tr>
+                {{-- <tr>
                   <td colspan="4" valign="top" style="font-size:13px; line-hcontenttableeight:25px; color:#808080; padding-top:20px;"><strong>Note:</strong> The standard check-in time is <strong>{{$result['hotel_details']->check_in}}</strong> and the standard check-out time is <strong>{{$result['hotel_details']->check_out}}</strong>.</td>
-                </tr>
+                </tr> --}}
               </tbody>
             </table></td>
         </tr>
