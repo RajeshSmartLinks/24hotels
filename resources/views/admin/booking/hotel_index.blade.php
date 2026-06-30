@@ -62,6 +62,9 @@
                                                                 @if(!empty($booking->hotel_room_booking_path))
                                                                 <a  href = "{{asset($booking->hotel_room_booking_path)}}" download data-bs-toggle="tooltip" title="Download Ticket"><i class="fa fa-download"></i></a> | 
                                                                 @endif
+                                                                @if(!empty($booking->invoice_path))
+                                                                <a  href = "{{asset($booking->invoice_path)}}" download data-bs-toggle="tooltip" title="Download Ticket"><i class="fa fa-file-text-o"></i></a> 
+                                                                @endif
                                                                 
                                                                 {{-- @can('booking-cancel')
                                                                 @if($booking->ticket_status == 1 && ($booking->booking_status == "booking_completed" || $booking->booking_status == "cancellation_initiated") && $booking->is_cancel != 1)
