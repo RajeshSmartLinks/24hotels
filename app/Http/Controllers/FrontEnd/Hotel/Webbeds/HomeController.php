@@ -2220,8 +2220,8 @@ class HomeController extends Controller
                                     
                                     $user = $result['hotel_booking_travelers_info'][0]->first_name .' '.$result['hotel_booking_travelers_info'][0]->last_name;
                                     $result['hotel_details'] = new \stdClass();
-                                    $result['hotel_details']->hotel_name = $hotelbookingdetails->name;
-                                    $result['hotel_details']->address = $hotelbookingdetails->address;
+                                    $result['hotel_details']->hotel_name = $hotelbookingdetails->hotel_name;
+                                    $result['hotel_details']->address = $hotelbookingdetails->hotel_address;
                                     $result['hotel_details']->check_in = $bookingDetails['CheckInDate'];
                                     $result['hotel_details']->check_out = $bookingDetails['CheckOutDate'];
                                     $result['hotel_booking_Details'] =$hotelbookingdetails;
@@ -2608,8 +2608,8 @@ class HomeController extends Controller
                             
                             $user = $result['hotel_booking_travelers_info'][0]->first_name .' '.$result['hotel_booking_travelers_info'][0]->last_name;
                             $result['hotel_details'] = new \stdClass();
-                            $result['hotel_details']->hotel_name = $hotelBooking->name;
-                            $result['hotel_details']->address = $hotelBooking->address;
+                            $result['hotel_details']->hotel_name = $hotelBooking->hotel_name;
+                            $result['hotel_details']->address = $hotelBooking->hotel_address;
                             $result['hotel_details']->check_in = $bookingDetails['CheckInDate'];
                             $result['hotel_details']->check_out = $bookingDetails['CheckOutDate'];
                             $result['hotel_booking_Details'] =$hotelBooking;
