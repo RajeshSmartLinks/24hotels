@@ -13,6 +13,46 @@
    object-fit:cover;
    object-position:50% 50%;
     }
+
+    /* Room Detail Modal Custom Styles */
+    .room-detail-modal .modal-content {
+      border-radius: 16px;
+      overflow: hidden;
+      border: none;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+    .room-specs i {
+      font-size: 1.15rem;
+      color: #007bff;
+      width: 24px;
+      text-align: center;
+    }
+    .room-specs span {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .text-orange {
+      color: #fd7e14;
+    }
+    .facility-item {
+      font-size: 0.85rem;
+      padding: 4px 0;
+      color: #495057;
+    }
+    .facility-item i {
+      font-size: 0.75rem;
+      color: #28a745;
+    }
+    .expand-policy {
+      font-size: 0.8rem;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.2s ease;
+    }
+    .expand-policy:hover {
+      color: #0056b3;
+      text-decoration: underline;
+    }
     </style>
   
   <!-- Page Header
@@ -335,7 +375,146 @@
                       @foreach($result['availablerooms'] as $r=>$roomDetails)
                         <tr class="room-row" data-room-type="{{$roomDetails['name']}}" data-board-basis="{{$roomDetails['boardbasis']}}">
                           <th scope="row" class="row-index">{{$loop->iteration}}</th>
-                          <td>{{$roomDetails['name']}}</td>
+                          <td>
+                            {{$roomDetails['name']}}
+                            @if(isset($roomDetails['type']) && $roomDetails['type'] == 'dida' && isset($roomDetails['meta']))
+                            <a href="#" class="ms-1 text-primary" data-bs-toggle="modal" data-bs-target="#roomDetailModal{{$r}}">
+                              <i class="fas fa-info-circle" data-bs-toggle="tooltip" title="View Room Details"></i>
+                            </a>
+                            
+                            <!-- Room Detail Modal -->
+                            <div id="roomDetailModal{{$r}}" class="modal fade room-detail-modal" role="dialog" aria-hidden="true">
+                              <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                <div class="modal-content position-relative">
+                                  <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close" style="z-index: 1055; background-color: rgba(255,255,255,0.8); padding: 0.5rem; border-radius: 50%;"></button>
+                                  <div class="modal-body p-0 text-start">
+                                    <div class="row g-0">
+                                      <!-- Left: Image Slider -->
+                                      <div class="col-md-7">
+                                        <div id="roomCarousel{{$r}}" class="carousel slide h-100" data-bs-ride="carousel">
+                                          <div class="carousel-inner h-100">
+                                            @if(isset($roomDetails['meta']['images']) && count($roomDetails['meta']['images']) > 0)
+                                              @foreach($roomDetails['meta']['images'] as $imgKey => $imgUrl)
+                                                <div class="carousel-item h-100 {{ $imgKey == 0 ? 'active' : '' }} position-relative">
+                                                  <div class="d-flex justify-content-center align-items-center position-absolute w-100 h-100" style="background-color: #f8f9fa; z-index: 1; border-top-left-radius: .3rem; border-bottom-left-radius: .3rem;">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                      <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                  </div>
+                                                  <img src="{{ $imgUrl }}" loading="lazy" class="d-block w-100 h-100 position-relative" alt="Room Image" style="min-height: 400px; max-height: 500px; object-fit: cover; border-top-left-radius: .3rem; border-bottom-left-radius: .3rem; z-index: 2;" onload="this.previousElementSibling.style.display='none'">
+                                                </div>
+                                              @endforeach
+                                            @else
+                                              <div class="carousel-item h-100 active position-relative">
+                                                <div class="d-flex justify-content-center align-items-center position-absolute w-100 h-100" style="background-color: #f8f9fa; z-index: 1; border-top-left-radius: .3rem; border-bottom-left-radius: .3rem;">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                      <span class="visually-hidden">Loading...</span>
+                                                    </div>
+                                                </div>
+                                                <img src="{{ asset('frontEnd/images/no-hotel-image.png') }}" loading="lazy" class="d-block w-100 h-100 position-relative" alt="No Room Image" style="min-height: 400px; max-height: 500px; object-fit: cover; border-top-left-radius: .3rem; border-bottom-left-radius: .3rem; z-index: 2;" onload="this.previousElementSibling.style.display='none'">
+                                              </div>
+                                            @endif
+                                          </div>
+                                          @if(isset($roomDetails['meta']['images']) && count($roomDetails['meta']['images']) > 1)
+                                            <button class="carousel-control-prev" type="button" data-bs-target="#roomCarousel{{$r}}" data-bs-slide="prev" style="z-index: 10;">
+                                              <span class="d-flex justify-content-center align-items-center" style="background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 40px; height: 40px;">
+                                                <span class="carousel-control-prev-icon" aria-hidden="true" style="width: 20px; height: 20px;"></span>
+                                              </span>
+                                              <span class="visually-hidden">Previous</span>
+                                            </button>
+                                            <button class="carousel-control-next" type="button" data-bs-target="#roomCarousel{{$r}}" data-bs-slide="next" style="z-index: 10;">
+                                              <span class="d-flex justify-content-center align-items-center" style="background-color: rgba(0,0,0,0.5); border-radius: 50%; width: 40px; height: 40px;">
+                                                <span class="carousel-control-next-icon" aria-hidden="true" style="width: 20px; height: 20px;"></span>
+                                              </span>
+                                              <span class="visually-hidden">Next</span>
+                                            </button>
+                                          @endif
+                                        </div>
+                                      </div>
+                                      <!-- Right: Room Details -->
+                                      <div class="col-md-5 p-4 d-flex flex-column justify-content-between" style="background-color: #fafafa; border-top-right-radius: .3rem; border-bottom-right-radius: .3rem;">
+                                        <div>
+                                          <h4 class="mb-3 text-dark fw-600">{{ $roomDetails['name'] }}</h4>
+                                          
+                                          <!-- Specifications -->
+                                          <div class="room-specs mb-4">
+                                            @if(isset($roomDetails['meta']['specifications']['size']))
+                                            <div class="d-flex align-items-center mb-2 text-secondary">
+                                              <i class="fas fa-vector-square me-2 text-primary" style="width: 20px;"></i>
+                                              <span>{{ $roomDetails['meta']['specifications']['size'] }}</span>
+                                            </div>
+                                            @endif
+                                            @if(isset($roomDetails['meta']['specifications']['hasWindow']))
+                                            <div class="d-flex align-items-center mb-2 text-secondary">
+                                              <i class="far fa-window-maximize me-2 text-primary" style="width: 20px;"></i>
+                                              <span>{{ $roomDetails['meta']['specifications']['hasWindow'] }}</span>
+                                            </div>
+                                            @endif
+                                            @if(isset($roomDetails['meta']['specifications']['wifi']))
+                                            <div class="d-flex align-items-center mb-2 text-secondary">
+                                              <i class="fas fa-wifi me-2 text-primary" style="width: 20px;"></i>
+                                              <span>{{ $roomDetails['meta']['specifications']['wifi'] }}</span>
+                                            </div>
+                                            @endif
+                                            @if(isset($roomDetails['meta']['specifications']['maxPersons']))
+                                            <div class="d-flex align-items-center mb-2 text-secondary">
+                                              <i class="fas fa-users me-2 text-primary" style="width: 20px;"></i>
+                                              <span>{{ $roomDetails['meta']['specifications']['maxPersons'] }}</span>
+                                            </div>
+                                            @endif
+                                          </div>
+                                          
+                                          <!-- Children Policy -->
+                                          <!-- @if(isset($roomDetails['meta']['childrenPolicy']))
+                                          <div class="children-policy-box mb-4">
+                                            <h6 class="text-orange fw-600 mb-2">
+                                              <i class="fas fa-baby me-2"></i> Children Policy
+                                            </h6>
+                                            <div class="children-policy-content text-secondary text-2">
+                                              <span class="policy-short-text">
+                                                {{ Str::limit($roomDetails['meta']['childrenPolicy'], 80) }}
+                                              </span>
+                                              @if(strlen($roomDetails['meta']['childrenPolicy']) > 80)
+                                                <span class="policy-full-text d-none">
+                                                  {{ $roomDetails['meta']['childrenPolicy'] }}
+                                                </span>
+                                                <a href="javascript:void(0);" class="text-primary ms-1 expand-policy" onclick="togglePolicy(this)">Expand</a>
+                                              @endif
+                                            </div>
+                                          </div>
+                                          @endif -->
+                                          
+                                          <!-- Room Facilities -->
+                                          <!-- @if(isset($roomDetails['meta']['facilities']) && count($roomDetails['meta']['facilities']) > 0)
+                                          <div class="room-facilities-box">
+                                            <h6 class="text-primary fw-600 mb-2">
+                                              <i class="fas fa-shower me-2"></i> Room Facilities
+                                            </h6>
+                                            <div class="row g-2">
+                                              @foreach($roomDetails['meta']['facilities'] as $facility)
+                                                <div class="col-6 text-secondary text-2 d-flex align-items-center facility-item">
+                                                  <i class="fas fa-check text-success me-1"></i>
+                                                  <span class="text-truncate" title="{{ $facility }}">{{ $facility }}</span>
+                                                </div>
+                                              @endforeach
+                                            </div>
+                                          </div>
+                                          @endif -->
+                                        </div>
+                                        
+                                        <!-- Actions -->
+                                        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                                          <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                                          <a href="{{route('PreBookingRoom',['hotelCode'=>encrypt($result['hotelDeatils']['hotel_code']) , 'searchId' =>encrypt($result['searchRequest']->id) , 'bookingCode' => encrypt($roomDetails['bookingCode']) , 'type' => encrypt($roomDetails['type'])])}}" class="btn btn-sm btn-primary">Book Now</a>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            @endif
+                          </td>
                           <td>{{$roomDetails['boardbasis']}}</td>
                           <td>
                             <a href="#" data-bs-toggle="modal" data-bs-target="#cancellation-policy{{$r}}">{{__('lang.cancellation_policy')}}</a>
@@ -680,6 +859,21 @@
             applyFilters();
         });
     });
+
+    function togglePolicy(btn) {
+        var parent = btn.parentElement;
+        var shortText = parent.querySelector('.policy-short-text');
+        var fullText = parent.querySelector('.policy-full-text');
+        if (fullText.classList.contains('d-none')) {
+            fullText.classList.remove('d-none');
+            shortText.classList.add('d-none');
+            btn.textContent = 'Collapse';
+        } else {
+            fullText.classList.add('d-none');
+            shortText.classList.remove('d-none');
+            btn.textContent = 'Expand';
+        }
+    }
   </script>
 <script src='{{ asset('frontEnd/js/hotel.js') }}?ver={{ config('app.version') }}'></script>
 @endsection

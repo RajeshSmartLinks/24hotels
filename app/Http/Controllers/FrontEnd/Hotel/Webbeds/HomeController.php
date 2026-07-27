@@ -1100,6 +1100,7 @@ class HomeController extends Controller
                     $formatedBookingCode = ['RatePlanID' => $roomInfo['RatePlanID'] , 'metadata' => $roomInfo['Metadata']];
                     //dd($cancellationRules);
                     
+                    $roomMeta = $this->getRoomMetaDetails($roomInfo['RoomName'], $roomInfo['RoomTypeID'], $hotelDetails ?? null);
                     $result['availablerooms'][]  =  [
                         'name' => $roomInfo['RoomName'],
                         'roomPromotion' => null,
@@ -1116,21 +1117,99 @@ class HomeController extends Controller
                         'specialPromotion' => null,
                         'validForOccupancy' => null,
                         'type' => 'dida',
-                        'bookingCode' => encrypt($formatedBookingCode) 
+                        'bookingCode' => encrypt($formatedBookingCode),
+                        'meta' => $roomMeta
                     ];
 
                 }
             }
-           // dd($roomDetails,$result['availablerooms']);
         }
         //dd($result['availablerooms']);
        
         //searchRequest 
         $result['hotelCode'] = $hotelCode;
-       // dd($result);
 
         return view('front_end.hotel.webbeds.details',compact('titles','result' ,'type'));
         
+    }
+
+    private function getRoomMetaDetails($roomName, $roomTypeId = null, $hotelDetails = null)
+    {
+        $images = [];
+        $size = '';
+        $hasWindow = '';
+        $wifi = '';
+        $maxPersons = '';
+        $facilities = [];
+        $childrenPolicy = '';
+        
+        if ($hotelDetails && isset($hotelDetails['rooms']) && is_array($hotelDetails['rooms']) && $roomTypeId) {
+            $matchedRoomType = null;
+            
+            foreach ($hotelDetails['rooms'] as $rt) {
+                if (isset($rt['id']) && $rt['id'] == $roomTypeId) {
+                    $matchedRoomType = $rt;
+                    break;
+                }
+            }
+
+            if ($matchedRoomType) {
+                // Real Images
+                if (isset($matchedRoomType['images']) && is_array($matchedRoomType['images']) && count($matchedRoomType['images']) > 0) {
+                    $images = array_column($matchedRoomType['images'], 'url');
+                }
+
+                // Real Facilities
+                if (isset($matchedRoomType['facilities']) && is_array($matchedRoomType['facilities']) && count($matchedRoomType['facilities']) > 0) {
+                    $facilities = array_column($matchedRoomType['facilities'], 'description');
+                }
+
+                // Real Specifications
+                if (isset($matchedRoomType['size']) && !empty($matchedRoomType['size'])) {
+                    $size = 'Size ' . $matchedRoomType['size'] ;
+                }else{
+                    $size = 'No Size Information available';
+                }
+                if (isset($matchedRoomType['window'])) {
+                    $hasWindow = $matchedRoomType['window'] ? 'Has Window' : 'No Window';
+                }else{
+                    $hasWindow = 'No Window Information available';
+                }
+                if (isset($matchedRoomType['maxOccupancy']) && is_numeric($matchedRoomType['maxOccupancy'])) {
+                    $maxPersons = 'Max ' . $matchedRoomType['maxOccupancy'] . ' Persons';
+                }else{
+                    $maxPersons = 'No Max Persons Information available';
+                }
+                if (isset($matchedRoomType['hasWifi'])) {
+                    $wifi = $matchedRoomType['hasWifi'] ? 'Has Wifi' : 'No Wifi';
+                }else{
+                    $wifi = 'No Wifi';
+                }
+                
+              
+                
+            }
+        }
+
+        // Real Children Policy from hotel level policy if available
+        // if ($hotelDetails && isset($hotelDetails['policy']['child']) && !empty($hotelDetails['policy']['child'])) {
+        //     $childrenPolicy = $hotelDetails['policy']['child'];
+        // }
+
+        // deduplicate facilities
+        // $facilities = array_values(array_unique($facilities));
+
+        return [
+            'images' => $images,
+            'specifications' => [
+                'size' => $size,
+                'hasWindow' => $hasWindow,
+                'wifi' => $wifi,
+                'maxPersons' => $maxPersons
+            ],
+            // 'facilities' => $facilities,
+            // 'childrenPolicy' => $childrenPolicy
+        ];
     }
 
 
