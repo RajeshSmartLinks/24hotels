@@ -188,7 +188,7 @@
           </div>
           <div class="col-md-6 col-lg-3">
             <div class="position-relative">
-              <select id="residency-id" class="form-select" name = "residency" required placeholder="{{__('lang.select_residency')}}">
+              <select id="residency-id" class="form-select" name = "residency" placeholder="{{__('lang.select_residency')}}">
                 <option value="">{{__('lang.select_residency')}}</option>
                 @foreach($result['countries'] as $country)
                 <option value="{{$country->code}}" {{app('request')->input('residency') == $country->code?"selected":""}}>{{$country->name}}</option>

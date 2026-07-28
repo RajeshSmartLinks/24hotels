@@ -721,8 +721,11 @@ class HomeController extends Controller
         $checkOut = $request->input('hotelsCheckOut');
         $noOfRooms = (int) $request->input('noOfRooms');
         $nationality = $request->input('nationality');
-        $residency = $request->input('residency');
-        $residencyInfo = WebbedsCountry::where('code', $residency)->first();
+        $residency = $request->input('residency')?? null;
+        if(!empty($residency))
+        {
+            $residencyInfo = WebbedsCountry::where('code', $residency)->first();
+        }
 
         // $cityDetails = DB::table('webbeds_cities')->where('id',$cityId)->first();
          $cityDetails = HotelCity::where('id',$cityId)->first();
@@ -753,7 +756,7 @@ class HomeController extends Controller
         $hotelSearch->no_of_rooms                   = $request->input('noOfRooms');
         $hotelSearch->no_of_nights                  = $CIn->diffInDays($COut);
         $hotelSearch->nationality                   = $nationality;
-        $hotelSearch->residency                     = $residency;
+        $hotelSearch->residency                     = $residency??null;
         $hotelSearch->city_code                     = $cityDetails->id;
         $hotelSearch->no_of_guests                  = $noOfGuests;
         $hotelSearch->city_name                     = $cityDetails->long_name;
@@ -805,10 +808,13 @@ class HomeController extends Controller
             $checkOut = $request->input('hotelsCheckOut');
             $noOfRooms = (int) $request->input('noOfRooms');
             $nationality = $request->input('nationality');
-            $residency = $request->input('residency');
+            $residency = $request->input('residency') ?? null;
 
             //$cityDetails = DB::table('webbeds_cities')->where('code',$cityCode)->first();
-            $residencyInfo = WebbedsCountry::where('code', $residency)->first();
+            if(!empty($residency))
+            {
+                $residencyInfo = WebbedsCountry::where('code', $residency)->first();
+            }
             //$cityDetails = DB::table('webbeds_cities')->where('id',$cityId)->first();
             $cityDetails = HotelCity::where('id',$cityId)->first();
 
