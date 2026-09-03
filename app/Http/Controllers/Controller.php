@@ -101,6 +101,15 @@ class Controller extends BaseController
     public $didaAuthToken;
     public $didaStatic;
 
+    
+    // Restel
+    public $RestelUrl;
+    public $RestelCodusu ;   
+    public $RestelSecacc ;
+    public $RestelCodigousu;
+    public $RestelClausu;
+    public $RestelAfil;
+    public $RestelRequestCompleteUrl;
 
 
 
@@ -148,6 +157,17 @@ class Controller extends BaseController
         $didaCredentials = $this->didaUsername . ':' . $this->didaPassword;
         $encoded = base64_encode($didaCredentials);
         $this->didaAuthToken         = $encoded;
+
+
+        // Restel
+        $this->RestelUrl               = env('RESTEL_URL');
+        $this->RestelCodusu            = env('RESTEL_CODUSU');
+        $this->RestelSecacc            = env('RESTEL_SECACC');
+        $this->RestelCodigousu         = env('RESTEL_CODIGOUSU');
+        $this->RestelClausu            = env('RESTEL_CLAUSU');
+        $this->RestelAfil              = env('RESTEL_AFIL');
+        $this->RestelRequestCompleteUrl = env('RESTEL_URL').'?codigousu='.$this->RestelCodigousu.'&clausu='.$this->RestelClausu.'&afiliacio='.$this->RestelAfil.'&secacc='.$this->RestelSecacc;
+       
       
         
     }
@@ -1039,6 +1059,83 @@ class Controller extends BaseController
         }
     }
 
+    public function GTSStaticApi(array $request)
+    {
+        set_time_limit(400);
+
+        try {
+            $baseUrl = 'https://hotel-connect.prod.zentrumhub.com/api/v1/';
+            
+            $url = $baseUrl . ltrim($request['end_point'], '/');
+
+            $method = strtoupper($request['method'] ?? 'GET');
+
+            $queryParams = [];
+            if (!empty($request['query'])) {
+                $queryParams = $request['query'];
+            }
+
+            if ($method === 'GET' && !empty($queryParams)) {
+                $url .= '?' . http_build_query($queryParams);
+            }
+            //dd($url ,$queryParams);
+
+            // Read credentials from env (use GTS_ prefixed ones as fallback)
+            $apiKey = env('GTS_API_KEY');
+            $customerId = env('GTS_CUSTOMER_ID');
+            $affiliateId = env('GTS_AFFILIATED');
+            $userIp = request()->ip() ?? '127.0.0.1';
+            $correlationId = (string) \Illuminate\Support\Str::uuid();
+
+            $headers = [
+                'Accept' => 'application/json',
+                'api-key' => $apiKey,
+                'customer-id' => $customerId,
+                'affiliate-id' => $affiliateId,
+                'user-ip' => $userIp,
+                'correlation-id' => $correlationId,
+                'Accept-Encoding' => 'gzip, deflate',
+            ];
+
+            $http = Http::withHeaders($headers)
+                ->timeout(300)
+                ->withoutVerifying();
+
+            if ($method === 'POST') {
+                $response = $http->post($url, $request['params'] ?? []);
+            } else {
+                $response = $http->get($url);
+            }
+            // dd($response);
+
+            if ($response->failed()) {
+                return [
+                    'response' => [],
+                    'status'   => false,
+                    'message'  => 'HTTP ' . $response->status() . ' ' . $response->body(),
+                ];
+            }
+
+            return [
+                'response' => $response->json(),
+                'status'   => true,
+                'message'  => 'Success',
+            ];
+        } catch (\Throwable $e) {
+            \Log::error('ZentrumHub API Error: ' . $e->getMessage(), [
+                'endpoint' => $request['end_point'] ?? null,
+                'method'   => $request['method'] ?? null,
+                'params'   => $request['params'] ?? null,
+            ]);
+
+            return [
+                'response' => [],
+                'status'   => false,
+                'message'  => $e->getMessage(),
+            ];
+        }
+    }
+
     // public function DadiApi(array $request)
     // {
     //     // dd(json_encode($request['payload']));
@@ -1277,6 +1374,324 @@ class Controller extends BaseController
             \Log::error('Dida Pool Error: '.$e->getMessage());
 
             return [];
+        }
+    }
+
+    public function GtsApiPool(array $requests)
+    {
+        set_time_limit(400);
+
+        $baseUrl = env("GTS_API_URL") ?? 'https://hotel-connect.prod.zentrumhub.com/api/v1/';
+
+        $apiKey = env('GTS_API_KEY');
+        $customerId = env('GTS_CUSTOMER_ID');
+        $affiliateId = env('GTS_AFFILIATED');
+        $userIp = request()->ip() ?? '127.0.0.1';
+        // dd($requests);
+
+        try {
+            $responses = \Illuminate\Support\Facades\Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($requests, $baseUrl, $apiKey, $customerId, $affiliateId, $userIp) {
+                $poolRequests = [];
+
+                foreach ($requests as $index => $request) {
+                    $url = $baseUrl . ltrim($request['end_point'], '/');
+                    $method = strtoupper($request['method'] ?? 'GET');
+                    $correlationId = (string) \Illuminate\Support\Str::uuid();
+
+                    $headers = [
+                        'Accept' => 'application/json',
+                        'api-key' => $apiKey,
+                        'customer-id' => $customerId,
+                        'affiliate-id' => $affiliateId,
+                        'user-ip' => $userIp,
+                        'correlation-id' => $correlationId,
+                        'Accept-Encoding' => 'gzip, deflate',
+                    ];
+
+                    $queryParams = $request['query'] ?? [];
+                    if ($method === 'GET' && !empty($queryParams)) {
+                        //dd($queryParams);
+                        // $queryString = preg_replace('/%5B[0-9]+%5D/Sim', '%5B%5D', http_build_query($queryParams));
+                        //    $queryString = http_build_query($queryParams);
+                        // $url .= '?' . $queryString;
+                        $queryString = collect($queryParams)
+                            ->flatMap(function ($value, $key) {
+                                if (is_array($value)) {
+                                    return collect($value)->map(function ($item) use ($key) {
+                                        return urlencode($key) . '=' . urlencode($item);
+                                    });
+                                }
+
+                                return [urlencode($key) . '=' . urlencode($value)];
+                            })
+                            ->implode('&');
+
+                        $url .= '?' . $queryString;
+                    }
+                    //dd($url);
+
+                    $client = $pool->as($index)->withHeaders($headers);
+
+                    if ($method === 'POST') {
+                        $poolRequests[] = $client
+                            ->timeout(300)
+                            ->withoutVerifying()
+                            ->post($url, $request['params'] ?? []);
+                    } else {
+                        $poolRequests[] = $client
+                            ->timeout(300)
+                            ->withoutVerifying()
+                            ->get($url);
+                    }
+                }
+
+                return $poolRequests;
+            });
+            
+
+            $result = [];
+
+            foreach ($responses as $index => $response) {
+                $request = $requests[$index];
+
+                $HotelXmlRequest = new HotelXmlRequest();
+                $HotelXmlRequest->json_request = json_encode($request['query'] ?? $request['params'] ?? []);
+                $HotelXmlRequest->json_response = $response->body() ?? '';
+                $HotelXmlRequest->ip_address = request()->ip();
+                $HotelXmlRequest->request_type = $request['request_type'] ?? null;
+                $HotelXmlRequest->supplier = 'Gts';
+                $HotelXmlRequest->formate_type = 'json';
+                $HotelXmlRequest->hotel_search_id = $request['searchId'] ?? null;
+                $HotelXmlRequest->save();
+               // dd($HotelXmlRequest);
+
+                $result[] = [
+                    'status' => $response->successful(),
+                    'response' => $response->successful() ? $response->json() : [],
+                    'message' => $response->successful() ? 'Success' : 'HTTP ' . $response->status() . ' ' . $response->body(),
+                    'hotelRequest' => $HotelXmlRequest
+                ];
+            }
+
+            return $result;
+        } catch (\Throwable $e) {
+            \Log::error('GtsApiPool Error: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+
+    public function GtsAPI(array $request)
+    {
+        set_time_limit(400);
+
+        $baseUrl = env("GTS_API_URL") ?? 'https://hotel-connect.prod.zentrumhub.com/api/v1/';
+
+        $apiKey = env('GTS_API_KEY');
+        $customerId = env('GTS_CUSTOMER_ID');
+        $affiliateId = env('GTS_AFFILIATED');
+        $userIp = request()->ip() ?? '127.0.0.1';
+
+        try {
+            $url = $baseUrl . ltrim($request['end_point'], '/');
+            $method = strtoupper($request['method'] ?? 'GET');
+            $correlationId = (string) \Illuminate\Support\Str::uuid();
+
+            $headers = [
+                'Accept' => 'application/json',
+                'api-key' => $apiKey,
+                'customer-id' => $customerId,
+                'affiliate-id' => $affiliateId,
+                'user-ip' => $userIp,
+                'correlation-id' => $correlationId,
+                'Accept-Encoding' => 'gzip, deflate',
+            ];
+
+            $queryParams = $request['query'] ?? [];
+            if ($method === 'GET' && !empty($queryParams)) {
+                $queryString = collect($queryParams)
+                    ->flatMap(function ($value, $key) {
+                        if (is_array($value)) {
+                            return collect($value)->map(function ($item) use ($key) {
+                                return urlencode($key) . '=' . urlencode($item);
+                            });
+                        }
+
+                        return [urlencode($key) . '=' . urlencode($value)];
+                    })
+                    ->implode('&');
+
+                $url .= '?' . $queryString;
+            }
+
+            
+
+            $http = \Illuminate\Support\Facades\Http::withHeaders($headers)->timeout(300)->withoutVerifying();
+
+            if ($method === 'POST') {
+                $response = $http->post($url, $request['params'] ?? []);
+            } elseif ($method === 'DELETE') {
+                $response = $http->delete($url, $request['params'] ?? []);
+            } else {
+                $response = $http->get($url);
+            }
+
+            $HotelXmlRequest = new HotelXmlRequest();
+            $HotelXmlRequest->json_request = json_encode($request['query'] ?? $request['params'] ?? []);
+            $HotelXmlRequest->json_response = $response->body() ?? '';
+            $HotelXmlRequest->ip_address = request()->ip();
+            $HotelXmlRequest->request_type = $request['request_type'] ?? null;
+            $HotelXmlRequest->supplier = 'Gts';
+            $HotelXmlRequest->formate_type = 'json';
+            $HotelXmlRequest->hotel_search_id = $request['searchId'] ?? null;
+            $HotelXmlRequest->save();
+            
+
+            return [
+                'status' => $response->successful(),
+                'response' => $response->json(),
+                'message' => $response->successful() ? 'Success' : 'HTTP ' . $response->status() . ' ' . $response->body(),
+                'hotelRequest' => $HotelXmlRequest
+            ];
+
+        } catch (\Throwable $e) {
+            \Log::error('GtsAPI Error: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function GtsApiJsonRequestWithoutLog($request)
+    {
+        set_time_limit(400);
+
+        $baseUrl = env("GTS_API_URL") ?? 'https://hotel-connect.prod.zentrumhub.com/api/v1/';
+        $apiKey = env('GTS_API_KEY');
+        $customerId = env('GTS_CUSTOMER_ID');
+        $affiliateId = env('GTS_AFFILIATED');
+        $userIp = request()->ip() ?? '127.0.0.1';
+
+        try {
+            $url = $baseUrl . ltrim($request['end_point'], '/');
+            $method = strtoupper($request['method'] ?? 'GET');
+            $correlationId = "4321";
+
+            $headers = [
+                'Accept' => 'application/json',
+                'api-key' => $apiKey,
+                'customer-id' => $customerId,
+                'affiliate-id' => $affiliateId,
+                'user-ip' => $userIp,
+                'correlation-id' => $correlationId,
+                'Accept-Encoding' => 'gzip, deflate',
+            ];
+
+            $queryParams = $request['query'] ?? [];
+            $bodyParams = $request['params'] ?? [];
+
+            $http = \Illuminate\Support\Facades\Http::withHeaders($headers)->withoutVerifying();
+            
+            if ($method === 'GET') {
+                $response = $http->get($url, $queryParams);
+            } elseif ($method === 'POST') {
+                $response = $http->post($url, $bodyParams);
+            } else {
+                $response = $http->send($method, $url, [
+                    'query' => $queryParams,
+                    'json' => $bodyParams
+                ]);
+            }
+
+            return [
+                'status' => $response->successful(),
+                'response' => $response->successful() ? $response->json() : null,
+                'message' => $response->successful() ? 'Success' : 'HTTP ' . $response->status() . ' ' . $response->body(),
+            ];
+
+        } catch (\Throwable $e) {
+            \Log::error('GtsApiJsonRequestWithoutLog Error: ' . $e->getMessage());
+            return [
+                'status' => false,
+                'response' => null,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
+    public function RestelApiXmlRequestWithoutLog($request){
+        // header( 'Cache-Control: max-age=0,no-store');
+        set_time_limit(300); 
+        try 
+        {
+            $headers = array(
+                "Accept"=> "application/xml",
+            );
+            $client = new Client();
+            $requestData = ['headers' => $headers,'body' => '','verify' => false];
+
+            $requestUrl = $this->RestelRequestCompleteUrl."&xml=".$request['xml'];
+        
+
+            
+            $clientrsp = $client->request('GET', $requestUrl, $requestData);
+            $response = $clientrsp->getBody()->getContents();
+
+            $responseArray = XmlToArray::convert($response, $outputRoot = false);
+            if(isset($responseArray['parametros']['poblaciones']['poblacion']['deppob'])){
+                //only one exist
+                $responseArray['parametros']['poblaciones']['poblacion'] = [$responseArray['parametros']['poblaciones']['poblacion']];
+            }
+        
+
+            return [
+                'city' => $responseArray['parametros']['poblaciones']['poblacion'] ?? [],
+                'success' => isset($responseArray['parametros']['error']) ? false : true 
+            ];
+
+        } catch (\Exception $e) {
+
+            return [
+                'city' =>  [],
+                'success' => false
+            ];
+        }
+
+
+    }
+
+    public function RestelAPI(array $request)
+    {
+        set_time_limit(400);
+
+        try {
+            $headers = array(
+                "Accept"=> "application/xml",
+            );
+            $client = new Client();
+            $requestData = ['headers' => $headers,'body' => '','verify' => false];
+            $requestUrl = $this->RestelRequestCompleteUrl."&xml=".urlencode($request['xml']);
+            $clientrsp = $client->request('GET', $requestUrl, $requestData);
+            $response = $clientrsp->getBody()->getContents();
+
+            $responseArray = XmlToArray::convert($response, $outputRoot = false);
+           
+
+            // Log request & response to database
+            $HotelXmlRequest = new HotelXmlRequest;
+            $HotelXmlRequest->request_xml    = $request['xml'];
+            $HotelXmlRequest->response_xml = ($request['request_type'] == 'search') ? null : $response;
+            $HotelXmlRequest->ip_address = $_SERVER['REMOTE_ADDR'] ?? null;
+            $HotelXmlRequest->request_type = $request['request_type'] ??null;
+            $HotelXmlRequest->supplier = 'Restel';
+            $HotelXmlRequest->hotel_search_id = $request['searchId']??null;
+            return [
+                'hotelResponse' => $responseArray,
+                'hotelRequest'  => $HotelXmlRequest
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'hotelResponse' => [],
+                'hotelRequest'  => []
+            ];
         }
     }
 }

@@ -44,7 +44,7 @@ class CreateHotelBookingsTable extends Migration
 
 
             $table->text('booking_code')->nullable();
-            $table->enum('booking_status',['booking_initiated','payment_initiated','payment_successful','payment_failure','payment_exipre','booking_failure','booking_completed','refund_initiated','refund_completed','cancellation_initiated','canceled','booking_pending','booking_partially_completed','cancellation_failure','booking_hold'])->nullable();
+            $table->enum('booking_status',['booking_initiated','payment_initiated','payment_successful','payment_failure','payment_exipre','booking_failure','booking_completed','refund_initiated','refund_completed','cancellation_initiated','canceled','booking_pending','booking_partially_completed','cancellation_failure','booking_hold','booking_planned','booking_confirmation_pending','booking_gts_initiated'])->nullable();
 
 
             $table->string('confirmation_number')->nullable();
@@ -64,9 +64,9 @@ class CreateHotelBookingsTable extends Migration
             $table->string('no_of_guests')->nullable();
 
             $table->enum('type_of_payment',['k_net','credit_card','wallet'])->default('k_net');
-            $table->enum('supplier',['tbo','webbeds','dida'])->default('tbo');
+            $table->enum('supplier',['tbo','webbeds','dida','gts'])->default('tbo');
 
-            $table->enum('reservation_status',['Confirmed','Canceled','CancellationInProgress','CancelPending','CxlRequestSentToHotel','CancelledAndRefundAwaited','PreBook','Failed','Pending','OnRequest'])->nullable();
+            $table->enum('reservation_status',['Confirmed','Canceled','CancellationInProgress','CancelPending','CxlRequestSentToHotel','CancelledAndRefundAwaited','PreBook','Failed','Pending','OnRequest','Planned','ConfirmationPending','GtsInitiated'])->nullable();
             $table->string('supplement_charges')->nullable();
             $table->tinyInteger('is_rsp_price')->default('0')->comment('if price is Recommended Selling Price enabling this flag')->nullable();
             $table->text('hotel_name')->nullable();
@@ -76,6 +76,7 @@ class CreateHotelBookingsTable extends Migration
             $table->decimal('penality_amount',18,3)->nullable();
             $table->enum('cancellation_status',['partially_cancellation','cancellation_completed','cancellation_failure'])->nullable();
             $table->string('booking_search_request_id')->nullable();
+            $table->string('cancellation_token',500)->comment('for GTS')->nullable();
         });
     }
 

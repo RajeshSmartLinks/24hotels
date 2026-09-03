@@ -1558,6 +1558,22 @@ function is_assoc(array $array): bool
             $toDate = 'ToDate';
             $charge = 'Amount';
             $currency = "USD";
+        }elseif($type == 'gts'){
+            if (empty($cancellationRules)) {
+                return [];
+            }
+            $rules = [];
+            foreach($cancellationRules as $policy) {
+                if(isset($policy['rules']) && is_array($policy['rules'])) {
+                    foreach($policy['rules'] as $rule) {
+                        $rules[] = $rule;
+                    }
+                }
+            }
+            $fromDate = 'start';
+            $toDate = 'end';
+            $charge = 'estimatedValue';
+            $currency = "USD";
         }
 
         $output = [];
@@ -1772,6 +1788,55 @@ if (!function_exists('convertCancellationRulesForDida')) {
     }
 }
 
+if (!function_exists('convertCancellationRulesForGTS')) {
+    function convertCancellationRulesForGTS($policies, $currency, $noOfRooms = 1, $roomName = "Room 1")
+    {
+        if (!$policies || !is_array($policies)) {
+            return [];
+        }
+
+        $rulesText = [];
+
+        foreach ($policies as $policy) {
+            $rules = $policy['rules'] ?? [];
+            if (!is_array($rules)) {
+                continue;
+            }
+
+            foreach ($rules as $rule) {
+                $from = $rule['start'] ?? null;
+                $to   = $rule['end'] ?? null;
+                $charge = $rule['estimatedValue'] ?? 0;
+
+                $chargeFormatted = number_format(((float)$charge / (float)$noOfRooms), 2);
+
+                // Format dates
+                $fromText = !empty($from) ? Carbon::parse($from)->utc()->format('D, d M Y H:i:s') : null;
+                $toText   = !empty($to)   ? Carbon::parse($to)->utc()->format('D, d M Y H:i:s')  : null;
+
+                // Build rule text with ToDate support
+                if ($from && $to) {
+                    // Case: between From → To
+                    $rulesText[] =
+                        "Between UTC {$fromText} and UTC {$toText} Cancellation Charge: {$currency} {$chargeFormatted}";
+                } elseif ($from && !$to) {
+                    // Case: after From
+                    $rulesText[] =
+                        "After UTC {$fromText} Cancellation Charge: {$currency} {$chargeFormatted}";
+                } elseif (!$from && $to) {
+                    // Case: before To
+                    $rulesText[] =
+                        "Before UTC {$toText} Cancellation Charge: {$currency} {$chargeFormatted}";
+                }
+            }
+        }
+
+        return [
+            "room"  => $roomName,
+            "rules" => $rulesText
+        ];
+    }
+}
 if (!function_exists('safeJsonDecode')) {
     function safeJsonDecode($json)
     {

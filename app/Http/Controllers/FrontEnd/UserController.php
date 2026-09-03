@@ -458,9 +458,33 @@ class UserController extends Controller
 
                         $rooms[] = convertCancellationRulesForDida($bookingInfo['Success']['BookingDetails']['Hotel']['CancellationPolicyList'] ,$rvalue['Currency'],(int)$value['no_of_rooms'], 'Room '.($rkey+1));
                     }
-
                     // ✅ Attach to the booking model in the collection
                     $hotelbookings[$key]['cancellation_rules'] = $rooms;
+                }elseif($value['supplier'] == 'gts'){
+                    $cancellation_rules =[] ;
+                    $BookingCode = json_decode($value['booking_code'],true);
+                    $preBookingId = $BookingCode['prebookingId'] ?? null;
+                    if($preBookingId){
+                        
+                        $prebooking = HotelXmlRequest::where('id',$preBookingId)->first();
+                        if($prebooking && $prebooking->json_response){
+                            $ratesInfo = [];
+                            $rates = json_decode($prebooking->json_response,true);
+                            //dd($rates);
+                            foreach($rates['rates'] as $rkey => $rvalue){
+                                $ratesInfo[$rvalue['id']] = $rvalue;
+                            } 
+
+                            $bookingDetails = HotelXmlRequest::where('id',$value['webbeds_booking_request_id'])->first();
+                            $bookingDetails = json_decode($bookingDetails->json_response,true);
+                            foreach($bookingDetails['roomConfirmation'] as $dkey => $dvalue){
+                               
+                                $cancellation_rules[] = convertCancellationRulesForGTS($ratesInfo[$dvalue['rateId']]['cancellationPolicies'] ,$ratesInfo[$dvalue['rateId']]['currency'],(int)$value['no_of_rooms'], 'Room '.($dkey+1));
+                            }
+                            
+                            $hotelbookings[$key]['cancellation_rules'] = $cancellation_rules;
+                        }
+                    }
                 }
                 else{
                     $hotelbookings[$key]['cancellation_rules'] = [];
@@ -712,6 +736,8 @@ class UserController extends Controller
                 $failure = true;
                 $message[] = $cancellationNoResp['response']['Error']['Message'];
             }
+        }elseif($HotelBooking->supplier == 'gts'){
+            // GTS cancellation is a 1-step process, so no preliminary check is needed here
         }
         if($failure){
             return response()->json(['status' => false, 'message' => $message]);
@@ -782,6 +808,30 @@ class UserController extends Controller
                 HotelRoomBookingInfo::where('hotel_booking_id', $HotelBooking->id)->where('room_no', $i)->update(['status' => $status , 'is_cancel' => $isCancel ,'penality_amount' => $penalityAmountperRoom]);
             }
             
+        }elseif($HotelBooking->supplier == 'gts'){
+            $penalityAmount = 0; // Penalty handling can be updated based on GTS API response if applicable
+            $Info = [
+                 'booking_id' => $HotelBooking->booking_ref_id,
+                //'booking_id' => '2105000504',
+                'cancellation_token' => $HotelBooking->cancellation_token
+            ];
+            $cancellationYesResp = $bookingController->GTScancelBooking($Info);
+         
+            
+            if(isset($cancellationYesResp['response']['error'])){
+                $status = 'cancellation_failure';
+                $isCancel = 0;
+            }else{
+                $status = 'cancelled';
+                $isCancel = 1;
+            }
+            $noOfRooms = $HotelBooking->no_of_rooms;
+            $penalityAmountperRoom = $penalityAmount/$noOfRooms;
+            for($i = 1 ; $i <= $noOfRooms ; $i++)
+            {
+                //updating hotel room booking status
+                HotelRoomBookingInfo::where('hotel_booking_id', $HotelBooking->id)->where('room_no', $i)->update(['status' => $status , 'is_cancel' => $isCancel ,'penality_amount' => $penalityAmountperRoom]);
+            }
         }
         $HotelBooking->penality_amount = $penalityAmount;
         $HotelBooking->penality_currency = $penalityCurrency;
@@ -789,15 +839,18 @@ class UserController extends Controller
         if($partiallyCanceled){
             $HotelBooking->cancellation_status = 'partially_cancellation';
             $HotelBooking->save();
-        }elseif($status == 'cancellation_failure' && $HotelBooking->supplier == 'dida'){
+        }elseif($status == 'cancellation_failure' && in_array($HotelBooking->supplier, ['dida', 'gts'])){
             $HotelBooking->cancellation_status = 'cancellation_failure';
             $HotelBooking->save();
+            return response()->json(['status' => false, 'message' => "Failure in cancellation"]);
         }else{
             //successfully cancelled
             $HotelBooking->is_cancel = 1;
             $HotelBooking->cancellation_status = 'cancellation_completed';
             $HotelBooking->save();
         }
+
+        
 
         //inititing refund process
         //amount to be refunded 

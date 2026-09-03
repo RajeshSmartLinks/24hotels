@@ -19,7 +19,12 @@ class CreateWebbedsCountriesTable extends Migration
             $table->string('code')->nullable();
             $table->string('region_name')->nullable();
             $table->string('region_code')->nullable();
+            $table->string('alpha_code')->nullable();
+            $table->string('country_code')->nullable();
             $table->enum('status', ['active', 'inactive'])->nullable();
+            $table->string('gts_code')->nullable();
+            $table->tinyInteger('gts_city_dumped')->default(0)->nullable();
+            $table->tinyInteger('dida_city_dumped')->default(0)->nullable();
             $table->timestamps();
 
             // Note: ENGINE = MyISAM is not supported directly in Laravel

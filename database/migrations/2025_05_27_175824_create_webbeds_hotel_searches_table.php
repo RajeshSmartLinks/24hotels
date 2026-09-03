@@ -32,6 +32,8 @@ class CreateWebbedsHotelSearchesTable extends Migration
             $table->text('request_json')->nullable();
             $table->integer('user_id')->nullable();
             $table->integer('search_url')->nullable();
+
+            $table->string('gts_code')->nullable();
             $table->timestamps();
         });
     }

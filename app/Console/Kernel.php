@@ -24,6 +24,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        // Run every minute
+        $schedule->command('restel:city-dump')->everyTwoMinutes();
         // $schedule->command('inspire')->hourly();
     }
 

@@ -746,6 +746,150 @@ class BookingController extends Controller
 
     }
 
+    public function GTScancelBooking($data)
+    {
+        $bookingId = $data['booking_id'];
+        $cancellationToken = $data['cancellation_token'];
 
+        $data['payload'] = [];
+        $data['end_point'] = 'book/'.$bookingId.'?cancellationToken='.$cancellationToken;
+        $data['method'] = 'DELETE';
+        $data['request_type'] = 'cancelbookingYes';
+
+        return $this->GTSApi($data);
+    }
+
+
+    public function GTSPrebooking($data)
+    {
+        $bookingCode = decrypt($data['booking_code']); 
+        $hotelCode   = $data['hotel_code'];
+        $searchId    = $data['search_id'];
+        $queryStringParts = [];
+        
+        if (isset($bookingCode['rooms']) && is_array($bookingCode['rooms'])) {
+            foreach ($bookingCode['rooms'] as $room) {
+                if (isset($room['RateId'])) {
+                    $queryStringParts[] = 'rateIds=' . urlencode($room['RateId']);
+                }
+            }
+        }
+
+        if (isset($bookingCode['token'])) {
+            $queryStringParts[] = 'roomsResponseToken=' . urlencode($bookingCode['token']);
+        }
+
+        $queryString = implode('&', $queryStringParts);
+       
+        $data['end_point'] = "hotels/{$hotelCode}/price?" . $queryString;
+        $data['serachId'] = $searchId;
+        $data['method'] = 'GET';
+        $data['request_type'] = 'prebooking';
+        $prebookingInfo = $this->GTSApi($data);
+        return $prebookingInfo;
+    }
+
+    public function GTSBooking($data)
+    {
+        $bookingId = $data['booking_id'];
+        $hotelBookingDetails = HotelBooking::with('Customercountry')->find($bookingId);
+        $travelersInfo = HotelBookingTravelsInfo::where("hotel_booking_id", $bookingId)->get();
+
+        // {"rooms":[{"roomid":"b42789bc-0116-4037-96a2-592ffa632206","rateid":"a1c4081c-5ad9-4d1b-85ee-1d2d184fcab3"},{"roomid":"b42789bc-0116-4037-96a2-592ffa632206","rateid":"a1c4081c-5ad9-4d1b-85ee-1d2d184fcab3"}],"token":"ca936b1c-3169-4bea-a516-153529a5dc3a"}
+        // dd($hotelBookingDetails->booking_code);
+      
+        
+        $bookingCode = json_decode($hotelBookingDetails->booking_code, true); 
+        $hotelCode   = $hotelBookingDetails->hotel_code;
+        $searchId    = $hotelBookingDetails->search_id;
+
+        $mainGuest = $travelersInfo->first();
+
+        // Prepare roomsAllocations
+        $roomsAllocations = [];
+        $groupedTravelers = $travelersInfo->groupBy('room_no');
+
+        // Note: bookingCode['rooms'] contains RateId and roomId
+        $roomIndex = 0;
+        $roomsData = isset($bookingCode['rooms']) ? $bookingCode['rooms'] : [];
+
+        foreach ($groupedTravelers as $roomNo => $travellers) {
+            $guests = [];
+            foreach ($travellers as $traveler) {
+                $isAdult = strtoupper($traveler->traveler_type) === 'ADT';
+                $guest = [
+                    "title" => $traveler->title ?? 'Mr',
+                    "firstName" => $traveler->first_name,
+                    "lastName" => $traveler->last_name,
+                    "type" => $isAdult ? "Adult" : "Child"
+                ];
+                if (!$isAdult && !empty($traveler->age)) {
+                    $guest["age"] = (int) $traveler->age;
+                }
+                $guests[] = $guest;
+            }
+
+            $currentRoom = isset($roomsData[$roomIndex]) ? $roomsData[$roomIndex] : [];
+            $roomId = isset($currentRoom['roomid']) ? $currentRoom['roomid'] : '';
+            $rateId = isset($currentRoom['rateid']) ? $currentRoom['rateid'] : '';
+
+            $roomsAllocations[] = [
+                "roomId" => $roomId,
+                "rateId" => $rateId,
+                "guests" => $guests
+            ];
+
+            $roomIndex++;
+        }
+
+        $priceResponseToken = isset($bookingCode['token']) ? $bookingCode['token'] : '';
+
+        $json = [
+            "hotelId" => (string)$hotelCode,
+            "priceResponseToken" => $priceResponseToken,
+            "bookingId" => (string)$hotelBookingDetails->booking_ref_id,
+            "specialRequests" => [],
+            "roomsAllocations" => $roomsAllocations,
+            "billingInformation" => [
+                "phone" => $hotelBookingDetails->mobile,
+                "email" => $hotelBookingDetails->email,
+                "billingAddress" => [
+                    "line1" => "1st Floor",
+                    "line2" => "62 Janjikar Street",
+                    "city" => [
+                        "name" => "Mumbai",
+                        "code" => "MH"
+                    ],
+                    "state" => [
+                        "name" => "Maharashtra",
+                        "code" => "MH"
+                    ],
+                    "country" => [
+                        "name" => "India",
+                        "code" => "IN"
+                    ],
+                    "postalCode" => "400003"
+                ]
+            ],
+            "leadPassenger" => [
+                "email" => $hotelBookingDetails->email,
+                "title" => $mainGuest->title ?? 'Mr',
+                "firstName" => $mainGuest->first_name,
+                "lastName" => $mainGuest->last_name,
+                "type" => strtoupper($mainGuest->traveler_type) === 'ADT' ? "Adult" : "Child"
+            ],
+            "checkInDate" => date('Y-m-d\TH:i:s', strtotime($hotelBookingDetails->check_in)),
+            "checkOutDate" => date('Y-m-d\TH:i:s', strtotime($hotelBookingDetails->check_out))
+        ];
+
+       
+        $data['params'] = $json;
+        $data['end_point'] = 'book';
+        $data['serachId'] = $searchId;
+        $data['method'] = 'POST';
+        $data['request_type'] = 'confirmBooking';
+        
+        return $this->GTSApi($data);
+    }
 
 }

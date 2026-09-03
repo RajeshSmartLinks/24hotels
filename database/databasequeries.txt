@@ -52,3 +52,73 @@ MODIFY COLUMN `user_type` enum('app','web','web_guest','app_guest','api') CHARAC
 
 ALTER TABLE `24hotels`.`hotel_bookings` 
 ADD COLUMN `hotel_address` varchar(1000) NULL AFTER `penality_currency`;
+
+
+
+
+
+
+
+
+
+
+
+
+-----------------------------------
+
+gts
+----
+ALTER TABLE `24hotels`.`webbeds_countries` 
+ADD COLUMN `gts_code` varchar(255) NULL AFTER `hotel_list_dumped_on`;
+ALTER TABLE `24hotels`.`webbeds_countries` 
+ADD COLUMN `gts_city_dumped` tinyint NULL DEFAULT 0 AFTER `gts_code`;
+ALTER TABLE `24hotels`.`webbeds_countries` 
+ADD COLUMN `next_results_key` varchar(255) NULL AFTER `gts_city_dumped`;
+
+
+ALTER TABLE `hotel_cities`  ADD COLUMN `is_city_checked` int NULL DEFAULT 0 ; -moved to prod
+ALTER TABLE `hotel_cities` 
+ADD COLUMN `is_gts` int NULL DEFAULT 0 AFTER `is_city_checked`,
+ADD COLUMN `gts_code` varchar(255) NULL AFTER `is_gts`;
+
+
+ALTER TABLE `hotel_bookings` 
+MODIFY COLUMN `supplier` enum('tbo','webbeds','dida','gts') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'tbo' AFTER `type_of_payment`;
+
+ALTER TABLE `hotel_bookings` 
+MODIFY COLUMN `booking_status` enum('booking_initiated','payment_initiated','payment_successful','payment_failure','payment_exipre','booking_failure','booking_completed','refund_initiated','refund_completed','cancellation_initiated','canceled','booking_pending','booking_partially_completed','cancellation_failure','booking_hold','booking_planned','booking_confirmation_pending','booking_gts_initiated') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL AFTER `ticket_status`;
+
+ALTER TABLE `hotel_bookings` 
+MODIFY COLUMN `reservation_status` enum('Confirmed','Canceled','CancellationInProgress','CancelPending','CxlRequestSentToHotel','CancelledAndRefundAwaited','PreBook','Failed','Pending','OnRequest','Planned','ConfirmationPending','GtsInitiated') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL AFTER `supplier`;
+
+ALTER TABLE `hotel_room_booking_infos` 
+MODIFY COLUMN `status` enum('confirmed','cancelled','cancellation_failure','failed','pending','planned','confirmationpending','created','initiated') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL AFTER `booking_reference_no`;
+
+ALTER TABLE `hotel_bookings` 
+ADD COLUMN `cancellation_token` varchar(500) NULL COMMENT 'for GTS' ;
+
+
+
+ALTER TABLE `hotel_cities` 
+ADD INDEX `name`(`name`) USING BTREE;
+
+ALTER TABLE `gts_city_hotels` 
+ADD INDEX `cityId`(`city_code`) USING BTREE;
+
+ALTER TABLE `gts_hotels` 
+ADD INDEX `gts_hotels_hotel_id_unique`(`hotel_id`) USING BTREE;
+
+
+ALTER TABLE `webbeds_hotel_searches` 
+ADD COLUMN `gts_code` varchar(255) NULL AFTER `residency_alpha_code`;
+
+ALTER TABLE gts_city_hotels
+ADD INDEX idx_details_dump_hotel (
+    is_hotel_details_dumped,
+    hotel_id
+);
+
+ALTER TABLE gts_city_hotels
+ADD INDEX idx_hotel_id (hotel_id);
+
+--moved to dev

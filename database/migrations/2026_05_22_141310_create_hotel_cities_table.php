@@ -22,6 +22,9 @@ class CreateHotelCitiesTable extends Migration
             $table->string('country_name',500)->nullable();
             $table->integer('is_dida')->default(0);
             $table->enum('preference', ['0', '1'])->nullable()->default('0');
+            $table->integer('is_city_checked')->default(0);
+            $table->integer('is_gts')->default(0);
+            $table->string('gts_code')->nullable();
             $table->timestamps();
         });
     }

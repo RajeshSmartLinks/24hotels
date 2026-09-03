@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use App\Models\WebbedsCountry;
 use Illuminate\Support\Carbon;
 use App\Models\WebbedsHotelSearch;
+use App\Models\GtsHotel;
+use App\Models\GtsCityHotel;
+use App\Models\RestelHotelCode;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\FrontEnd\Hotel\StaticController;
@@ -717,10 +720,287 @@ class SearchController extends Controller
             $data['request_type'] = 'search';
             $hotelSearchRsp = $this->DadiApi($data);
             dd($hotelSearchRsp);
-
-
-   
-
     }
 
+    public function gtsSearch(Request $request)
+    {
+        $searchId = $request->input('search_request_id');
+
+        $serachInfo = WebbedsHotelSearch::select(
+            'nationality',
+            'check_in',
+            'check_out',
+            'no_of_rooms',
+            'rooms_request',
+            'gts_code'
+        )->find($searchId);
+
+        if (!$serachInfo) {
+            return [
+                'status' => false,
+                'response' => [],
+                'message' => 'Search record not found'
+            ];
+        }
+
+        $nationality = WebbedsCountry::where(
+            'code',
+            $serachInfo->nationality
+        )->value('alpha_code') ?? 'IN';
+
+        $checkIn = $serachInfo->check_in;
+        $checkOut = $serachInfo->check_out;
+        $noOfRooms = (int) ($serachInfo->no_of_rooms ?: 1);
+        $currency = 'USD';
+
+        //$GtsHotels = GtsCityHotel::where('city_code',$serachInfo->gts_code)->pluck('hotel_id')->toArray();
+
+        $GtsHotels = GtsHotel::limit(100)->pluck('hotel_id')->toArray();
+        
+        //For now, use these two hotel IDs as requested by user
+        // $hotelIds = ["15067359","15067096","15067342"];
+        $hotelIds = $GtsHotels;
+
+        $rooms = json_decode($serachInfo->rooms_request, true) ?? [];
+
+        $queryParams = [
+            'currency' => $currency,
+            'checkIn'  => $checkIn,
+            'checkOut' => $checkOut,
+            'hotelIds' => $hotelIds,
+        ];
+
+        if (!empty($nationality)) {
+            $queryParams['nationality'] = $nationality;
+        }
+
+        foreach ($rooms as $index => $room) {
+            $roomNum = $index + 1;
+            $queryParams["room{$roomNum}AdultCount"] = (int) ($room['Adults'] ?? 1);
+            if (!empty($room['Children']) && !empty($room['ChildrenAges'])) {
+                $queryParams["room{$roomNum}ChildAges"] = $room['ChildrenAges'];
+            }
+        }
+
+        $hotelChunks = array_chunk($hotelIds, 50);
+        $requests = [];
+
+        foreach ($hotelChunks as $chunk) {
+            $chunkParams = $queryParams;
+            $chunkParams['hotelIds'] = $chunk;
+
+            $requests[] = [
+                'query' => $chunkParams,
+                'end_point' => 'hotels',
+                'searchId' => $searchId,
+                'method' => 'GET',
+                'request_type' => 'search',
+            ];
+        }
+
+        $respList = [];
+        $requestGroups = array_chunk($requests, 8);
+
+        foreach ($requestGroups as $group) {
+            $responses = $this->GtsApiPool($group);
+
+            foreach ($responses as $hotelSearchRsp) {
+                if (
+                    !empty($hotelSearchRsp['status']) &&
+                    !empty($hotelSearchRsp['response']['hotels'])
+                ) {
+                    $token = $hotelSearchRsp['response']['token'];
+                      foreach ($hotelSearchRsp['response']['hotels'] as $hotel) {
+                        $hotel['token'] = $token;
+                        $respList[] = $hotel;
+                    }
+                    // $respList = array_merge(
+                    //     $respList,
+                    //     $hotelSearchRsp['response']['hotels']
+                    // );
+                }
+            }
+        }
+
+        return [
+            'status' => true,
+            'response' => $respList,
+            'total_hotels' => count($respList)
+        ];
+    }
+    public function gtsRooms(Request $request)
+    {
+        $searchId = $request->input('search_request_id');
+
+        $serachInfo = WebbedsHotelSearch::select(
+            'nationality',
+            'check_in',
+            'check_out',
+            'no_of_rooms',
+            'rooms_request'
+        )->find($searchId);
+
+        if (!$serachInfo) {
+            return [
+                'status' => false,
+                'response' => [],
+                'message' => 'Search record not found'
+            ];
+        }
+
+        $nationality = WebbedsCountry::where(
+            'code',
+            $serachInfo->nationality
+        )->value('alpha_code') ?? 'IN';
+
+        $checkIn = $serachInfo->check_in;
+        $checkOut = $serachInfo->check_out;
+        $noOfRooms = (int) ($serachInfo->no_of_rooms ?: 1);
+        $currency = 'USD';
+
+   
+        $hotelId = $request->input('hotel_code');
+
+        $rooms = json_decode($serachInfo->rooms_request, true) ?? [];
+
+        $queryParams = [
+            'currency' => $currency,
+            'checkIn'  => $checkIn,
+            'checkOut' => $checkOut,
+            // 'hotelId' => $hotelId,
+        ];
+
+        if (!empty($nationality)) {
+            $queryParams['nationality'] = $nationality;
+        }
+
+        foreach ($rooms as $index => $room) {
+            $roomNum = $index + 1;
+            $queryParams["room{$roomNum}AdultCount"] = (int) ($room['Adults'] ?? 1);
+            if (!empty($room['Children']) && !empty($room['ChildrenAges'])) {
+                $queryParams["room{$roomNum}ChildAges"] = $room['ChildrenAges'];
+            }
+        }
+
+        // $hotelChunks = array_chunk($hotelIds, 50);
+      
+
+        // foreach ($hotelChunks as $chunk) {
+        //     $chunkParams = $queryParams;
+        //     $chunkParams['hotelIds'] = $chunk;
+
+        //     $requests[] = [
+        //         'query' => $chunkParams,
+        //         'end_point' => 'hotels',
+        //         'searchId' => $searchId,
+        //         'method' => 'GET',
+        //         'request_type' => 'search',
+        //     ];
+        // }
+      
+
+     
+
+        $requests = [
+                'query' => $queryParams,
+                'end_point' => 'hotels/'.$hotelId.'/directrooms',
+                'searchId' => $searchId,
+                'method' => 'GET',
+                'request_type' => 'search',
+            ];
+
+        $responses = $this->GtsAPI($requests);
+      
+
+        return [
+            'status' => true,
+            'response' => $responses,
+            'total_hotels' => count($responses)
+        ];
+    }
+
+    public function restelSearch($serachInfo){
+       
+        
+       
+        $hotelCodesData         = RestelHotelCode::where('codpobhot', $serachInfo['restel_city_code'])->pluck('hot_codcobol')->toArray(); 
+        $hotelsCode             = implode('#' , $hotelCodesData);
+        $checkIn                = date('m/d/Y', strtotime($serachInfo['check_in']));
+        $checkOut               = date('m/d/Y', strtotime($serachInfo['check_out']));
+        $pais                   = $serachInfo['destination_country_code'];
+        $pais_cliente           = $serachInfo['residency_alpha_code'];
+        $afiliacion             = $this->RestelAfil;
+        $usuario                = $this->RestelCodusu;
+        $rooms                  = json_decode($serachInfo['rooms_request'] ,true);
+       
+        
+
+
+        // STEP 1: group rooms
+        $grouped = [];
+        foreach ($rooms as $room) {
+            // Fill missing child ages with default 11
+            if ($room["Children"] > 0 && count($room["ChildrenAges"]) < $room["Children"]) {
+                $missing = $room["Children"] - count($room["ChildrenAges"]);
+                $room["ChildrenAges"] = array_merge($room["ChildrenAges"], array_fill(0, $missing, "11"));
+            }
+            $ages = implode(",", $room["ChildrenAges"]);
+            $key = $room["Adults"] . "-" . $room["Children"] . "-" . $ages;
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [
+                    "count" => 0,
+                    "Adults" => $room["Adults"],
+                    "Children" => $room["Children"],
+                    "Ages" => $ages,
+                ];
+            }
+            $grouped[$key]["count"]++;
+        }
+
+        $index = 1;
+        $xml = <<<EOM
+                <peticion>
+                <tipo>110</tipo>
+                <nombre>Servicio de disponibilidad por lista de hoteles</nombre>
+                <agencia>AL MASILA GROUP INT`L B2B XML XML</agencia>
+                    <parametros>
+                        <hotel>$hotelsCode</hotel>
+                        <pais>$pais</pais>
+                        <pais_cliente>$pais_cliente</pais_cliente>
+                        <fechaentrada>$checkIn</fechaentrada>
+                        <fechasalida>$checkOut</fechasalida>
+                        <afiliacion>$afiliacion</afiliacion>
+                        <usuario>$usuario</usuario>
+            EOM;
+            foreach ($grouped as $room) {
+                $xml .= <<<EOM
+
+                            <numhab{$index}>{$room['count']}</numhab{$index}>
+                            <paxes{$index}>{$room['Adults']}-{$room['Children']}</paxes{$index}>
+                            <edades{$index}>{$room['Ages']}</edades{$index}>
+                EOM;
+                $index++;
+            }
+            $xml .= <<<EOM
+
+                        <idioma>2</idioma>
+                        <informacion_hotel>1</informacion_hotel>
+                        <tarifas_reembolsables>1</tarifas_reembolsables>
+                        <comprimido>2</comprimido>
+                        <gastos>1</gastos>
+                    </parametros>
+                </peticion>
+            EOM;
+
+        $data = array(
+            'xml' => $xml,
+            'request_type' => 'search',
+            'searchId' => $serachInfo['id']
+        );
+        //dd($data);
+   
+        $data = $this->RestelAPI($data);
+        $data['searchId'] = $serachInfo['id'];
+        return $data;
+    }
 }

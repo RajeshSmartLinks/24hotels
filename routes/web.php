@@ -154,6 +154,7 @@ Route::get('remainderPreview/{id}', [App\Http\Controllers\FrontEnd\HomeControlle
 
 
 Route::get('remainders', [App\Http\Controllers\CronController::class, 'bookingRemainder']);
+Route::get('deleteOldHotelXmlRequests', [App\Http\Controllers\CleningController::class, 'deleteOldHotelXmlRequests']);
 
 
 //static data dump routes
@@ -192,8 +193,20 @@ Route::get('dumpDadiHotelsDetails', [App\Http\Controllers\FrontEnd\Hotel\StaticC
 
 Route::get('dumpDadiCityNew', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'addingDidaCodes']);
 
+// GTS Api
+Route::get('syncGtsCountries', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'syncGtsCountries']);
+Route::get('dumpGtsCities', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'dumpGtsCities']);
+Route::get('dumpGtsHotelsList', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'GtsStoreHotelIds']);
+Route::get('dumpGtsHotelsDetails', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'GtsStoreHotelDetails']);
+
+Route::get('mergeGtsCities', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'mergeGtsCities']);
+
 Route::get('processPendingHotelBookings', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'processPendingHotelBookings'])->name('didaHotelSearch');
 
+Route::get('dumpGtsCityHotels', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'dumpGtsCityHotels']);
+
+//Restel
+Route::get('restelCityDump', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'getRestelCity'])->name('restelCityDump');
 
 
 

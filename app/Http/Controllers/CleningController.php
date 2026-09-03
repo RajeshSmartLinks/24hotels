@@ -18,8 +18,7 @@ class CleningController extends Controller
             'getbookingdetails',
             'saveBooking',
             'cancelbookingNo',
-            'cancelbookingYes',
-            'prebooking'
+            'cancelbookingYes'
         ];
 
         $threeWeeksAgo = Carbon::now()->subWeeks(3);

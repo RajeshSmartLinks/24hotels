@@ -15,10 +15,15 @@ use App\Models\TboHotelsCountry;
 use App\Models\WebbedsCity;
 use App\Models\WebbedsCountry;
 use App\Models\WebbedsHotel;
+use App\Models\GtsHotel;
+use App\Models\GtsHotelList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\Provincia;
+use App\Models\RestelCity;
+use App\Models\GtsCityHotel;
 
 class StaticController extends Controller
 {
@@ -826,6 +831,1074 @@ class StaticController extends Controller
     //     echo "✅ All DIDA codes added successfully.\n";
     // }
 
+    public function GtsStoreHotelIds(Request $request)
+    {
+        set_time_limit(0);
+        header('Cache-Control: max-age=0,no-store');
 
+        $lastSyncDate = '1970-01-01';
+        $idType =  'New';
+        $nextKey = null;
+        $maxPages = 50;
+
+
+        $pageCount = 0;
+        $totalInserted = 0;
+
+        do {
+            $queryParams = [
+                'lastSyncDate' => $lastSyncDate,
+                'idType'       => $idType,
+            ];
+
+            if ($nextKey) {
+                $queryParams['nextKey'] = $nextKey;
+            }else{
+                $getLastHotelId = GtsHotelList::orderBy('id', 'desc')->first();
+                if($getLastHotelId){
+                    $queryParams['nextKey'] = $getLastHotelId->hotel_id;
+                }
+             
+            }
+
+            $response = $this->GTSStaticApi([
+                'end_point' => 'hotelcontent/ids',
+                'method'    => 'GET',
+                'query'     => $queryParams
+            ]);
+
+            if (!$response['status']) {
+                echo "❌ Failed to fetch page " . ($pageCount + 1) . ": " . $response['message'] . "<br>";
+                break;
+            }
+
+            $data = $response['response'];
+            $ids = $data['ids'] ?? [];
+            $nextKey = $data['nextKey'] ?? null;
+
+            if (empty($ids)) {
+                echo "ℹ️ No IDs returned in page " . ($pageCount + 1) . ". Ending loop.<br>";
+                break;
+            }
+
+            $insertData = [];
+            foreach ($ids as $hotelId) {
+                $insertData[] = [
+                    'hotel_id'                => $hotelId,
+                    'is_hotel_details_dumped' => 0,
+                    'created_at'              => now(),
+                    'updated_at'              => now()
+                ];
+            }
+
+            $chunks = array_chunk($insertData, 200);
+            foreach ($chunks as $chunk) {
+                DB::table('gts_hotel_lists')->insertOrIgnore($chunk);
+            }
+
+            $insertedInThisPage = count($ids);
+            $totalInserted += $insertedInThisPage;
+            $pageCount++;
+
+            echo "✅ Page {$pageCount} processed. Fetched {$insertedInThisPage} IDs. NextKey: " . ($nextKey ?? 'NULL') . "<br>";
+            if (ob_get_level() > 0) {
+                ob_flush();
+            }
+            flush();
+
+            if ($maxPages && $pageCount >= $maxPages) {
+                echo "🛑 Reached maximum page limit of {$maxPages}. Remaining nextKey: {$nextKey}<br>";
+                break;
+            }
+
+        } while ($nextKey !== null);
+
+        return response()->json([
+            'status'            => 'success',
+            'pages_processed'   => $pageCount,
+            'total_ids_fetched' => $totalInserted,
+            'nextKey'           => $nextKey
+        ]);
+    }
+
+    // public function GtsStoreHotelDetails(Request $request)
+    // {
+    //     set_time_limit(0);
+    //     header('Cache-Control: max-age=0,no-store');
+
+    //     $limit = $request->input('limit') ?? 100;
+
+    //     // Fetch hotel IDs needing detail dump
+    //     $hotelList = GtsHotelList::where('is_hotel_details_dumped', 0)
+    //         ->whereNotNull('hotel_id')
+    //         ->limit($limit)
+    //         ->get();
+  
+    //     if ($hotelList->isEmpty()) {
+    //         return response()->json(['status' => 'success', 'message' => 'No pending hotel details to process.']);
+    //     }
+
+    //     $processedCount = 0;
+
+    //     $hotelList->chunk(50)->each(function ($chunk, $chunkIndex) use (&$processedCount) {
+    //         $hotelIds = $chunk->pluck('hotel_id')->toArray();
+
+    //         $payload = [
+    //             'hotelIds' => $hotelIds,
+    //         ];
+           
+          
+
+    //         $apiResponse = $this->GTSStaticApi([
+    //             'end_point' => 'hotelcontent',
+    //             'method'    => 'GET',
+    //             'query'    => $payload,
+    //         ]);
+           
+
+    //         if (!$apiResponse['status']) {
+    //             \Log::warning("GTS Chunk {$chunkIndex} failed: " . $apiResponse['message']);
+    //             echo "❌ Chunk " . ($chunkIndex + 1) . " failed: " . $apiResponse['message'] . "<br>";
+    //             return;
+    //         }
+
+    //         $hotels = $apiResponse['response']['hotels'] ?? [];
+
+    //         foreach ($hotels as $hotel) {
+                
+    //             if (empty($hotel['id'])) {
+    //                 continue;
+    //             }
+                
+
+    //             $addrParts = [];
+    //             $addrObj = $hotel['contact']['address'] ?? [];
+    //             if (!empty($addrObj['line1'])) {
+    //                 $addrParts[] = $addrObj['line1'];
+    //             }
+    //             if (!empty($addrObj['city']['name'])) {
+    //                 $addrParts[] = $addrObj['city']['name'];
+    //             }
+    //             if (!empty($addrObj['state']['name'])) {
+    //                 $addrParts[] = $addrObj['state']['name'];
+    //             }
+    //             if (!empty($addrObj['postalCode'])) {
+    //                 $addrParts[] = $addrObj['postalCode'];
+    //             }
+    //             if (!empty($addrObj['country']['name'])) {
+    //                 $addrParts[] = $addrObj['country']['name'];
+    //             }
+    //             $address = implode(', ', $addrParts);
+    //             $roomsInfo = null;
+    //             if(!empty($hotel['rooms'])){
+    //                 $rooms = $hotel['rooms'];
+    //                 $roomArray = array_map(function ($room) {
+    //                     $beds = collect($room['beds'])->map(function ($bed) {
+    //                         return $bed['count'] . ' ' . $bed['type'];
+    //                     })->implode(', ');
+    //                     return [
+    //                         'id'   => $room['id'],
+    //                         'type' => $room['type'],
+    //                         'bed'  => $beds,
+    //                     ];
+    //                 }, $rooms);
+    //                 // Store in database
+    //                 $roomsInfo = json_encode($roomArray);
+    //             }
+               
+                
+
+    //             GtsHotel::updateOrCreate(
+    //                 ['hotel_id' => $hotel['id']],
+    //                 [
+    //                     'country_code' => $hotel['contact']['address']['country']['code'] ?? null,
+    //                     'country_name' => $hotel['contact']['address']['country']['name'] ?? null,
+    //                     'longitude'    => $hotel['geoCode']['long'] ?? null,
+    //                     'latitude'     => $hotel['geoCode']['lat'] ?? null,
+    //                     'name'         => $hotel['name'] ?? null,
+    //                     'star_rating'  => $hotel['starRating'] ?? null,
+    //                     'address'      => $address,
+    //                     'telephone'    => $hotel['contact']['phone'] ?? null,
+    //                     'zipcode'      => $hotel['contact']['address']['postalCode'] ?? null,
+    //                     'thumbnail'    => $hotel['heroImage'] ?? null,
+    //                     'checkin'      => $hotel['checkinInfo']['beginTime'] ?? null,
+    //                     'checkout'     => $hotel['checkoutInfo']['time'] ?? null,
+    //                     'rooms'        => $roomsInfo
+    //                 ]
+    //             );
+
+    //             $processedCount++;
+    //         }
+
+    //         // Mark this chunk's hotel IDs as dumped
+    //         GtsHotelList::whereIn('hotel_id', $hotelIds)
+    //             ->update(['is_hotel_details_dumped' => 1]);
+
+    //         echo "✅ Chunk " . ($chunkIndex + 1) . " processed. Saved details for " . count($hotels) . " hotels.<br>";
+    //         if (ob_get_level() > 0) {
+    //             ob_flush();
+    //         }
+    //         flush();
+    //     });
+
+    //     return response()->json([
+    //         'status'          => 'success',
+    //         'processed_count' => $processedCount,
+    //     ]);
+    // }
+    // public function GtsStoreHotelDetails(Request $request)
+    // {
+    //     set_time_limit(0);
+    //     header('Cache-Control: max-age=0,no-store');
+
+    //     $limit = 500;
+
+    //     // Fetch hotel IDs needing detail dump
+    //     $hotelList = GtsCityHotel::where('is_hotel_details_dumped', 0)
+    //         ->whereNotNull('hotel_id')
+    //         ->limit($limit)
+    //         ->get();
+  
+    //     if ($hotelList->isEmpty()) {
+    //         return response()->json(['status' => 'success', 'message' => 'No pending hotel details to process.']);
+    //     }
+
+    //     $processedCount = 0;
+
+    //     $hotelList->chunk(50)->each(function ($chunk, $chunkIndex) use (&$processedCount) {
+    //         $hotelIds = $chunk->pluck('hotel_id')->toArray();
+
+    //         $payload = [
+    //             'hotelIds' => $hotelIds,
+    //         ];
+            
+           
+          
+
+    //         $apiResponse = $this->GTSStaticApi([
+    //             'end_point' => 'hotelcontent',
+    //             'method'    => 'GET',
+    //             'query'    => $payload,
+    //         ]);
+          
+
+    //         if (!$apiResponse['status']) {
+    //             \Log::warning("GTS Chunk {$chunkIndex} failed: " . $apiResponse['message']);
+    //             echo "❌ Chunk " . ($chunkIndex + 1) . " failed: " . $apiResponse['message'] . "<br>";
+    //             return;
+    //         }
+
+    //         $hotels = $apiResponse['response']['hotels'] ?? [];
+
+    //         foreach ($hotels as $hotel) {
+                
+    //             if (empty($hotel['id'])) {
+    //                 continue;
+    //             }
+                
+
+    //             $addrParts = [];
+    //             $addrObj = $hotel['contact']['address'] ?? [];
+    //             if (!empty($addrObj['line1'])) {
+    //                 $addrParts[] = $addrObj['line1'];
+    //             }
+    //             if (!empty($addrObj['city']['name'])) {
+    //                 $addrParts[] = $addrObj['city']['name'];
+    //             }
+    //             if (!empty($addrObj['state']['name'])) {
+    //                 $addrParts[] = $addrObj['state']['name'];
+    //             }
+    //             if (!empty($addrObj['postalCode'])) {
+    //                 $addrParts[] = $addrObj['postalCode'];
+    //             }
+    //             if (!empty($addrObj['country']['name'])) {
+    //                 $addrParts[] = $addrObj['country']['name'];
+    //             }
+    //             $address = implode(', ', $addrParts);
+    //             $roomsInfo = null;
+    //             // if(!empty($hotel['rooms'])){
+    //             //     $rooms = $hotel['rooms'];
+    //             //     $roomArray = array_map(function ($room) {
+    //             //         $beds = collect($room['beds'])->map(function ($bed) {
+    //             //             return $bed['count'] . ' ' . $bed['type'];
+    //             //         })->implode(', ');
+    //             //         return [
+    //             //             'id'   => $room['id'],
+    //             //             'type' => $room['type'],
+    //             //             'bed'  => $beds,
+    //             //         ];
+    //             //     }, $rooms);
+    //             //     // Store in database
+    //             //     $roomsInfo = json_encode($roomArray);
+    //             // }
+               
+                
+
+    //             $cityHotel = $chunk->where('hotel_id', $hotel['id'])->first();
+
+    //             GtsHotel::updateOrCreate(
+    //                 ['hotel_id' => $hotel['id']],
+    //                 [
+    //                     'city_code'    => $cityHotel ? $cityHotel->city_code : null,
+    //                     'country_code' => $hotel['contact']['address']['country']['code'] ?? null,
+    //                     'country_name' => $hotel['contact']['address']['country']['name'] ?? null,
+    //                     'longitude'    => $hotel['geoCode']['long'] ?? null,
+    //                     'latitude'     => $hotel['geoCode']['lat'] ?? null,
+    //                     'name'         => $hotel['name'] ?? null,
+    //                     'star_rating'  => $hotel['starRating'] ?? null,
+    //                     'address'      => $address,
+    //                     'telephone'    => $hotel['contact']['phone'] ?? null,
+    //                     'zipcode'      => $hotel['contact']['address']['postalCode'] ?? null,
+    //                     'thumbnail'    => $hotel['heroImage'] ?? null,
+    //                     'checkin'      => $hotel['checkinInfo']['beginTime'] ?? null,
+    //                     'checkout'     => $hotel['checkoutInfo']['time'] ?? null,
+    //                     // 'rooms'        => $roomsInfo
+    //                 ]
+    //             );
+
+    //             $processedCount++;
+    //         }
+
+    //         // Mark this chunk's hotel IDs as dumped
+    //         GtsCityHotel::whereIn('hotel_id', $hotelIds)
+    //             ->update(['is_hotel_details_dumped' => 1]);
+
+    //         echo "✅ Chunk " . ($chunkIndex + 1) . " processed. Saved details for " . count($hotels) . " hotels.<br>";
+    //         if (ob_get_level() > 0) {
+    //             ob_flush();
+    //         }
+    //         flush();
+    //     });
+
+    //     return response()->json([
+    //         'status'          => 'success',
+    //         'processed_count' => $processedCount,
+    //     ]);
+    // }
+    public function GtsStoreHotelDetails(Request $request)
+    {
+        set_time_limit(0);
+        header('Cache-Control: max-age=0,no-store');
+
+        $limit     = 600;
+        $chunkSize = 50;
+
+        //    $hotelList = GtsCityHotel::query()
+        //                 // ->select(['hotel_id', 'city_code'])
+        //                 ->select(['hotel_id'])
+        //                 ->where('is_hotel_details_dumped', 0)
+        //                 ->whereNotNull('hotel_id')
+        //                 ->groupBy('hotel_id')
+        //                 ->orderBy('id','ASC')
+        //                 ->limit($limit)
+        //                 ->get();
+        $hotelList = GtsCityHotel::query()
+        ->select([
+            'hotel_id',
+            DB::raw('MIN(id) AS first_id')
+        ])
+        ->where('is_hotel_details_dumped', 0)
+        ->whereNotNull('hotel_id')
+        ->groupBy('hotel_id')
+        ->orderBy('first_id', 'asc')
+        ->limit($limit)
+        ->get();
+        // dd($hotelList);
+            
+           
+
+        if ($hotelList->isEmpty()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'No pending hotel details to process.',
+            ]);
+        }
+
+
+        $processedCount = 0;
+
+        foreach ($hotelList->chunk($chunkSize) as $chunkIndex => $chunk) {
+          
+
+            $hotelIds = $chunk
+                ->pluck('hotel_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->toArray();
+             // dd($hotelIds,$chunk
+              //  ->pluck('hotel_id'));
+            if (empty($hotelIds)) {
+                continue;
+            }
+
+            /*
+            * Create hotel_id => city_code map.
+            *
+            * This avoids:
+            * $chunk->where('hotel_id', $hotel['id'])->first()
+            *
+            * inside the hotel loop.
+            */
+            // $cityCodeMap = $chunk
+            //     ->pluck('city_code', 'hotel_id')
+            //     ->toArray();
+           
+            $apiResponse = $this->GTSStaticApi([
+                'end_point' => 'hotelcontent',
+                'method'    => 'GET',
+                'query'     => [
+                    'hotelIds' => $hotelIds,
+                ],
+            ]);
+            //dd($hotelIds ,$apiResponse);
+
+            if (!$apiResponse['status']) {
+
+                \Log::warning(
+                    "GTS Chunk {$chunkIndex} failed: " .
+                    $apiResponse['message']
+                );
+
+                continue;
+            }
+
+            $hotels = $apiResponse['response']['hotels'] ?? [];
+
+            if (empty($hotels)) {
+                continue;
+            }
+
+            $now     = now();
+            $upserts = [];
+            $returnedHotelIds = [];
+
+            foreach ($hotels as $hotel) {
+
+                $hotelId = $hotel['id'] ?? null;
+
+                if (empty($hotelId)) {
+                    continue;
+                }
+
+                $returnedHotelIds[] = $hotelId;
+
+                $address = collect([
+                    $hotel['contact']['address']['line1'] ?? null,
+                    $hotel['contact']['address']['city']['name'] ?? null,
+                    $hotel['contact']['address']['state']['name'] ?? null,
+                    $hotel['contact']['address']['postalCode'] ?? null,
+                    $hotel['contact']['address']['country']['name'] ?? null,
+                ])
+                    ->filter(fn ($value) => !empty($value))
+                    ->implode(', ');
+
+                $upserts[] = [
+                    'hotel_id'     => $hotelId,
+                    // 'city_code'    => $cityCodeMap[$hotelId] ?? null,
+                    'city_code'    =>  null,
+
+                    'country_code' => $hotel['contact']['address']['country']['code'] ?? null,
+                    'country_name' => $hotel['contact']['address']['country']['name'] ?? null,
+
+                    'longitude'    => $hotel['geoCode']['long'] ?? null,
+                    'latitude'     => $hotel['geoCode']['lat'] ?? null,
+
+                    'name'         => $hotel['name'] ?? null,
+                    'star_rating'  => $hotel['starRating'] ?? null,
+
+                    'address'      => $address,
+
+                    'telephone'    => $hotel['contact']['phone'] ?? null,
+                    'zipcode'      => $hotel['contact']['address']['postalCode'] ?? null,
+
+                    'thumbnail'    => $hotel['heroImage'] ?? null,
+
+                    'checkin'      => $hotel['checkinInfo']['beginTime'] ?? null,
+                    'checkout'     => $hotel['checkoutInfo']['time'] ?? null,
+
+                    'created_at'   => $now,
+                    'updated_at'   => $now,
+                ];
+            }
+
+            /*
+            * One bulk query instead of updateOrCreate()
+            * for every hotel.
+            */
+            if (!empty($upserts)) {
+
+                $upsetResult = GtsHotel::upsert(
+                    $upserts,
+                    ['hotel_id'],
+                    [
+                        //'city_code',
+                        'country_code',
+                        'country_name',
+                        'longitude',
+                        'latitude',
+                        'name',
+                        'star_rating',
+                        'address',
+                        'telephone',
+                        'zipcode',
+                        'thumbnail',
+                        'checkin',
+                        'checkout',
+                        'updated_at',
+                    ]
+                );
+
+                $processedCount += count($upserts);
+            }
+
+            /*
+            * Mark successfully received hotels as dumped.
+            *
+            * This is safer than marking every requested ID as dumped.
+            */
+            if (!empty($hotelIds)) {
+
+                GtsCityHotel::whereIn('hotel_id', $hotelIds)
+                    ->update([
+                        'is_hotel_details_dumped' => 1,
+                    ]);
+            }
+            echo "✅ Chunk " . ($chunkIndex + 1) .
+                " processed. Saved details for " .
+                count($upserts) .
+                " hotels.<br>";
+            //dd($upsetResult,$upserts);
+
+            
+
+            if (ob_get_level() > 0) {
+                ob_flush();
+            }
+
+            flush();
+        }
+
+        return response()->json([
+            'status'          => 'success',
+            'processed_count' => $processedCount,
+        ]);
+    }
+    public function getRestelCity(){
+        header( 'Cache-Control: max-age=0,no-store');
+        $hotelUrl = env('RESTEL_URL') ;
+
+        $provincia = Provincia::where(['status' => 'active', 'is_dumped' => '1'])->limit(20)->get();
+        //$provincia = Provincia::where(['status' => 'active', 'id' => '1'])->limit(10)->get();
+        foreach($provincia as $prov){
+            //xml preparation 
+            $xml = '<peticion>
+                        <tipo>18</tipo>
+                        <nombre>Servicio de poblaciones</nombre>
+                        <agencia>Agencia prueba</agencia>
+                        <parametros>
+                            <codest>'.$prov->codigoProvincia.'</codest> 
+                        </parametros>
+                    </peticion>';
+            $data['xml'] = $xml;
+            $cityInfo = $this->RestelApiXmlRequestWithoutLog($data);
+           
+            $CountryInfo = WebbedsCountry::where('restel_code', $prov->codigoPais)->first();
+            dd( $CountryInfo,$prov->codigoPais);
+           
+            
+            if($cityInfo['success']){
+                //dd($cityInfo['city']);
+                foreach($cityInfo['city'] as $city){
+                   //$cityInfo = WebbedsCity::where(['name'=> strtolower($city['poblidinom1']) , 'country_code' => $CountryInfo->code])->first();
+                    //    if($cityInfo){
+                    //         //already exist
+                    //         $cityInfo->restel_city_code = $city['codpob'];
+                    //         $cityInfo->restel_country_code = $CountryInfo->restel_code;
+                    //         $cityInfo->restel_provincia_code = $city['deppob'];
+                    //         $cityInfo->save();
+                    //    }else{
+                    //         //need to add new city
+                    //         $newCity = new WebbedsCity();
+                    //         $newCity->name = $city['poblidinom1'];
+                    //         $newCity->country_name = $CountryInfo->name;
+                    //         $newCity->country_code = $CountryInfo->code;
+                    //         $newCity->restel_city_code = $city['codpob'];
+                    //         $newCity->restel_country_code = $CountryInfo->restel_code;
+                    //         $newCity->restel_provincia_code = $city['deppob'];
+                    //         $newCity->save();
+                    //    } 
+                    $newCity = new RestelCity();
+                    $newCity->name = $city['poblidinom1'];
+                    $newCity->country_name = $CountryInfo->name;
+                    $newCity->country_code = $CountryInfo->code;
+                    $newCity->restel_city_code = $city['codpob'];
+                    $newCity->restel_country_code = $CountryInfo->restel_code;
+                    $newCity->restel_provincia_code = $city['deppob'];
+                    $newCity->save();
+                }
+                $prov->is_dumped = '2';
+            }else{
+                $prov->is_dumped = '3';
+            }
+           
+            $prov->save();
+            Log::info("provincia " . $prov->id . "(" . $prov->nombreProvincia . ") processed successfully");
+            echo "provincia " . $prov->id . "(" . $prov->nombreProvincia . ") processed successfully";
+            echo "<br>";
+        }
+    }
+
+    public function syncGtsCountries()
+    {
+        ini_set('max_execution_time', 0);
+        $jsonFilePath = public_path('gtsCountries.json');
+        
+        if (!file_exists($jsonFilePath)) {
+            return response()->json(['status' => false, 'message' => 'gtsCountries.json file not found.']);
+        }
+
+        $json = file_get_contents($jsonFilePath);
+        $data = json_decode($json, true);
+
+        $added = 0;
+        $updated = 0;
+
+        if (isset($data['countries']) && is_array($data['countries'])) {
+            foreach ($data['countries'] as $countryData) {
+                $gtsCode = $countryData['id'] ?? null;
+                $isoCode = $countryData['country'] ?? null;
+                $name = $countryData['name'] ?? null;
+                
+                if (!$isoCode) continue;
+
+                $country = WebbedsCountry::where('alpha_code', $isoCode)->first();
+                if ($country) {
+                    $country->gts_code = $gtsCode;
+                    $country->save();
+                    $updated++;
+                } else {
+                    $newCountry = new WebbedsCountry();
+                    $newCountry->alpha_code = $isoCode;
+                    $newCountry->name = $name;
+                    $newCountry->gts_code = $gtsCode;
+                    $newCountry->save();
+                    $added++;
+                }
+            }
+            return response()->json([
+                'status' => true, 
+                'message' => "GTS Countries synced successfully. Added: $added, Updated: $updated"
+            ]);
+        }
+
+        return response()->json(['status' => false, 'message' => 'Invalid JSON data format.']);
+    }
+
+    public function dumpGtsCities()
+    {
+  
+        ini_set('max_execution_time', 0);
+        
+        $country = WebbedsCountry::where(function($q) {
+            $q->where('gts_city_dumped', 0)->orWhereNull('gts_city_dumped');
+        })->whereNotNull('gts_code')->first();
+
+        if (!$country) {
+            return response()->json(['message' => 'All countries are completely dumped', 'status' => true]);
+        }
+        
+        $countryCode = $country->alpha_code;
+        $nextResultsKey = $country->next_results_key;
+        
+        $query = ['country' => $countryCode];
+        if ($nextResultsKey) {
+            $query['nextKey'] = $nextResultsKey;
+        }
+    
+
+        $request = [
+            'end_point' => 'hotelcontent/cities',
+            'method' => 'GET',
+            'query' => $query
+        ];
+
+        $apiResponse = $this->GtsApiJsonRequestWithoutLog($request);
+        
+
+       
+        
+        if ($apiResponse['status'] && isset($apiResponse['response'])) {
+            $data = $apiResponse['response'];
+            $inserted = 0;
+            
+            if (isset($data['cities']) && is_array($data['cities'])) {
+                $citiesToUpsert = [];
+                $now = now();
+                foreach ($data['cities'] as $cityData) {
+                    $citiesToUpsert[] = [
+                        'gts_city_id' => $cityData['id'],
+                        'name' => $cityData['name'] ?? null,
+                        'full_name' => $cityData['fullName'] ?? null,
+                        'country_code' => $cityData['country'] ?? null,
+                        'country_name' => $country->name,
+                    ];
+                }
+                
+                if (!empty($citiesToUpsert)) {
+                    // Ensure uniqueness in the batch to prevent SQL errors
+                    $uniqueCities = collect($citiesToUpsert)->unique('gts_city_id')->toArray();
+                    
+                    \App\Models\GtsCity::upsert(
+                        $uniqueCities,
+                        ['gts_city_id'], // unique columns
+                        ['name', 'full_name', 'country_code', 'country_name'] // columns to update
+                    );
+                    
+                    $inserted = count($uniqueCities);
+                }
+            }
+            
+            if (isset($data['moreResults']) && $data['moreResults'] == true) {
+                $country->next_results_key = $data['nextResultsKey'] ?? null;
+                $country->save();
+                
+                // Add a script to auto-refresh the page to continue dumping
+                echo "<script>setTimeout(function() { window.location.reload(); }, 1000);</script>";
+                return "Dumped partially for {$country->name}. Inserted/Updated: {$inserted}. Next key: " . $country->next_results_key . ". Reloading...";
+            } else {
+                $country->gts_city_dumped = 1;
+                $country->next_results_key = null;
+                $country->save();
+                
+                // Add a script to auto-refresh the page to continue dumping the next country
+                echo "<script>setTimeout(function() { window.location.reload(); }, 1000);</script>";
+                return "Country {$country->name} dumped completely. Inserted/Updated: {$inserted}. Moving to next country...";
+            }
+        }
+        
+        return response()->json(['message' => "Failed to fetch from API: " . ($apiResponse['message'] ?? 'Unknown Error'), 'status' => false]);
+    }
+
+    // public function dumpGtsCityHotels()
+    // {
+    //     ini_set('max_execution_time', 0);
+        
+    //     $cities = \App\Models\GtsCity::where('is_hotel_dumped', 0)->limit(100)->get();
+    //     //474456
+    //     //$cities = \App\Models\GtsCity::where('gts_city_id', 474456)->limit(100)->get();
+        
+
+    //     if ($cities->isEmpty()) {
+    //         return response()->json(['message' => 'All city hotels are completely dumped', 'status' => true]);
+    //     }
+
+    //     foreach ($cities as $city) {
+    //         $request = [
+    //             'end_point' => 'hotelcontent/' . $city->gts_city_id . '/ids',
+    //             'method' => 'GET'
+    //         ];
+
+    //         $apiResponse = $this->GtsApiJsonRequestWithoutLog($request);
+    //         //dd($apiResponse);
+    //         if($apiResponse['status']){
+    //             if (isset($apiResponse['response'])) {
+    //                 $data = $apiResponse['response'];
+                    
+    //                 if (isset($data['ids']) && is_array($data['ids'])) {
+    //                     $hotelsToInsert = [];
+    //                     foreach ($data['ids'] as $hotelId) {
+    //                         $hotelsToInsert[] = [
+    //                             'city_name' => $city->name,
+    //                             'city_code' => $city->gts_city_id,
+    //                             'country_name' => $city->country_name,
+    //                             'country_code' => $city->country_code,
+    //                             'hotel_id' => $hotelId,
+    //                             'is_hotel_details_dumped' => 0,
+    //                             'created_at' => now(),
+    //                             'updated_at' => now(),
+    //                         ];
+    //                     }
+                        
+    //                     if (!empty($hotelsToInsert)) {
+    //                         $chunks = array_chunk($hotelsToInsert, 500);
+    //                         foreach ($chunks as $chunk) {
+    //                             \DB::table('gts_city_hotels')->insert($chunk);
+    //                         }
+    //                     }
+    //                 }
+    //                 // $city->is_hotel_dumped = 1;
+    //                 // $city->save();
+    //             } else {
+    //                 \Log::error("Failed to dump hotels for city {$city->name}: " . ($apiResponse['message'] ?? 'Unknown Error'));
+    //             }
+    //         }
+    //         $city->is_hotel_dumped = 1;
+    //         $city->save();
+    //     }
+        
+    //     //echo "<script>setTimeout(function() { window.location.reload(); }, 1000);</script>";
+    //     return "Dumped hotels for 50 cities. Reloading...";
+    // }
+    public function dumpGtsCityHotels()
+    {
+        ini_set('max_execution_time', 0);
+
+        $limit = 100;
+        $insertChunkSize = 500;
+        echo "<pre>";
+
+        $cities = \App\Models\GtsCity::query()
+            ->select([
+                'id',
+                'gts_city_id',
+                'name',
+                'country_name',
+                'country_code',
+            ])
+            ->where('is_hotel_dumped', 0)
+            ->limit($limit)
+            ->orderBy('id' ,'ASC')
+            ->get();
+        
+        if ($cities->isEmpty()) {
+            return response()->json([
+                'message' => 'All city hotels are completely dumped',
+                'status'  => true,
+            ]);
+        }
+
+        $processedCities = 0;
+        $failedCities = 0;
+        $totalHotels = 0;
+
+        foreach ($cities as $city) {
+
+            $apiResponse = $this->GtsApiJsonRequestWithoutLog([
+                'end_point' => 'hotelcontent/' . $city->gts_city_id . '/ids',
+                'method'    => 'GET',
+            ]);
+           
+
+            /*
+            * API failed.
+            *
+            * Keep is_hotel_dumped = 0 so the city
+            * can be retried in the next execution.
+            */
+            if (!$apiResponse['status']) {
+
+                $failedCities++;
+
+                \Log::error(
+                    "Failed to dump hotels for city {$city->name} " .
+                    "({$city->gts_city_id}): " .
+                    ($apiResponse['message'] ?? 'Unknown Error')
+                );
+
+                continue;
+            }
+
+            /*
+            * API succeeded.
+            */
+            $data = $apiResponse['response'] ?? [];
+
+            /*
+            * GTS may return:
+            *
+            * ids => []
+            * ids => null
+            * ids not present
+            *
+            * All of these mean there are no hotels
+            * for this city.
+            */
+            $hotelIds = $data['ids'] ?? [];
+
+            if (!is_array($hotelIds) || empty($hotelIds)) {
+
+                \App\Models\GtsCity::whereKey($city->id)
+                    ->update([
+                        'is_hotel_dumped' => 1,
+                        'updated_at'      => now(),
+                    ]);
+
+                $processedCities++;
+
+                \Log::info(
+                    "No hotels found for city {$city->name} " .
+                    "({$city->gts_city_id})"
+                );
+
+                continue;
+            }
+
+            /*
+            * Remove empty/null IDs.
+            *
+            * No array_unique() because you confirmed
+            * that duplicate hotel IDs will not exist.
+            */
+            $hotelIds = array_values(
+                array_filter($hotelIds)
+            );
+
+            /*
+            * If there are no valid IDs after filtering,
+            * consider the city successfully processed.
+            */
+            if (empty($hotelIds)) {
+
+                \App\Models\GtsCity::whereKey($city->id)
+                    ->update([
+                        'is_hotel_dumped' => 1,
+                        'updated_at'      => now(),
+                    ]);
+
+                $processedCities++;
+
+                continue;
+            }
+
+            /*
+            * Generate timestamp once for the whole city.
+            */
+            $now = now();
+
+            /*
+            * Insert hotels in batches of 500.
+            */
+            foreach (array_chunk($hotelIds, $insertChunkSize) as $hotelIdChunk) {
+
+                $hotelsToInsert = [];
+
+                foreach ($hotelIdChunk as $hotelId) {
+
+                    $hotelsToInsert[] = [
+                        'city_name'               => $city->name,
+                        'city_code'               => $city->gts_city_id,
+                        'country_name'            => $city->country_name,
+                        'country_code'            => $city->country_code,
+                        'hotel_id'                => $hotelId,
+                        'is_hotel_details_dumped' => 0,
+                        'created_at'              => $now,
+                        'updated_at'              => $now,
+                    ];
+                }
+
+                /*
+                * Normal bulk insert.
+                *
+                * No insertOrIgnore() because duplicates
+                * are not expected.
+                */
+                \DB::table('gts_city_hotels')
+                    ->insert($hotelsToInsert);
+
+                $totalHotels += count($hotelIdChunk);
+            }
+            
+
+            /*
+            * Mark city as dumped only after all hotel
+            * records have been inserted successfully.
+            */
+            \App\Models\GtsCity::whereKey($city->id)
+                ->update([
+                    'is_hotel_dumped' => 1,
+                    'updated_at'      => $now,
+                ]);
+
+            $processedCities++;
+
+            echo "✅ {$city->name} - {$city->id}- " .
+                count($hotelIds) .
+                " hotels dumped.<br>";
+
+            if (ob_get_level() > 0) {
+                ob_flush();
+            }
+
+            flush();
+        }
+
+        return response()->json([
+            'status'           => true,
+            'message'          => "Processed {$processedCities} cities.",
+            'processed_cities' => $processedCities,
+            'failed_cities'    => $failedCities,
+            'total_hotels'     => $totalHotels,
+        ]);
+    }
+
+    public function mergeGtsCities()
+    {
+        ini_set('max_execution_time', 0);
+        
+        $hotelCities = HotelCity::where('is_city_checked', 0)->limit(4000)->get();
+        
+        $countryCodes = $hotelCities->pluck('country_code')->filter()->unique()->toArray();
+        $names = $hotelCities->map(function ($hc) {
+            return strtolower(str_replace(' (and vicinity)', '', $hc->name));
+        })->filter()->unique()->toArray();
+        
+        $allGtsCities = \App\Models\GtsCity::where('is_migrated', 0)
+            ->whereIn('country_code', $countryCodes)
+            ->whereIn(\DB::raw('LOWER(name)'), $names)
+            ->get();
+            
+        $gtsCitiesGrouped = [];
+        foreach ($allGtsCities as $gc) {
+            $key = $gc->country_code . '_' . strtolower($gc->name);
+            if (!isset($gtsCitiesGrouped[$key])) {
+                $gtsCitiesGrouped[$key] = collect();
+            }
+            $gtsCitiesGrouped[$key]->push($gc);
+        }
+
+        \DB::beginTransaction();
+        try {
+            foreach ($hotelCities as $hotelCity) {
+            
+                $name = strtolower(str_replace(' (and vicinity)', '', $hotelCity->name));
+                $longName = strtolower(str_replace(' (and vicinity)', '', $hotelCity->long_name));
+                
+                $key = $hotelCity->country_code . '_' . $name;
+                $matches = $gtsCitiesGrouped[$key] ?? collect();
+                
+                $match = null;
+                if ($matches->count() == 1) {
+                    $match = $matches->first();
+                } elseif ($matches->count() > 1 && !empty($longName)) {
+                    $match = $matches->first(function ($city) use ($longName) {
+                        return strtolower($city->full_name) == $longName;
+                    });
+                }
+         
+                
+                if ($match) {
+                    $hotelCity->gts_code = $match->gts_city_id;
+                    $hotelCity->is_gts = 1;
+                    $match->is_migrated = 1;
+                    $match->save();
+                    
+                    // Remove matched city so it's not reused
+                    $gtsCitiesGrouped[$key] = $gtsCitiesGrouped[$key]->reject(function ($c) use ($match) {
+                        return $c->gts_city_id === $match->gts_city_id;
+                    });
+                }
+                
+                $hotelCity->is_city_checked = 1;
+                $hotelCity->save();
+            }
+            \DB::commit();
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            throw $e;
+        }
+        
+        return response()->json(['message' => 'GTS cities merged and updated successfully', 'status' => true]);
+    }
 
 }
