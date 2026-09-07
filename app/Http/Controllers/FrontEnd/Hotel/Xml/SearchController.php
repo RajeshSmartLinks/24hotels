@@ -753,12 +753,11 @@ class SearchController extends Controller
         $noOfRooms = (int) ($serachInfo->no_of_rooms ?: 1);
         $currency = 'USD';
 
-        //$GtsHotels = GtsCityHotel::where('city_code',$serachInfo->gts_code)->pluck('hotel_id')->toArray();
-
-        $GtsHotels = GtsHotel::limit(100)->pluck('hotel_id')->toArray();
-        
-        //For now, use these two hotel IDs as requested by user
-        // $hotelIds = ["15067359","15067096","15067342"];
+        if(env('APP_ENV') == 'local'){
+            $GtsHotels = GtsHotel::limit(100)->pluck('hotel_id')->toArray();
+        }else{
+            $GtsHotels = GtsCityHotel::where('city_code',$serachInfo->gts_code)->pluck('hotel_id')->toArray();
+        }
         $hotelIds = $GtsHotels;
 
         $rooms = json_decode($serachInfo->rooms_request, true) ?? [];
