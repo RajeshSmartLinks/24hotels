@@ -1,0 +1,4 @@
+Cron Jobs:
+curl --silent https://masilaholidays.com/dumpDadiHotelsDetails
+curl --silent https://demo.masilaholidays.com/dumpGtsHotelsDetails
+curl --silent https://demo.masilaholidays.com/dumpGtsCityHotels

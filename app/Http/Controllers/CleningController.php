@@ -11,7 +11,6 @@ class CleningController extends Controller
     public function deleteOldHotelXmlRequests()
     {
         $types = [
-            'search',
             'getRooms',
             'getRoomsWithBlocking',
             'cancelBooking',
@@ -27,10 +26,17 @@ class CleningController extends Controller
             ->where('created_at', '<', $threeWeeksAgo)
             ->delete();
 
+        $sevenDaysAgo = Carbon::now()->subDays(7);
+
+        $deletedCountSearch = HotelXmlRequest::whereIn('request_type', ['search'])
+            ->where('created_at', '<', $sevenDaysAgo)
+            ->delete();
+
         return response()->json([
             'status' => 'success',
             'message' => 'Successfully deleted old XML request logs.',
             'deleted_count' => $deletedCount,
+            'deleted_count_search' => $deletedCountSearch,
             'before_date' => $threeWeeksAgo->toDateTimeString()
         ]);
     }
