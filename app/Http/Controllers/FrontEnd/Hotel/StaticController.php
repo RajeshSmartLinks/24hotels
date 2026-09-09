@@ -1901,4 +1901,50 @@ class StaticController extends Controller
         return response()->json(['message' => 'GTS cities merged and updated successfully', 'status' => true]);
     }
 
+    public function moveUnmigratedGtsCities()
+    {
+        ini_set('max_execution_time', 0);
+
+        $unmigratedCities = \DB::table('gts_cities')
+            ->where('is_migrated', 0)
+            ->orderBy('id')
+            ->limit(10)
+            ->get();
+
+        if ($unmigratedCities->isEmpty()) {
+            return response()->json(['message' => 'No unmigrated cities found.', 'status' => true]);
+        }
+
+        $chunks = $unmigratedCities->chunk(1000);
+
+        \DB::transaction(function () use ($chunks) {
+            foreach ($chunks as $chunk) {
+                $insertData = [];
+                $migratedIds = [];
+
+                foreach ($chunk as $city) {
+                    $insertData[] = [
+                        'name'         => $city->name,
+                        'long_name'    => $city->full_name,
+                        'country_code' => $city->country_code,
+                        'country_name' => $city->country_name,
+                        'created_at'   => $city->created_at,
+                        'updated_at'   => $city->updated_at,
+                        'is_gts'       => 1,
+                        'gts_code'     => $city->gts_city_id,
+                    ];
+                    $migratedIds[] = $city->id;
+                }
+
+                \DB::table('hotel_cities')->insert($insertData);
+                \DB::table('gts_cities')->whereIn('id', $migratedIds)->update(['is_migrated' => 1]);
+            }
+        });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Moved ' . count($unmigratedCities) . ' unmigrated GTS cities successfully.'
+        ]);
+    }
+
 }
