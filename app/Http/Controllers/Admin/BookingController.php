@@ -79,7 +79,7 @@ class BookingController extends Controller
         ];
         //$bookings = FlightBooking::with('User')->whereIn('booking_status',['booking_completed','payment_successful','payment_failure','payment_exipre','travelport_failure',''])->orderBy('id')->get();
 
-        $bookings = HotelBooking::with('Customercountry','TravelersInfo')->orderBy('hotel_bookings.id','DESC')->get();
+        $bookings = HotelBooking::with('Customercountry','TravelersInfo','User.agency')->orderBy('hotel_bookings.id','DESC')->get();
         // dd($bookings);
 
         return view('admin.booking.hotel_index',compact('titles','bookings'));

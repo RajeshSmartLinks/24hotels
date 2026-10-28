@@ -122,8 +122,10 @@ class RoleController extends Controller
 
         $this->detachPermission($role);
         // Attach the permissions
-        foreach ($inputPermissions as $inputPermission) {
-            $role->permissions()->attach($inputPermission);
+        if ($inputPermissions) {
+            foreach ($inputPermissions as $inputPermission) {
+                $role->permissions()->attach($inputPermission);
+            }
         }
 
         $data['name'] = Str::ucfirst($name);

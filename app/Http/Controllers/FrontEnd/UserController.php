@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Mail;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\FrontEnd\Hotel\Xml\BookingController;
+use Mtownsend\XmlToArray\XmlToArray;
+use App\Models\Currency;
 
 class UserController extends Controller
 {
@@ -465,7 +467,6 @@ class UserController extends Controller
                     $BookingCode = json_decode($value['booking_code'],true);
                     $preBookingId = $BookingCode['prebookingId'] ?? null;
                     if($preBookingId){
-                        
                         $prebooking = HotelXmlRequest::where('id',$preBookingId)->first();
                         if($prebooking && $prebooking->json_response){
                             $ratesInfo = [];
@@ -485,6 +486,26 @@ class UserController extends Controller
                             $hotelbookings[$key]['cancellation_rules'] = $cancellation_rules;
                         }
                     }
+                }elseif($value['supplier'] == 'tds'){
+                    $bookingXml = HotelXmlRequest::find($value['webbeds_booking_request_id']);
+                    $responseArray = XmlToArray::convert($bookingXml->response_xml, $outputRoot = false);
+                    $reservation = $responseArray['soap:Body']['HotelBookingResponse']['BookingRS']['Reservations']['Reservation'] ?? null;
+                    $hotelItem = $reservation['Items']['HotelItem'] ?? [];
+                    $cancellationPolicy = $hotelItem['CancellationPolicy'] ?? [];
+                    $grossAmount = $hotelItem['Prices']['Price']['TotalFixAmounts']['@attributes']['Gross'] ?? $hotelItem['Prices']['Price']['TotalFixAmounts']['Gross'] ?? $value['total_price'] ?? 0;
+                    $currencyCode = $cancellationPolicy['@attributes']['CurrencyCode'] ?? $cancellationPolicy['CurrencyCode'] ?? ($hotelItem['Prices']['Price']['@attributes']['Currency'] ?? $hotelItem['Prices']['Price']['Currency'] ?? 'EUR');
+                   ;
+                    $noOfRooms = $hotelbookings[$key]['no_of_rooms'] ?: 1;
+
+                    $cancellation_rules = [];
+                    for ($rm = 0; $rm < (int)$noOfRooms; $rm++) {
+                        $cancellation_rules[] = convertCancellationRulesForTds($cancellationPolicy, $currencyCode, (float)$grossAmount, (int)$noOfRooms, 'Room ' . ($rm + 1));
+                    }
+
+                    $hotelbookings[$key]['cancellation_rules'] = $cancellation_rules;
+                    //$hotelbookings[$key]['formatted_cancellation_rules'] = formatCancellationRules($cancellationPolicy, 'tds', $grossAmount);
+
+
                 }
                 else{
                     $hotelbookings[$key]['cancellation_rules'] = [];
@@ -622,8 +643,11 @@ class UserController extends Controller
     }
 
     public function addSubAgent(){
-        if(Auth::user()->is_master_agent != 1){
-            return view('errors.500');
+        // if(Auth::user()->is_master_agent != 1){
+        //     return view('errors.500');
+        // }
+        if (!auth()->user()->can('agent-add')) {
+            return view('errors.404');
         }
         $titles = [
             'title' => "Add Sub Agent",
@@ -631,13 +655,16 @@ class UserController extends Controller
 
         $countries = Country::select('id','country_code','name','phone_code')->orderBy('name','ASC')->get();
         $noImage = asset(Config::get('constants.NO_IMG_ADMIN'));
-
-        return view('front_end.agent.addSubAgent',compact('titles' , 'countries','noImage'));
+        $roles = Role::whereIn('slug' , ['agent-travel-agent', 'agent-manager', 'agent-accountant'])->select('id','name')->get();
+        return view('front_end.agent.addSubAgent',compact('titles' , 'countries','noImage','roles'));
     }
 
     public function storeAgent(Request $request){
-        if(Auth::user()->is_master_agent != 1){
-            return view('errors.500');
+        // if(Auth::user()->is_master_agent != 1){
+        //     return view('errors.500');
+        // }
+        if (!auth()->user()->can('agent-add')) {
+            return view('errors.404');
         }
         $titles = [
             'title' => "Add Sub Agent",
@@ -650,49 +677,160 @@ class UserController extends Controller
             'mobile' => 'required',
             'title' => 'required|string|max:255',
             'country_id' => 'required',
+            'role_id' => 'required|exists:roles,id',
         ]);
 
         $user = new User();
 
+        $user->title = $request->title;
         $user->first_name = $request->first_name;
         $user->last_name = $request->last_name;
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
         $user->status = 'Active';
         $user->is_agent = 1 ;
+        $user->country_id = $request->country_id;
         $user->mobile = $request->mobile;
         $user->agency_id =  Auth::user()->agency_id ;
         $user->save();
+
+        if ($request->role_id) {
+            $user->assignRole($request->role_id);
+        }
 
         //getting markups from master agent
         $hotelMartkUp = HotelMarkUp::where('user_id', Auth::user()->id)->first();
 
         //adding in hotel markups
-        $hotelMarkup = new HotelMarkUp;
-        $hotelMarkup->user_id = $user->id;
-        $hotelMarkup->fee_type = $hotelMartkUp->fee_type; 
-        $hotelMarkup->fee_value = $hotelMartkUp->fee_value;
-        $hotelMarkup->fee_amount = $hotelMartkUp->fee_amount;
-        $hotelMarkup->status = 'Active';
-        $hotelMarkup->save();
+        if ($hotelMartkUp) {
+            $hotelMarkup = new HotelMarkUp;
+            $hotelMarkup->user_id = $user->id;
+            $hotelMarkup->fee_type = $hotelMartkUp->fee_type; 
+            $hotelMarkup->fee_value = $hotelMartkUp->fee_value;
+            $hotelMarkup->fee_amount = $hotelMartkUp->fee_amount;
+            $hotelMarkup->status = 'Active';
+            $hotelMarkup->save();
+        }
 
         return redirect()->route('agent-list')->with('success','Agent Added Successfully');
     }
 
     public function agentList(){
-        if(Auth::user()->is_master_agent != 1){
-            return view('errors.500');
+        
+        if (!auth()->user()->can('agent-view')) {
+            return view('errors.404');
         }
+        // if(Auth::user()->is_master_agent != 1){
+        //     return view('errors.500');
+        // }
         $titles = [
             'title' => "Agent List"
         ];
 
-        $agents = User::where('is_agent',1)->where('is_master_agent',0)->where('agency_id',Auth::user()->agency_id)->orderBy('id','DESC')->paginate(15);;
+        $agents = User::with('roles')->where('is_agent',1)->where('is_master_agent',0)->where('agency_id',Auth::user()->agency_id)->orderBy('id','DESC')->paginate(15);
         return view('front_end.agent.agentList',compact('titles','agents'));
 
     }
+
+    public function editSubAgent($id){
+        if (!auth()->user()->can('agent-edit')) {
+            return view('errors.404');
+        }
+
+        $agent = User::with('roles')
+            ->where('is_agent', 1)
+            ->where('is_master_agent', 0)
+            ->where('agency_id', Auth::user()->agency_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$agent) {
+            return view('errors.404');
+        }
+
+        $titles = [
+            'title' => "Edit Sub Agent",
+        ];
+
+        $countries = Country::select('id','country_code','name','phone_code')->orderBy('name','ASC')->get();
+        $noImage = asset(Config::get('constants.NO_IMG_ADMIN'));
+        $roles = Role::whereIn('slug' , ['agent-travel-agent', 'agent-manager', 'agent-accountant'])->select('id','name')->get();
+
+        return view('front_end.agent.editSubAgent', compact('titles', 'countries', 'noImage', 'roles', 'agent'));
+    }
+
+    public function editAgent($id){
+        return $this->editSubAgent($id);
+    }
+
+    public function updateAgent(Request $request, $id){
+        if (!auth()->user()->can('agent-edit')) {
+            return view('errors.404');
+        }
+
+        $agent = User::where('is_agent', 1)
+            ->where('is_master_agent', 0)
+            ->where('agency_id', Auth::user()->agency_id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$agent) {
+            return view('errors.404');
+        }
+
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,'.$id,
+            'password' => 'nullable|string|min:8|confirmed',
+            'mobile' => 'required',
+            'title' => 'required|string|max:255',
+            'country_id' => 'required',
+            'role_id' => 'required|exists:roles,id',
+            'status' => 'required|in:Active,InActive',
+        ]);
+
+        $agent->title = $request->title;
+        $agent->first_name = $request->first_name;
+        $agent->last_name = $request->last_name;
+        $agent->email = $request->email;
+        if (!empty($request->password)) {
+            $agent->password = Hash::make($request->password);
+        }
+        $agent->status = $request->status;
+        $agent->country_id = $request->country_id;
+        $agent->mobile = $request->mobile;
+        $agent->save();
+
+        if ($request->role_id) {
+            $this->detachRole($agent);
+            $agent->assignRole($request->role_id);
+        }
+
+        return redirect()->route('agent-list')->with('success', 'Agent Updated Successfully');
+    }
+
+    public function updateSubAgent(Request $request, $id){
+        return $this->updateAgent($request, $id);
+    }
+
      public function hotelBookingcancellation( Request $request)
     {
+        // $xmlPath = file_exists(public_path('tdsCancleBookingRsp.xml')) ? public_path('tdsCancleBookingRsp.xml') : public_path('tdscancelBookingRsp.xml');
+        // $xmlContent = file_get_contents($xmlPath);
+        // $cancellationYesResp['hotelResponse'] = XmlToArray::convert($xmlContent, $outputRoot = false);
+
+        // $responseBody = $cancellationYesResp['hotelResponse']['soap:Body'] ?? $cancellationYesResp['hotelResponse']['Body'] ?? $cancellationYesResp['hotelResponse'] ?? [];
+    
+        // $bookingRS = $responseBody['CancelBookingResponse']['BookingRS'] ?? null;
+        //     if(isset($bookingRS['Errors'])){
+        //         return response()->json(['status' => false, 'message' => "Failure in cancellation"]);
+        //     }
+        //     $reservation = $bookingRS['Reservations']['Reservation'] ?? null;
+           
+        //     $status = strtolower($reservation['@attributes']['Status'] ?? $reservation['Status']);
+        //     dd($status);
+
         $bookingId = $request->input('bookingId');
         $HotelBooking = HotelBooking::find($bookingId);
         $bookingController = new BookingController();
@@ -738,6 +876,22 @@ class UserController extends Controller
             }
         }elseif($HotelBooking->supplier == 'gts'){
             // GTS cancellation is a 1-step process, so no preliminary check is needed here
+        }
+        elseif($HotelBooking->supplier == 'tds'){
+            // TDS cancellation is a 1-step process, so no preliminary check is needed here
+             //sendinmg  booking code
+             $Info = [
+                    'tds_booking_id' => $HotelBooking->booking_reference_number,
+                    'confirmCancellation' => 'no',
+                    'hotel_booking_id' => $HotelBooking->id,
+                ];
+            $cancellationNoResp = $bookingController->TdsCancelBooking($Info);
+            $responseBody = $cancellationNoResp['hotelResponse']['soap:Body'] ?? $cancellationNoResp['hotelResponse']['Body'] ?? $cancellationNoResp['hotelResponse'] ?? [];
+            $cancellationNoResp = $responseBody['CancelBookingResponse']['BookingRS'] ?? null;
+            if(isset($cancellationNoResp['Warnings']['Error']['@attributes']['Text'])){
+                $failure = true;
+                $message[] = $cancellationNoResp['Warnings']['Error']['@attributes']['Text'];
+            }
         }
         if($failure){
             return response()->json(['status' => false, 'message' => $message]);
@@ -832,6 +986,48 @@ class UserController extends Controller
                 //updating hotel room booking status
                 HotelRoomBookingInfo::where('hotel_booking_id', $HotelBooking->id)->where('room_no', $i)->update(['status' => $status , 'is_cancel' => $isCancel ,'penality_amount' => $penalityAmountperRoom]);
             }
+        }elseif($HotelBooking->supplier == 'tds'){
+      
+            $penalityAmount = $cancellationNoResp['Warnings']['CancelInfo']['BookingCancelCost'];
+            $penalityCurrency = $cancellationNoResp['Warnings']['CancelInfo']['BookingCancelCostCurrency'];
+            $Info = [
+                'tds_booking_id' => $HotelBooking->booking_reference_number,
+                'confirmCancellation' => 'yes',
+                'hotel_booking_id' => $HotelBooking->id,
+            ];
+            $cancellationYesResp = $bookingController->TdsCancelBooking($Info);
+
+            $responseBody = $cancellationYesResp['hotelResponse']['soap:Body'] ?? $cancellationYesResp['hotelResponse']['Body'] ?? $cancellationYesResp['hotelResponse'] ?? [];
+            $bookingRS = $responseBody['CancelBookingResponse']['BookingRS'] ?? null;
+            if(isset($bookingRS['Errors'])){
+                return response()->json(['status' => false, 'message' => "Failure in cancellation"]);
+            }
+            $reservation = $bookingRS['Reservations']['Reservation'] ?? null;
+          
+            $status = strtolower($reservation['@attributes']['Status'] ?? $reservation['Status']);
+            
+            if($status == 'cac'){
+                $status = 'cancelled';
+                $isCancel = 1;
+            }else{
+                $status = 'cancellation_failure';
+                $isCancel = 0;
+            }
+            $noOfRooms = $HotelBooking->no_of_rooms;
+            $penalityAmountperRoom = $penalityAmount/$noOfRooms;
+            for($i = 1 ; $i <= $noOfRooms ; $i++)
+            {
+                //updating hotel room booking status
+                HotelRoomBookingInfo::where('hotel_booking_id', $HotelBooking->id)->where('room_no', $i)->update(['status' => $status , 'is_cancel' => $isCancel ,'penality_amount' => $penalityAmountperRoom]);
+            }
+        }
+
+        //converting penalty amount and currency to kwd 
+        $exhangeRate = 1;
+        if($penalityCurrency != 'KWD'){
+            $exhangeRate =  Currency::where("currency_code_en",$penalityCurrency)->first();
+            $penalityAmount = $penalityAmount*(1/$exhangeRate->conversion_rate);
+            $penalityCurrency = 'KWD';
         }
         $HotelBooking->penality_amount = $penalityAmount;
         $HotelBooking->penality_currency = $penalityCurrency;
@@ -839,7 +1035,7 @@ class UserController extends Controller
         if($partiallyCanceled){
             $HotelBooking->cancellation_status = 'partially_cancellation';
             $HotelBooking->save();
-        }elseif($status == 'cancellation_failure' && in_array($HotelBooking->supplier, ['dida', 'gts'])){
+        }elseif($status == 'cancellation_failure' && in_array($HotelBooking->supplier, ['dida', 'gts','tds'])){
             $HotelBooking->cancellation_status = 'cancellation_failure';
             $HotelBooking->save();
             return response()->json(['status' => false, 'message' => "Failure in cancellation"]);

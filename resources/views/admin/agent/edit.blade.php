@@ -122,14 +122,37 @@
                                                     <div class= "col-md-6 col-12">
                                                         <div class="form-group">
                                                             <label for="valid_from">Agency</label>
-                                                            <select name="agency_id" class="form-control @error('agency_id') is-invalid @enderror" id="basicSelect" disabled>
+                                                            <select name="agency_id_select" class="form-control @error('agency_id') is-invalid @enderror" id="basicSelect" disabled>
                                                                 <option value="">--select agency_id --</option>
                                                                 @foreach($agencies as $agency)
                                                                     <option value="{{$agency->id}}" @if (old('agency_id' , $editagent->agency_id) == $agency->id) {{ 'selected' }} @endif>{{$agency->name}}</option>
                                                                 @endforeach
                                                                
                                                             </select>
+                                                            <input type="hidden" name="agency_id" value="{{ $editagent->agency_id }}">
                                                             @error('agency_id')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="role_id">Role</label>
+                                                            @php
+                                                                $selectedRoleId = old('role_id', optional($editagent->roles->first())->id);
+                                                            @endphp
+                                                            <select name="role_id" class="form-control @error('role_id') is-invalid @enderror" id="role_id" required>
+                                                                <option value="">--select role --</option>
+                                                                @foreach($roles as $role)
+                                                                    <option value="{{$role->id}}" @if ($selectedRoleId == $role->id) {{ 'selected' }} @endif>{{$role->name}}</option>
+                                                                @endforeach
+                                                            </select>
+                                                            @error('role_id')
                                                                 <span class="invalid-feedback" role="alert">
                                                                     <strong>{{ $message }}</strong>
                                                                 </span>

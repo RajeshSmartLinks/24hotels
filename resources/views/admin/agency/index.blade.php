@@ -32,6 +32,7 @@
                                                     <th>Logo</th>
                                                     <th>Phone Number</th>
                                                     <th>Wallet Balance</th>
+                                                  
                                                     <th>status</th>
                                                     <th>Action</th>
                                                 </tr>
@@ -48,6 +49,7 @@
                                                             </td>
                                                             <td>{{$agency->country->phone_code}} &nbsp; {{$agency->phone_number}} </td>
                                                             <td>KWD {{number_format($agency->wallet_balance, 3)}} </td>
+                                                            
                                                             <td>{{$agency->status}} </td>
                                                             {{-- <td class="product-img"><img
                                                                     src="{{$brand->image ?  asset('uploads/brand/'.$brand->image) : $noImage}} "
@@ -78,6 +80,11 @@
                                                                     data-toggle="modal"
                                                                     data-target="#agentMarkUp" id="agentMarkUpBtn"><i
                                                                         class="feather icon-dollar-sign"></i> MarkUps</a> 
+                                                                @endcan
+                                                                @can('agent-view')
+                                                                | 
+                                                                    <a href="{{ route('agents.index') }}?agency_id={{$agency->id}}"><i
+                                                                        class="feather icon-eye"></i> View Agents</a>
                                                                 @endcan
                                                             </td>
                                                         </tr>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Role;
 use App\Models\User;
 use App\Models\Agency;
 use App\Models\MarkUp;
@@ -22,7 +23,7 @@ class AgentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $titles = ['title' => "Agent", 'subTitle' => "Agent", 'listTitle' => "Agent Listing"];
         $deleteRouteName = "agents.destroy";
@@ -33,8 +34,16 @@ class AgentController extends Controller
             return view('admin.abort', compact('titles'));
         }
 
+        if($request->has('agency_id')){
+            $agents = User::with('agentMarkup','agentHotelMarkup','agency','roles')->where('is_agent', 1)->where('agency_id', $request->agency_id)->get();
+        }else{
+            $agents = User::with('agentMarkup','agentHotelMarkup','agency','roles')->where('is_agent', 1)->get();
+        }
 
-        $agents = User::with('agentMarkup','agentHotelMarkup','agency')->where('is_agent', 1)->get();
+        //dd($agents);
+
+
+       
 
         $noImage = asset(Config::get('constants.NO_USER_IMG'));
        
@@ -59,8 +68,9 @@ class AgentController extends Controller
             return view('admin.abort', compact('titles'));
         }
         $agencies = Agency::where('status', 'Active')->get();
+        $roles = Role::whereIn('slug', ['agent-travel-agent', 'agent-manager', 'agent-accountant'])->get();
 
-        return view('admin.agent.create', compact('titles' , 'agencies'));
+        return view('admin.agent.create', compact('titles', 'agencies', 'roles'));
         
     }
 
@@ -83,6 +93,7 @@ class AgentController extends Controller
             'password' => 'required|min:8|confirmed',
             'status' => 'required',
             'agency_id' => 'required',
+            'role_id' => 'required',
         ]);
         $data = array();
 
@@ -98,6 +109,10 @@ class AgentController extends Controller
         $user->mobile = $request->mobile;
         $user->agency_id = $request->agency_id;
         $user->save();
+
+        if ($request->role_id) {
+            $user->assignRole($request->role_id);
+        }
 
         $agencyMasterInfo = User::where(['is_master_agent' =>1 , 'agency_id' => $request->agency_id ])->first();
 
@@ -146,12 +161,13 @@ class AgentController extends Controller
             return view('admin.abort', compact('titles'));
         }
 
-        $editagent = User::find($id);
+        $editagent = User::with('roles')->find($id);
 
         $editmarkup = MarkUp::where('user_id', $id)->first();
         $agencies = Agency::where('status', 'Active')->get();
+        $roles = Role::whereIn('slug', ['agent-travel-agent', 'agent-manager', 'agent-accountant'])->get();
 
-        return view('admin.agent.edit', compact('titles', 'editagent' ,'editmarkup','agencies'));
+        return view('admin.agent.edit', compact('titles', 'editagent' ,'editmarkup','agencies', 'roles'));
     }
 
     /**
@@ -172,7 +188,8 @@ class AgentController extends Controller
             'last_name' => 'required',
             'email' =>  'required|email|unique:users,email,'.$id,
             'status' => 'required',
-            'agency_id' => 'required'
+            'agency_id' => 'required',
+            'role_id' => 'required',
         ]);
         $user = User::find($id);
 
@@ -183,6 +200,11 @@ class AgentController extends Controller
         $user->mobile = $request->mobile;
         //$user->agency_id = $request->agency_id;
         $user->save();
+
+        if ($request->role_id) {
+            $this->detachRole($user);
+            $user->assignRole($request->role_id);
+        }
 
         return redirect()->route('agents.index')->with('success', 'Agent update Successfully');
     }
@@ -279,7 +301,7 @@ class AgentController extends Controller
             return view('admin.abort');
         }
         $titles = ['title' => 'Manage Agents', 'subTitle' => 'View Agents' ];
-        $agent = User::find($id);
+        $agent = User::with('roles')->find($id);
         $walletLogger = WalletLogger::with('FlightBooking')->where('user_id', $agent->id)->get();
      
         $bookings = FlightBooking::with('TravelersInfo','Customercountry','fromAirport','toAirport','AirlinePnr')->orderBy('flight_bookings.id','DESC')->where('user_id' ,$id)->get();

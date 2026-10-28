@@ -69,14 +69,14 @@
             @endif
 
       
-              <div class="table-responsive-md">
+              <div class="table-responsive">
                 <table class="table table-hover border">
-                  <thead>
+                  <thead class="text-nowrap">
                     <tr>
                       <th>Booking On</th>
                       {{-- <th>Description</th> --}}
                       <th>Order ID</th>
-                      <th>Hotel</th>
+                      <th style="min-width: 250px;">Hotel</th>
                       <th>Customer</th>
                       <th>Agent</th>
                       <th class="text-center">Status</th>
@@ -88,13 +88,28 @@
                     @if(count($hotelbookings) > 0)
                     @foreach($hotelbookings as $hoteldetails)
                     <tr>
-                      <td class="align-middle">{{$hoteldetails->created_at->format('d/m/Y')}}</td>
+                      <td class="align-middle text-nowrap">{{$hoteldetails->created_at->format('d/m/Y')}}</td>
                       {{-- <td class="align-middle"><img src="images/brands/operator/vodafone.jpg" class="img-thumbnail d-inline-flex me-1"> <span class="text-1 d-inline-flex">Recharge of Vodafone Mobile 9696969696</span></td> --}}
-                      <td class="align-middle">{{$hoteldetails->booking_ref_id}}</td>
-                      <td class="align-middle">{{$hoteldetails->hotel_name}}</td>
-                      <td class="align-middle"> {{ $hoteldetails->TravelersInfo->first()->first_name ?? '-' }}</td>
-                       <td class="align-middle"> {{ $hoteldetails->User->first_name ?? '-' }}</td>
-                      <td class="align-middle text-center">
+                      <td class="align-middle text-nowrap">{{$hoteldetails->booking_ref_id}}</td>
+                      <td class="align-middle" style="min-width: 250px;">
+                        <div class="fw-500 text-dark">{{$hoteldetails->hotel_name}}</div>
+                        @if(!empty($hoteldetails->check_in) || !empty($hoteldetails->check_out))
+                            <div class="small text-muted d-flex flex-wrap align-items-center mt-1" style="column-gap: 8px; row-gap: 2px;">
+                                @if(!empty($hoteldetails->check_in))
+                                    <span class="text-nowrap"><strong>Check In:</strong> {{ strtotime($hoteldetails->check_in) ? date('d/m/Y', strtotime($hoteldetails->check_in)) : $hoteldetails->check_in }}</span>
+                                @endif
+                                @if(!empty($hoteldetails->check_in) && !empty($hoteldetails->check_out))
+                                    <span class="text-muted d-none d-md-inline">|</span>
+                                @endif
+                                @if(!empty($hoteldetails->check_out))
+                                    <span class="text-nowrap"><strong>Check Out:</strong> {{ strtotime($hoteldetails->check_out) ? date('d/m/Y', strtotime($hoteldetails->check_out)) : $hoteldetails->check_out }}</span>
+                                @endif
+                            </div>
+                        @endif
+                      </td>
+                      <td class="align-middle text-nowrap"> {{ $hoteldetails->TravelersInfo->first()->first_name ?? '-' }}</td>
+                       <td class="align-middle text-nowrap"> {{ $hoteldetails->User->first_name ?? '-' }}</td>
+                      <td class="align-middle text-center text-nowrap">
                         @if(isset($hoteldetails->hotelReservation->reservation_status) && $hoteldetails->hotelReservation->reservation_status  == 'Confirmed')
                         <i class="fas fa-check-circle text-4 text-success" data-bs-toggle="tooltip" title="Your Hotel Reservation is Successful"></i>
                         @elseif(isset($hoteldetails->hotelReservation->reservation_status) && $hoteldetails->hotelReservation->reservation_status == 'Pending')
@@ -106,8 +121,8 @@
                         @endif
 
                       </td>
-                      <td class="align-middle text-end">{{$hoteldetails->currency_code }} {{$hoteldetails->total_amount}}</td>
-                      <td class="align-middle text-center">
+                      <td class="align-middle text-end text-nowrap">{{$hoteldetails->currency_code }} {{$hoteldetails->total_amount}}</td>
+                      <td class="align-middle text-center text-nowrap">
                         @if(!empty($hoteldetails->hotel_room_booking_path))
                         <a  href = "{{asset($hoteldetails->hotel_room_booking_path)}}" download data-bs-toggle="tooltip" title="Download"><i class="fas fa-download"></i></a>
                         @endif
@@ -131,7 +146,7 @@
                     @endforeach
                 @else
                     <tr align="center" class="alert alert-danger">
-                        <td colspan="7">{{__('lang.no_records')}}</td>
+                        <td colspan="8">{{__('lang.no_records')}}</td>
                     </tr>
                 @endif
                   </tbody>

@@ -92,6 +92,8 @@ Route::group([
         Route::get('/agent-hotel-booking', [App\Http\Controllers\FrontEnd\UserController::class, 'agentHotelBooking'])->name('agent-hotel-booking');
         Route::get('addSubAgent', [App\Http\Controllers\FrontEnd\UserController::class, 'addSubAgent'])->name('add-sub-agent');
         Route::post('storeSubAgent', [App\Http\Controllers\FrontEnd\UserController::class, 'storeAgent'])->name('store-sub-agent');
+        Route::get('editSubAgent/{id}', [App\Http\Controllers\FrontEnd\UserController::class, 'editSubAgent'])->name('edit-sub-agent');
+        Route::post('updateSubAgent/{id}', [App\Http\Controllers\FrontEnd\UserController::class, 'updateAgent'])->name('update-sub-agent');
         Route::get('agent-list', [App\Http\Controllers\FrontEnd\UserController::class, 'agentList'])->name('agent-list');
         Route::post('/hotelBookingcancellation', [App\Http\Controllers\FrontEnd\UserController::class, 'hotelBookingcancellation'])->name('cancle-hotel-booking');
         
@@ -154,6 +156,7 @@ Route::get('remainderPreview/{id}', [App\Http\Controllers\FrontEnd\HomeControlle
 
 
 Route::get('remainders', [App\Http\Controllers\CronController::class, 'bookingRemainder']);
+Route::get('send-mails', [App\Http\Controllers\CronController::class, 'sendMails'])->name('send-mails');
 Route::get('deleteOldHotelXmlRequests', [App\Http\Controllers\CleningController::class, 'deleteOldHotelXmlRequests']);
 
 
@@ -200,6 +203,7 @@ Route::get('dumpGtsHotelsList', [App\Http\Controllers\FrontEnd\Hotel\StaticContr
 Route::get('dumpGtsHotelsDetails', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'GtsStoreHotelDetails']);
 
 Route::get('mergeGtsCities', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'mergeGtsCities']);
+Route::get('updatinghotelCitysWithGts', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'updatinghotelCitysWithGts']);
 
 Route::get('processPendingHotelBookings', [App\Http\Controllers\FrontEnd\Hotel\Webbeds\HomeController::class, 'processPendingHotelBookings'])->name('didaHotelSearch');
 
@@ -207,6 +211,23 @@ Route::get('dumpGtsCityHotels', [App\Http\Controllers\FrontEnd\Hotel\StaticContr
 
 //Restel
 Route::get('restelCityDump', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'getRestelCity'])->name('restelCityDump');
+
+
+//TDS
+Route::get('dumpTdsCities', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'dumpTdsCities']);
+Route::get('dumpTdsCity', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'dumpTdsCities']);
+Route::get('dumpTdsZones', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'dumpTdsZones']);
+Route::get('dumpTdsZone', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'dumpTdsZones']);
+Route::get('dumpTdsHotelsList', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'dumpTdsHotelsList']);
+Route::get('dumpTdsHotelList', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'dumpTdsHotelsList']);
+Route::get('dumpTdsHotelsDetails', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'dumpTdsHotelsDetails']);
+Route::get('dumpTdsHotelDetails', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'dumpTdsHotelsDetails']);
+
+Route::get('Tester', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'Tester']);
+
+Route::get('UpdatingAgentRoles', [App\Http\Controllers\FrontEnd\Hotel\StaticController::class, 'UpdatingAgentRoles']);
+
+
 
 
 

@@ -31,7 +31,7 @@
                                                     <th>Name</th>
                                                     {{-- <th>Wallet</th> --}}
                                                     <th>Agency</th>
-                                                    
+                                                    <th>Roles</th>
                                                     <th>Email</th>
                                                     <th>Action</th>
                                                 </tr>
@@ -43,6 +43,11 @@
                                                         <tr>
                                                             <td>{{$agent->first_name}} {{$agent->last_name}} </td>
                                                             <td>{{$agent->agency->name ?? ''}}</td>
+                                                            <td>
+                                                                @foreach($agent->roles as $role)
+                                                                    {{$role->name}}
+                                                                @endforeach
+                                                            </td>
                                                             <td>{{$agent->email}}</td>
                                                             <td>
                                                                 

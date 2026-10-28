@@ -8,12 +8,14 @@ use App\Models\MarkUp;
 use App\Models\Country;
 use App\Models\HotelMarkUp;
 use App\Models\WalletLogger;
+use App\Models\Mailer;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
 use Intervention\Image\Facades\Image;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 
 class AgencyController extends Controller
 {
@@ -341,6 +343,73 @@ class AgencyController extends Controller
         $walletLogger->save();
         $walletLogger->unique_id = 'WL'.str_pad($walletLogger->id, 7, '0', STR_PAD_LEFT);
         $walletLogger->save();
+
+        // Queue notification emails into mailers table for Admin role users and Agency Master role user
+        try {
+            $masterAgent = $agency->masterAgent;
+            if (!$masterAgent && !empty($agency->id)) {
+                $masterAgent = User::where('agency_id', $agency->id)
+                    ->where(function ($q) {
+                        $q->where('is_master_agent', 1)
+                          ->orWhereHas('roles', function ($rq) {
+                              $rq->where('slug', 'agent-master');
+                          });
+                    })->first();
+            }
+
+            // Fetch admin role users
+            $adminUsers = User::whereHas('roles', function ($query) {
+                $query->whereIn('slug', ['admin']);
+            })->whereNotNull('email')->get();
+
+            // Collect unique recipients by email
+            $recipients = [];
+
+            // Agency Master Agent
+            if ($masterAgent && !empty($masterAgent->email)) {
+                $masterName = trim(($masterAgent->first_name ?? '') . ' ' . ($masterAgent->last_name ?? '')) ?: 'Master Agent';
+                $recipients[strtolower(trim($masterAgent->email))] = [
+                    'email' => trim($masterAgent->email),
+                    'name' => $masterName,
+                ];
+            }
+
+            // Admin role users
+            foreach ($adminUsers as $admin) {
+                if (!empty($admin->email)) {
+                    $adminEmail = strtolower(trim($admin->email));
+                    if (!isset($recipients[$adminEmail])) {
+                        $adminName = trim(($admin->first_name ?? '') . ' ' . ($admin->last_name ?? '')) ?: 'Administrator';
+                        $recipients[$adminEmail] = [
+                            'email' => trim($admin->email),
+                            'name' => $adminName,
+                        ];
+                    }
+                }
+            }
+
+            $subject = "Wallet Balance Added - " . ($agency->name ?? 'Agency');
+
+            foreach ($recipients as $recipient) {
+                $htmlData = view('front_end.email_templates.agency_wallet_added', [
+                    'agency' => $agency,
+                    'masterAgent' => $masterAgent,
+                    'amount' => $amount,
+                    'walletLogger' => $walletLogger,
+                    'recipientName' => $recipient['name'],
+                ])->render();
+
+                $mailer = new Mailer();
+                $mailer->receiver_name = $recipient['name'];
+                $mailer->receiver_email = $recipient['email'];
+                $mailer->subject = $subject;
+                $mailer->html_data = $htmlData;
+                $mailer->is_send = '0';
+                $mailer->save();
+            }
+        } catch (\Throwable $e) {
+            Log::error("Failed to queue wallet balance emails for agency ID {$id}: " . $e->getMessage());
+        }
 
         return redirect()->route('agency.index')->with('success', 'Wallet Balance update Successfully');
     }

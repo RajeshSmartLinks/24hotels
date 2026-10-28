@@ -160,6 +160,25 @@
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="role_id">Role</label>
+                                                            <select name="role_id" class="form-control @error('role_id') is-invalid @enderror" id="role_id" required>
+                                                                <option value="">--select role --</option>
+                                                                @foreach($roles as $role)
+                                                                    <option value="{{$role->id}}" @if (old('role_id') == $role->id) {{ 'selected' }} @endif>{{$role->name}}</option>
+                                                                @endforeach
+                                                            </select>
+                                                            @error('role_id')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                
                                                 {{-- <h3>Flight MarkUps</h3>
                                                 <hr>

@@ -13,19 +13,16 @@ class CreateMailersTable extends Migration
      */
     public function up()
     {
+        Schema::dropIfExists('mailers');
+
         Schema::create('mailers', function (Blueprint $table) {
             $table->id();
-            $table->string('from')->nullable();
-            $table->string('from_name')->nullable();
-            $table->string('to')->nullable();
-            $table->string('to_name')->nullable();
-            $table->string('attachment')->nullable();
+            $table->string('receiver_name')->nullable();
+            $table->string('receiver_email')->nullable();
             $table->string('subject')->nullable();
-            $table->longText('message')->nullable();
-            $table->date('send_date');
-            $table->enum('status' , ['Active' ,'InActive'])->default('Active');
-            $table->tinyInteger('is_cron')->default(0);
-            $table->integer('user_id')->nullable();
+            $table->longText('html_data')->nullable();
+            $table->enum('is_send', ['0', '1'])->default('0');
+            $table->timestamp('sent_at')->nullable();
             $table->timestamps();
         });
     }

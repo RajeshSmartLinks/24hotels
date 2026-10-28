@@ -54,7 +54,14 @@
                                                     <td class="font-weight-bold">Status</td>
                                                     <td>{{$agent->status}}</td>
                                                 </tr>
-                                                
+                                                <tr>
+                                                    <td class="font-weight-bold">Role</td>
+                                                    <td>
+                                                        @foreach($agent->roles as $role)
+                                                            <span class="badge badge-primary">{{$role->name}}</span>
+                                                        @endforeach
+                                                    </td>
+                                                </tr>
                                                 <tr>
                                                     <td class="font-weight-bold">Phone</td>
                                                     <td>{{$agent->mobile}}</td>

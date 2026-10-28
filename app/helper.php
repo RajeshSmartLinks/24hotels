@@ -922,6 +922,7 @@ if (! function_exists('convertAmount')) {
 if (!function_exists('hotelMarkUpPrice')) {
     function hotelMarkUpPrice($data)
     {
+      
         // dd($data);
         if(isset($data))
         {
@@ -942,43 +943,55 @@ if (!function_exists('hotelMarkUpPrice')) {
 
             //     )
             // );
-            if(isset($data['currencyCode']) && $data['currencyCode'] == 'KWD'){
-                $usdtokwd = 1;
+            $currencyCode = isset($data['currencyCode']) && !empty($data['currencyCode']) ? strtoupper(trim($data['currencyCode'])) : 'USD';
+            if($currencyCode == 'KWD'){
+                $givenTokwd = 1;
             }else{
-                $usdtokwd = Cache::remember('usdtokwd', 60*60*24*30, function () {
-                    $conversion =  Currency::where("currency_code_en","USD")->first();
-                    return  (1/$conversion->conversion_rate);
+                //$givenTokwdas = 1 / Currency::where("currency_code_en", $currencyCode)->first()->conversion_rate;
+                //Cache::forget('givenTokwd_' . $currencyCode);
+                
+                $givenTokwd = Cache::remember('givenTokwd_' . $currencyCode, 60*60*24, function () use ($currencyCode) {
+                    $conversion = Currency::where("currency_code_en", $currencyCode)->first();
+                    if ($conversion && !empty($conversion->conversion_rate) && $conversion->conversion_rate > 0) {
+                        return (1 / $conversion->conversion_rate);
+                    }
+                    return 1;
                 });
+            
             }
             
+           
+            
 
-            //converting usd to kwd
-            //$usdtokwd = (1/$hotelCurrencyDetailsUsdToKwd->conversion_rate);
+            //converting given currency to kwd
+           
             $price = array(
                 'actualPrice' =>array(
                     'currency_code' => 'KWD' ,
-                    'value' => sprintf("%.3f",$usdtokwd*$data['totalPrice']),
+                    'value' => sprintf("%.3f",$givenTokwd*$data['totalPrice']),
                 ),
                 'actualTotalAmount' =>array(
                     'currency_code' => 'KWD' ,
-                    'value' => sprintf("%.3f",$usdtokwd*$data['totalPrice']),
+                    'value' => sprintf("%.3f",$givenTokwd*$data['totalPrice']),
                 ),
 
                 'totalPrice' =>array(
                     'currency_code' => 'KWD' ,
-                    'value' => sprintf("%.3f",$usdtokwd*$data['totalPrice']),
+                    'value' => sprintf("%.3f",$givenTokwd*$data['totalPrice']),
                 ),
                 'tax' =>array(
                     'currency_code' => 'KWD' ,
-                    'value' => sprintf("%.3f",$usdtokwd*$data['totalTax']),
+                    'value' => sprintf("%.3f",$givenTokwd*$data['totalTax']),
 
                 ),
                 'basefare' =>array(
                     'currency_code' => 'KWD' ,
-                    'value' => sprintf("%.3f",$usdtokwd*($data['totalPrice'] - $data['totalTax'])),
+                    'value' => sprintf("%.3f",$givenTokwd*($data['totalPrice'] - $data['totalTax'])),
 
                 )
             );
+         
+           
 
 
             // $MarkUp = Cache::remember('HotelMarkUpPrice', 60*60*24*30, function () {
@@ -1005,8 +1018,10 @@ if (!function_exists('hotelMarkUpPrice')) {
 
             if(!empty($MarkUp))
             {
+             
 
                 $markupValue = ($MarkUp->fee_value == 'fixed') ?  $MarkUp->fee_amount : ($price['totalPrice']['value']*($MarkUp->fee_amount/100)) ;
+                
 
                 $price['totalPrice']['value'] =  sprintf("%.3f", ($MarkUp->fee_type == 'addition') ? ($price['totalPrice']['value'] + $markupValue) : ($price['totalPrice']['value'] - $markupValue));
 
@@ -1014,21 +1029,20 @@ if (!function_exists('hotelMarkUpPrice')) {
 
                 $currency = config('app.currency');
 
-                $currencyDetails = Cache::remember('currencyDetails', 60*60*24*30, function () use($currency) {
+                $currencyDetails = Cache::remember('currencyDetails', 60*60*24, function () use($currency) {
                     return  Currency::where("currency_code_en",$currency)->first();
                 });
                 if($currencyDetails->currency_code_en!=$currency)
                 {
                     Cache::forget('currencyDetails');
-                    $currencyDetails = Cache::remember('currencyDetails', 60*60*24*30, function () use($currency) {
+                    $currencyDetails = Cache::remember('currencyDetails', 60*60*24, function () use($currency) {
                         return  Currency::where("currency_code_en",$currency)->first();
                     });
                 }
 
-                $hotelserviceFee = Cache::remember('hotelserviceFee', 60*60*24*30, function () use($currency) {
+                $hotelserviceFee = Cache::remember('hotelserviceFee', 60*60*24, function () use($currency) {
                     return  HotelAdditionalPrice::where('status','Active')->first();
                 });
-                //  dd($hotelserviceFee);
 
 
                 if(!empty($currencyDetails))
@@ -1537,7 +1551,7 @@ function is_assoc(array $array): bool
 {
     return array_keys($array) !== range(0, count($array) - 1);
 }
- function formatCancellationRules($cancellationRules , $type ='webbeds'): array
+ function formatCancellationRules($cancellationRules , $type ='webbeds', $totalAmount = 0): array
     {
         //dd($cancellationRules);
         if($type == 'webbeds'){
@@ -1574,6 +1588,48 @@ function is_assoc(array $array): bool
             $toDate = 'end';
             $charge = 'estimatedValue';
             $currency = "USD";
+        }elseif($type == 'tds'){
+            if (empty($cancellationRules)) {
+                return [];
+            }
+            $currency = $cancellationRules['@attributes']['CurrencyCode'] ?? $cancellationRules['CurrencyCode'] ?? 'EUR';
+            $policyRules = $cancellationRules['PolicyRules']['Rule'] ?? [];
+            if (isset($policyRules['@attributes']) || isset($policyRules['DateFrom'])) {
+                $policyRules = [$policyRules];
+            }
+
+            $rules = [];
+            foreach ($policyRules as $rule) {
+                $attr = $rule['@attributes'] ?? $rule;
+                $dateFrom = $attr['DateFrom'] ?? '';
+                $dateFromHour = $attr['DateFromHour'] ?? '00:00:00';
+                $dateTo = $attr['DateTo'] ?? '';
+                $dateToHour = $attr['DateToHour'] ?? '23:59:59';
+
+                $fromDateTime = trim($dateFrom . ' ' . $dateFromHour);
+                $toDateTime = trim($dateTo . ' ' . $dateToHour);
+
+                $fixedPrice = (float) ($attr['FixedPrice'] ?? 0);
+                $percentPrice = (float) ($attr['PercentPrice'] ?? 0);
+
+                $chargeAmount = 0;
+                if ($fixedPrice > 0) {
+                    $chargeAmount = $fixedPrice;
+                } elseif ($percentPrice > 0) {
+                    $chargeAmount = ($percentPrice / 100) * (float) $totalAmount;
+                }
+
+                $rules[] = [
+                    'fromDate' => !empty($dateFrom) ? 'UTC ' . \Carbon\Carbon::parse($fromDateTime)->utc()->format('Y-m-d H:i:s') : null,
+                    'toDate'   => !empty($dateTo) ? 'UTC ' . \Carbon\Carbon::parse($toDateTime)->utc()->format('Y-m-d H:i:s') : null,
+                    'noShow'   => false,
+                    'amendRestricted' => false,
+                    'cancelRestricted' => false,
+                    'charge'   => convertingAmountToCurrency($chargeAmount, $currency),
+                ];
+            }
+
+            return $rules;
         }
 
         $output = [];
@@ -1828,6 +1884,64 @@ if (!function_exists('convertCancellationRulesForGTS')) {
                     $rulesText[] =
                         "Before UTC {$toText} Cancellation Charge: {$currency} {$chargeFormatted}";
                 }
+            }
+        }
+
+        return [
+            "room"  => $roomName,
+            "rules" => $rulesText
+        ];
+    }
+}
+
+if (!function_exists('convertCancellationRulesForTds')) {
+    function convertCancellationRulesForTds($cancellationPolicy, $currency = 'EUR', $totalAmount = 0, $noOfRooms = 1, $roomName = "Room 1")
+    {
+        if (empty($cancellationPolicy)) {
+            return [];
+        }
+
+        $currency = $cancellationPolicy['@attributes']['CurrencyCode'] ?? $cancellationPolicy['CurrencyCode'] ?? $currency;
+        $policyRules = $cancellationPolicy['PolicyRules']['Rule'] ?? [];
+        if (isset($policyRules['@attributes']) || isset($policyRules['DateFrom'])) {
+            $policyRules = [$policyRules];
+        }
+
+        $rulesText = [];
+        $noOfRooms = max(1, (int)$noOfRooms);
+        $perRoomAmount = (float)$totalAmount / $noOfRooms;
+
+        foreach ($policyRules as $rule) {
+            $attr = $rule['@attributes'] ?? $rule;
+            $dateFrom = $attr['DateFrom'] ?? '';
+            $dateFromHour = $attr['DateFromHour'] ?? '00:00:00';
+            $dateTo = $attr['DateTo'] ?? '';
+            $dateToHour = $attr['DateToHour'] ?? '23:59:59';
+
+            $fromDateTime = trim($dateFrom . ' ' . $dateFromHour);
+            $toDateTime = trim($dateTo . ' ' . $dateToHour);
+
+            $fixedPrice = (float) ($attr['FixedPrice'] ?? 0);
+            $percentPrice = (float) ($attr['PercentPrice'] ?? 0);
+
+            $chargeAmount = 0;
+            if ($fixedPrice > 0) {
+                $chargeAmount = $fixedPrice / $noOfRooms;
+            } elseif ($percentPrice > 0) {
+                $chargeAmount = ($percentPrice / 100) * $perRoomAmount;
+            }
+
+            $chargeFormatted = number_format($chargeAmount, 2);
+
+            $fromText = !empty($dateFrom) ? \Carbon\Carbon::parse($fromDateTime)->utc()->format('D, d M Y H:i:s') : null;
+            $toText   = !empty($dateTo) ? \Carbon\Carbon::parse($toDateTime)->utc()->format('D, d M Y H:i:s') : null;
+
+            if ($fromText && $toText) {
+                $rulesText[] = "Between UTC {$fromText} and UTC {$toText} Cancellation Charge: {$currency} {$chargeFormatted}";
+            } elseif ($fromText && !$toText) {
+                $rulesText[] = "After UTC {$fromText} Cancellation Charge: {$currency} {$chargeFormatted}";
+            } elseif (!$fromText && $toText) {
+                $rulesText[] = "Before UTC {$toText} Cancellation Charge: {$currency} {$chargeFormatted}";
             }
         }
 

@@ -8,6 +8,7 @@ use App\Models\DidaCity;
 use App\Models\DidaHotel;
 use App\Models\DidaHotelList;
 use App\Models\HotelCity;
+use App\Models\GtsCity;
 use App\Models\TboHotel;
 use App\Models\TboHotelsCity;
 use App\Models\TboHotelsCode;
@@ -24,6 +25,13 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Provincia;
 use App\Models\RestelCity;
 use App\Models\GtsCityHotel;
+use App\Models\TdsCity;
+use App\Models\TdsZone;
+use App\Models\TdsHotelList;
+use App\Models\TdsHotel;
+Use App\Models\Role;
+Use App\Models\User;
+Use App\Models\Agent;
 
 class StaticController extends Controller
 {
@@ -1947,4 +1955,1055 @@ class StaticController extends Controller
         ]);
     }
 
+    public function dumpTdsCities()
+    {
+        // $searchController = new SearchController();
+        // $apiResponse = $searchController->tdsCityDatafetch();
+        
+        // if (!$apiResponse['success']) {
+        //     echo "API Request failed: " . ($apiResponse['message'] ?? '');
+        //     return;
+        // }
+        $filePath = public_path('tdscities.xml');
+        if (!file_exists($filePath)) {
+            echo "File tdscities.xml not found in public folder.";
+            return;
+        }
+
+        $reader = new \XMLReader();
+        if (!$reader->open($filePath)) {
+            echo "Failed to open XML file.";
+            return;
+        }
+
+        $insertData = [];
+        $count = 0;
+
+        while ($reader->read()) {
+            if ($reader->nodeType == \XMLReader::ELEMENT && $reader->localName === 'City') {
+                $cityXml = $reader->readOuterXml();
+                // Remove namespace prefix if present to simplify simplexml parsing
+                $cityXml = str_replace(['jp:', 'xmlns:jp="http://www.juniper.es/webservice/2007/"'], '', $cityXml);
+                
+                $node = simplexml_load_string($cityXml);
+                if ($node !== false) {
+                    $cityId = (string) $node['Id'];
+                    $jpdCode = (string) $node['JPDCode'];
+                    $name = (string) $node->Name;
+
+                    $countryId = isset($node->Country) ? (string) $node->Country['Id'] : null;
+                    $countryJpdCode = isset($node->Country) ? (string) $node->Country['JPDCode'] : null;
+                    $countryName = isset($node->Country) ? (string) $node->Country->Name : null;
+
+                    $regionId = isset($node->Region) ? (string) $node->Region['Id'] : null;
+                    $regionJpdCode = isset($node->Region) ? (string) $node->Region['JPDCode'] : null;
+                    $regionName = isset($node->Region) ? (string) $node->Region->Name : null;
+
+                    $insertData[] = [
+                        'city_id' => $cityId ?: null,
+                        'jpd_code' => $jpdCode ?: null,
+                        'name' => $name ?: null,
+                        'country_id' => $countryId ?: null,
+                        'country_jpd_code' => $countryJpdCode ?: null,
+                        'country_name' => $countryName ?: null,
+                        'region_id' => $regionId ?: null,
+                        'region_jpd_code' => $regionJpdCode ?: null,
+                        'region_name' => $regionName ?: null,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+
+                    if (count($insertData) >= 200) {
+                        \App\Models\TdsCity::insert($insertData);
+                        $insertData = [];
+                    }
+                    $count++;
+                }
+                
+                $reader->next(); 
+            }
+        }
+        
+        if (!empty($insertData)) {
+            \App\Models\TdsCity::insert($insertData);
+        }
+        
+        $reader->close();
+
+        echo "TDS Cities dumped successfully. Total cities: {$count}";
+    }
+
+    
+        // public function dumpTdsCities()
+        // {
+        //     $filePath = public_path('tdscities.xml');
+
+        //     if (!file_exists($filePath)) {
+        //         echo "File tdscities.xml not found in public folder.";
+        //         return;
+        //     }
+
+        //     $reader = new \XMLReader();
+
+        //     if (!$reader->open($filePath)) {
+        //         echo "Failed to open XML file.";
+        //         return;
+        //     }
+
+        //     $insertData = [];
+        //     $count = 0;
+        //     $insertedOrUpdated = 0;
+        //     $batchSize = 200;
+
+        //     try {
+        //         while ($reader->read()) {
+        //             if (
+        //                 $reader->nodeType !== \XMLReader::ELEMENT ||
+        //                 $reader->localName !== 'City'
+        //             ) {
+        //                 continue;
+        //             }
+
+        //             $cityXml = $reader->readOuterXml();
+
+        //             if (empty($cityXml)) {
+        //                 continue;
+        //             }
+
+        //             // Remove Juniper namespace prefixes for SimpleXML parsing.
+        //             $cityXml = str_replace(
+        //                 ['jp:', 'xmlns:jp="http://www.juniper.es/webservice/2007/"'],
+        //                 '',
+        //                 $cityXml
+        //             );
+
+        //             $node = simplexml_load_string($cityXml);
+
+        //             if ($node === false) {
+        //                 continue;
+        //             }
+
+        //             $cityId = trim((string) $node['Id']);
+
+        //             // city_id is the unique identifier used for upsert.
+        //             if ($cityId === '') {
+        //                 continue;
+        //             }
+
+        //             $jpdCode = trim((string) $node['JPDCode']);
+        //             $name = trim((string) $node->Name);
+
+        //             $countryId = isset($node->Country)
+        //                 ? trim((string) $node->Country['Id'])
+        //                 : null;
+
+        //             $countryJpdCode = isset($node->Country)
+        //                 ? trim((string) $node->Country['JPDCode'])
+        //                 : null;
+
+        //             $countryName = isset($node->Country->Name)
+        //                 ? trim((string) $node->Country->Name)
+        //                 : null;
+
+        //             $regionId = isset($node->Region)
+        //                 ? trim((string) $node->Region['Id'])
+        //                 : null;
+
+        //             $regionJpdCode = isset($node->Region)
+        //                 ? trim((string) $node->Region['JPDCode'])
+        //                 : null;
+
+        //             $regionName = isset($node->Region->Name)
+        //                 ? trim((string) $node->Region->Name)
+        //                 : null;
+
+        //             $insertData[] = [
+        //                 'city_id' => $cityId,
+        //                 'jpd_code' => $jpdCode !== '' ? $jpdCode : null,
+        //                 'name' => $name !== '' ? $name : null,
+        //                 'country_id' => $countryId !== '' ? $countryId : null,
+        //                 'country_jpd_code' => $countryJpdCode !== ''
+        //                     ? $countryJpdCode
+        //                     : null,
+        //                 'country_name' => $countryName !== ''
+        //                     ? $countryName
+        //                     : null,
+        //                 'region_id' => $regionId !== '' ? $regionId : null,
+        //                 'region_jpd_code' => $regionJpdCode !== ''
+        //                     ? $regionJpdCode
+        //                     : null,
+        //                 'region_name' => $regionName !== ''
+        //                     ? $regionName
+        //                     : null,
+        //                 'created_at' => now(),
+        //                 'updated_at' => now(),
+        //             ];
+
+        //             $count++;
+
+        //             if (count($insertData) >= $batchSize) {
+        //                 \App\Models\TdsCity::upsert(
+        //                     $insertData,
+        //                     ['city_id'],
+        //                     [
+        //                         'jpd_code',
+        //                         'name',
+        //                         'country_id',
+        //                         'country_jpd_code',
+        //                         'country_name',
+        //                         'region_id',
+        //                         'region_jpd_code',
+        //                         'region_name',
+        //                         'updated_at',
+        //                     ]
+        //                 );
+
+        //                 $insertedOrUpdated += count($insertData);
+        //                 $insertData = [];
+        //             }
+        //         }
+
+        //         // Process the remaining records.
+        //         if (!empty($insertData)) {
+        //             \App\Models\TdsCity::upsert(
+        //                 $insertData,
+        //                 ['city_id'],
+        //                 [
+        //                     'jpd_code',
+        //                     'name',
+        //                     'country_id',
+        //                     'country_jpd_code',
+        //                     'country_name',
+        //                     'region_id',
+        //                     'region_jpd_code',
+        //                     'region_name',
+        //                     'updated_at',
+        //                 ]
+        //             );
+
+        //             $insertedOrUpdated += count($insertData);
+        //         }
+        //     } finally {
+        //         $reader->close();
+        //     }
+
+        //     echo "TDS Cities dump completed successfully. "
+        //         . "XML city records processed: {$count}. "
+        //         . "Records submitted for insert/update: {$insertedOrUpdated}.";
+        // }
+
+
+    public function dumpTdsZones()
+    {
+        $filePath = public_path('zone.xml');
+        if (!file_exists($filePath)) {
+            echo "File zone.xml not found in public folder.";
+            return;
+        }
+
+        $reader = new \XMLReader();
+        if (!$reader->open($filePath)) {
+            echo "Failed to open XML file.";
+            return;
+        }
+
+        $insertData = [];
+        $count = 0;
+
+        while ($reader->read()) {
+            if ($reader->nodeType == \XMLReader::ELEMENT && $reader->localName === 'Zone') {
+                $zoneXml = $reader->readOuterXml();
+                // Remove namespace prefix if present to simplify simplexml parsing
+                $zoneXml = str_replace(['jp:', 'xmlns:jp="http://www.juniper.es/webservice/2007/"'], '', $zoneXml);
+                
+                $node = simplexml_load_string($zoneXml);
+                if ($node !== false) {
+                    $insertData[] = [
+                        'jpd_code' => isset($node['JPDCode']) ? (string) $node['JPDCode'] : null,
+                        'parent_jpd_code' => isset($node['ParentJPDCode']) ? (string) $node['ParentJPDCode'] : null,
+                        'area_type' => isset($node['AreaType']) ? (string) $node['AreaType'] : null,
+                        'searchable' => isset($node['Searchable']) ? (string) $node['Searchable'] : null,
+                        'code' => isset($node['Code']) ? (string) $node['Code'] : null,
+                        'parent_code' => isset($node['ParentCode']) ? (string) $node['ParentCode'] : null,
+                        'name' => isset($node->Name) ? (string) $node->Name : null,
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ];
+
+                    if (count($insertData) >= 500) {
+                        \App\Models\TdsZone::insert($insertData);
+                        $insertData = [];
+                    }
+                    $count++;
+                }
+                
+                $reader->next(); 
+            }
+        }
+        
+        if (!empty($insertData)) {
+            \App\Models\TdsZone::insert($insertData);
+        }
+        
+        $reader->close();
+
+        echo "TDS Zones dumped successfully. Total zones: {$count}";
+    }
+
+    public function dumpTdsHotelsList(Request $request)
+    {
+        header('Cache-Control: max-age=0,no-store');
+        ini_set('max_execution_time', 0);
+        set_time_limit(0);
+
+        $source = $request->input('source', 'api'); // 'api' or 'file'
+        $recordsPerPage = (int) $request->input('records_per_page', 500);
+        $maxPages = (int) $request->input('max_pages', 0); // 0 = unlimited / until no NextToken
+        $resume = $request->boolean('resume', false);
+
+        $outputDir = public_path('tdsHotelList');
+        if (!file_exists($outputDir)) {
+            mkdir($outputDir, 0777, true);
+        }
+
+        // If dumping from existing local XML file
+        if ($source === 'file') {
+            $filePath = public_path('tdsHotelList.xml');
+            if (!file_exists($filePath)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'File tdsHotelList.xml not found in public folder.'
+                ]);
+            }
+            $xmlContent = file_get_contents($filePath);
+            $parsedCount = $this->parseAndSaveTdsHotelsXml($xmlContent);
+            return response()->json([
+                'status' => true,
+                'message' => "Dumped {$parsedCount} hotels from local tdsHotelList.xml file."
+            ]);
+        }
+
+        $searchController = new SearchController();
+        $currentToken = $request->input('next_token');
+        
+        if (empty($currentToken) ) {
+            $latestRecord = TdsHotelList::whereNotNull('next_token')->latest('id')->first();
+            if ($latestRecord) {
+                $currentToken = $latestRecord->next_token;
+            }
+        }
+        
+        
+
+        $page = 1;
+        $totalHotelsSaved = 0;
+        $hasMore = true;
+
+        echo "<pre>";
+        echo "Starting TDS Hotel List dump...\n";
+
+        while ($hasMore) {
+            echo "Fetching page {$page} (NextToken: " . ($currentToken ?: 'Initial Request') . ")...\n";
+
+            $apiResponse = $searchController->tdsHotelListDatafetch($currentToken, $recordsPerPage);
+
+            if (!$apiResponse['success']) {
+                $errMsg = $apiResponse['message'] ?? 'Unknown error';
+                echo "API call failed at page {$page}: {$errMsg}\n";
+                Log::error("TDS HotelList dump failed: {$errMsg}", ['next_token' => $currentToken, 'page' => $page]);
+                break;
+            }
+
+            $rawXml = $apiResponse['raw_xml'] ?? null;
+
+            if ($rawXml) {
+                // Save response to public/tdsHotelList.xml and archive in public/tdsHotelList/response_page_X.xml
+                file_put_contents(public_path('tdsHotelList.xml'), $rawXml);
+                file_put_contents($outputDir . DIRECTORY_SEPARATOR . "response_page_{$page}.xml", $rawXml);
+            }
+
+            $result = $this->processTdsHotelPortfolioXml($rawXml, $apiResponse['response'] ?? []);
+            $hotelsCount = $result['count'];
+            $nextToken = $result['next_token'];
+
+            $totalHotelsSaved += $hotelsCount;
+            echo "Page {$page} processed: {$hotelsCount} hotels saved. NextToken: " . ($nextToken ?: 'None') . "\n";
+
+            if (empty($nextToken) || $nextToken === $currentToken || $hotelsCount === 0) {
+                $hasMore = false;
+                echo "No further pages / NextToken found. Dump complete!\n";
+                break;
+            }
+
+            $currentToken = $nextToken;
+            $page++;
+
+            if ($maxPages > 0 && $page > $maxPages) {
+                echo "Reached max requested pages limit ({$maxPages}). Stopping for this batch.\n";
+                break;
+            }
+
+            // Short pause between requests
+            usleep(200000);
+        }
+
+        echo "Total hotels saved/updated: {$totalHotelsSaved}\n";
+        echo "</pre>";
+    }
+
+    /**
+     * Process and parse XML or array response and save into tds_hotel_lists table
+     */
+    private function processTdsHotelPortfolioXml($rawXml, $responseArray = [])
+    {
+        $insertData = [];
+        $nextToken = null;
+        $count = 0;
+
+        if (!empty($rawXml)) {
+            // Clean XML namespaces for SimpleXML parsing
+            $cleanXml = preg_replace('/(<\/?)(\w+):([^>]*>)/', '$1$3', $rawXml);
+            $cleanXml = str_replace([
+                'xmlns="http://www.juniper.es/webservice/2007/"',
+                'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+                'xmlns:xsd="http://www.w3.org/2001/XMLSchema"'
+            ], '', $cleanXml);
+
+            $xmlObj = @simplexml_load_string($cleanXml);
+            if ($xmlObj !== false) {
+                $portfolioNode = null;
+                if (isset($xmlObj->Body->HotelPortfolioResponse->HotelPortfolioRS->HotelPortfolio)) {
+                    $portfolioNode = $xmlObj->Body->HotelPortfolioResponse->HotelPortfolioRS->HotelPortfolio;
+                } elseif (isset($xmlObj->HotelPortfolioResponse->HotelPortfolioRS->HotelPortfolio)) {
+                    $portfolioNode = $xmlObj->HotelPortfolioResponse->HotelPortfolioRS->HotelPortfolio;
+                } elseif (isset($xmlObj->HotelPortfolio)) {
+                    $portfolioNode = $xmlObj->HotelPortfolio;
+                }
+
+                if ($portfolioNode) {
+                    $nextToken = isset($portfolioNode['NextToken']) ? (string) $portfolioNode['NextToken'] : null;
+
+                    if (isset($portfolioNode->Hotel)) {
+                        foreach ($portfolioNode->Hotel as $hotel) {
+                            $jpCode = isset($hotel['JPCode']) ? (string) $hotel['JPCode'] : null;
+                            $name = isset($hotel->Name) ? (string) $hotel->Name : null;
+                            $cityId = isset($hotel->City['Id']) ? (string) $hotel->City['Id'] : (isset($hotel->City['id']) ? (string) $hotel->City['id'] : null);
+                            $cityJpdCode = isset($hotel->City['JPDCode']) ? (string) $hotel->City['JPDCode'] : (isset($hotel->City['jpdCode']) ? (string) $hotel->City['jpdCode'] : null);
+
+                            if ($jpCode) {
+                                $insertData[] = [
+                                    'hotel_jp_code' => $jpCode,
+                                    'tds_city_id' => $cityId,
+                                    'tds_city_jpd_code' => $cityJpdCode,
+                                    'hotel_name' => $name,
+                                    'is_hotel_details_dumped' => 0,
+                                    'next_token' => $nextToken,
+                                    'created_at' => now(),
+                                    'updated_at' => now(),
+                                ];
+                                $count++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!empty($insertData)) {
+            foreach (array_chunk($insertData, 500) as $chunk) {
+                TdsHotelList::upsert(
+                    $chunk,
+                    ['hotel_jp_code'],
+                    ['tds_city_id', 'tds_city_jpd_code', 'hotel_name', 'next_token', 'updated_at']
+                );
+            }
+        }
+
+        return [
+            'count' => $count,
+            'next_token' => $nextToken,
+        ];
+    }
+
+    /**
+     * Parse local XML file and save to database
+     */
+    private function parseAndSaveTdsHotelsXml($xmlContent)
+    {
+        $result = $this->processTdsHotelPortfolioXml($xmlContent);
+        return $result['count'];
+    }
+
+    public function Tester(){
+        echo "ff";
+    }
+
+    public function dumpTdsHotelsDetails(Request $request)
+    {
+        header('Cache-Control: max-age=0,no-store');
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 0);
+        set_time_limit(0);
+
+        $limit = (int) $request->input('limit', 400); // 500 records per call
+        $chunkSize = (int) $request->input('chunk_size', 25); // 25 per set
+
+        $searchController = new SearchController();
+        $totalHotelsSaved = 0;
+        $totalNotFound = 0;
+
+        echo "<pre>";
+        echo "Starting TDS Hotel Details dump (fetching {$limit} records, sending {$chunkSize} per set)...\n\n";
+
+        // Fetch pending hotel codes from tds_hotel_lists where is_hotel_details_dumped = 0
+        $hotelCodes = TdsHotelList::where('is_hotel_details_dumped', 3)
+            ->whereNotNull('hotel_jp_code')
+            ->orderBy('id', 'asc')
+            ->limit($limit)
+            ->pluck('hotel_jp_code')
+            ->toArray();
+
+        if (empty($hotelCodes)) {
+            echo "All hotel details are completely dumped! No pending hotels remaining.\n";
+            echo "</pre>";
+            return;
+        }
+
+        $totalFetched = count($hotelCodes);
+        echo "Fetched {$totalFetched} pending hotel codes from database.\n";
+
+        // Split into chunks of 25
+        $chunks = array_chunk($hotelCodes, $chunkSize);
+        unset($hotelCodes);
+
+        $totalChunks = count($chunks);
+
+        foreach ($chunks as $index => $chunk) {
+            $subBatchNum = $index + 1;
+            $chunkCount = count($chunk);
+            $requestedListStr = implode(', ', $chunk);
+
+            echo "Processing set {$subBatchNum}/{$totalChunks} ({$chunkCount} hotels: [{$requestedListStr}])... \n";
+
+            $apiResponse = $searchController->tdsHotelDetailDatafetch($chunk);
+
+            if (!$apiResponse['success']) {
+                $errMsg = $apiResponse['message'] ?? 'Unknown error';
+                echo "--> FAILED: {$errMsg} for requested hotels: [{$requestedListStr}]\n\n";
+                Log::error("TDS HotelDetails chunk failed: {$errMsg}", ['hotel_codes' => $chunk]);
+                unset($apiResponse);
+                continue;
+            }
+
+            $rawXml = $apiResponse['raw_xml'] ?? null;
+            unset($apiResponse);
+
+            if ($rawXml) {
+                $result = $this->processTdsHotelDetailsXml($rawXml);
+                unset($rawXml);
+
+                $savedCount = $result['count'];
+                $processedCodes = !empty($result['processed_codes']) ? $result['processed_codes'] : [];
+                $warningCodes = !empty($result['warning_codes']) ? $result['warning_codes'] : [];
+
+                // Any requested code not in processedCodes is marked as not found (2)
+                $notFoundCodes = array_values(array_unique(array_merge(
+                    $warningCodes,
+                    array_diff($chunk, $processedCodes)
+                )));
+
+                // Update is_hotel_details_dumped = 1 for successfully saved hotels
+                if (!empty($processedCodes)) {
+                    TdsHotelList::whereIn('hotel_jp_code', $processedCodes)->update(['is_hotel_details_dumped' => 1]);
+                }
+
+                // Update is_hotel_details_dumped = 4  for not found / warning hotels
+                if (!empty($notFoundCodes)) {
+                    TdsHotelList::whereIn('hotel_jp_code', $notFoundCodes)->update(['is_hotel_details_dumped' => 4]);
+                    $totalNotFound += count($notFoundCodes);
+                }
+
+                $savedListStr = !empty($processedCodes) ? implode(', ', $processedCodes) : 'None';
+                $notFoundListStr = !empty($notFoundCodes) ? implode(', ', $notFoundCodes) : 'None';
+
+                $totalHotelsSaved += $savedCount;
+                echo "--> SUCCESS: {$savedCount} hotels saved: [{$savedListStr}].\n";
+                if (!empty($notFoundCodes)) {
+                    echo "--> NOT FOUND: " . count($notFoundCodes) . " hotels marked as 2: [{$notFoundListStr}].\n";
+                }
+                echo "(Total saved so far: {$totalHotelsSaved})\n\n";
+                //dd($rawXml);
+
+                unset($result, $processedCodes, $notFoundCodes, $warningCodes);
+            } else {
+                echo "--> FAILED: Empty XML response for requested hotels: [{$requestedListStr}]\n\n";
+            }
+
+            gc_collect_cycles();
+            usleep(100000); // 100ms pause
+        }
+
+        unset($chunks);
+        gc_collect_cycles();
+
+        echo "\n============================================\n";
+        echo "Finished call!\n";
+        echo "Total hotel details saved/updated: {$totalHotelsSaved}\n";
+        echo "Total not-found hotels marked as 2: {$totalNotFound}\n";
+        echo "============================================\n";
+        echo "</pre>";
+    }
+
+    /**
+     * Process and parse HotelContent XML using streaming XMLReader and save into tds_hotels table
+     */
+    private function processTdsHotelDetailsXml($rawXml)
+    {
+        $insertData = [];
+        $processedCodes = [];
+        $warningCodes = [];
+        $count = 0;
+
+        if (empty($rawXml)) {
+            return ['count' => 0, 'processed_codes' => [], 'warning_codes' => []];
+        }
+
+        $reader = new \XMLReader();
+        $reader->XML($rawXml, 'UTF-8', LIBXML_NONET | LIBXML_COMPACT);
+
+        while ($reader->read()) {
+            if ($reader->nodeType == \XMLReader::ELEMENT && $reader->localName === 'Warning') {
+                $warningXml = $reader->readOuterXml();
+                $warningNode = @simplexml_load_string($warningXml);
+                if ($warningNode !== false && isset($warningNode['Text'])) {
+                    $text = (string) $warningNode['Text'];
+                    if (preg_match('/Hotel\s+([^\s]+)\s+not found/i', $text, $matches)) {
+                        $warningCodes[] = $matches[1];
+                    }
+                }
+                $reader->next();
+                continue;
+            }
+
+            if ($reader->nodeType == \XMLReader::ELEMENT && $reader->localName === 'HotelContent') {
+                $hotelXml = $reader->readOuterXml();
+                // Clean namespace prefixes
+                $hotelXml = preg_replace('/(<\/?)(\w+):([^>]*>)/', '$1$3', $hotelXml);
+                $hotelXml = str_replace([
+                    'xmlns="http://www.juniper.es/webservice/2007/"',
+                    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+                    'xmlns:xsd="http://www.w3.org/2001/XMLSchema"'
+                ], '', $hotelXml);
+
+                $hotelContent = @simplexml_load_string($hotelXml);
+                if ($hotelContent !== false) {
+                    $hotelCode = isset($hotelContent['Code']) ? (string) $hotelContent['Code'] : null;
+                    $hotelJpCode = isset($hotelContent['JPCode']) ? (string) $hotelContent['JPCode'] : $hotelCode;
+                    $name = isset($hotelContent->HotelName) ? (string) $hotelContent->HotelName : null;
+
+                    // Star rating
+                    $starRating = null;
+                    if (isset($hotelContent->HotelCategory)) {
+                        $starRating = (string) $hotelContent->HotelCategory;
+                        if (empty($starRating) && isset($hotelContent->HotelCategory['Type'])) {
+                            $starRating = (string) $hotelContent->HotelCategory['Type'];
+                        }
+                    }
+
+                    // Address details
+                    $address = null;
+                    $postalCode = null;
+                    $latitude = null;
+                    $longitude = null;
+                    if (isset($hotelContent->Address)) {
+                        $address = isset($hotelContent->Address->Address) ? (string) $hotelContent->Address->Address : null;
+                        $postalCode = isset($hotelContent->Address->PostalCode) ? (string) $hotelContent->Address->PostalCode : null;
+                        $latitude = isset($hotelContent->Address->Latitude) ? (string) $hotelContent->Address->Latitude : null;
+                        $longitude = isset($hotelContent->Address->Longitude) ? (string) $hotelContent->Address->Longitude : null;
+                    }
+
+                    // CheckIn / CheckOut times
+                    $checkIn = null;
+                    $checkOut = null;
+                    if (isset($hotelContent->TimeInformation->CheckTime)) {
+                        $checkIn = isset($hotelContent->TimeInformation->CheckTime['CheckIn']) ? (string) $hotelContent->TimeInformation->CheckTime['CheckIn'] : null;
+                        $checkOut = isset($hotelContent->TimeInformation->CheckTime['CheckOut']) ? (string) $hotelContent->TimeInformation->CheckTime['CheckOut'] : null;
+                    }
+
+                      // Telephone
+                    $telephone = null;
+                    if (isset($hotelContent->ContactInfo->PhoneNumbers->PhoneNumber)) {
+                        $telephone = (string) $hotelContent->ContactInfo->PhoneNumbers->PhoneNumber;
+                    }
+                    
+
+                    // First Thumbnail Image
+                    $thumbnail = null;
+                    if (isset($hotelContent->Images->Image)) {
+                        foreach ($hotelContent->Images->Image as $img) {
+                            if (isset($img['Type']) && strtoupper((string) $img['Type']) === 'THB' && isset($img->FileName)) {
+                                $thumbnail = (string) $img->FileName;
+                                break;
+                            }
+                        }
+                        if (empty($thumbnail) && isset($hotelContent->Images->Image[0]->FileName)) {
+                            $thumbnail = (string) $hotelContent->Images->Image[0]->FileName;
+                        }
+                    }
+
+                    // Hierarchy: city_jpd_code, region_jpd_code, country_jpd_code
+                    $cityJpdCode = null;
+                    $regionJpdCode = null;
+                    $countryJpdCode = null;
+
+                    if (isset($hotelContent->Zone->Hierarchy->Zone)) {
+                        $hierarchyZones = [];
+                        foreach ($hotelContent->Zone->Hierarchy->Zone as $hZone) {
+                            $hierarchyZones[] = (string) $hZone['JPDCode'];
+                        }
+
+                        $countZones = count($hierarchyZones);
+                        if ($countZones >= 3) {
+                            $cityJpdCode = $hierarchyZones[0];
+                            $regionJpdCode = $hierarchyZones[1];
+                            $countryJpdCode = $hierarchyZones[$countZones - 1];
+                        } elseif ($countZones === 2) {
+                            $cityJpdCode = $hierarchyZones[0];
+                            $countryJpdCode = $hierarchyZones[1];
+                        } elseif ($countZones === 1) {
+                            $countryJpdCode = $hierarchyZones[0];
+                        }
+                    }
+
+                    if (empty($cityJpdCode) && isset($hotelContent->Zone['ParentJPDCode'])) {
+                        $cityJpdCode = (string) $hotelContent->Zone['ParentJPDCode'];
+                    }
+                    if (empty($cityJpdCode) && isset($hotelContent->Zone['JPDCode'])) {
+                        $cityJpdCode = (string) $hotelContent->Zone['JPDCode'];
+                    }
+
+                    if ($hotelJpCode) {
+                        $insertData[] = [
+                            'hotel_code' => $hotelCode,
+                            'hotel_jp_code' => $hotelJpCode,
+                            'name' => $name,
+                            'star_rating' => $starRating,
+                            'address' => $address,
+                            'latitude' => $latitude ? (float) $latitude : null,
+                            'longitude' => $longitude ? (float) $longitude : null,
+                            'postal_code' => $postalCode,
+                            'check_in' => $checkIn,
+                            'check_out' => $checkOut,
+                            'telephone' => $telephone,
+                            'thumbnail' => $thumbnail,
+                            'city_jpd_code' => $cityJpdCode,
+                            'region_jpd_code' => $regionJpdCode,
+                            'country_jpd_code' => $countryJpdCode,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                        $processedCodes[] = $hotelJpCode;
+                        $count++;
+                    }
+                }
+                unset($hotelContent, $hotelXml);
+                $reader->next();
+            }
+        }
+        $reader->close();
+        unset($reader);
+
+        if (!empty($insertData)) {
+            foreach (array_chunk($insertData, 100) as $chunk) {
+                TdsHotel::upsert(
+                    $chunk,
+                    ['hotel_jp_code'],
+                    [
+                        'hotel_code',
+                        'name',
+                        'star_rating',
+                        'address',
+                        'latitude',
+                        'longitude',
+                        'postal_code',
+                        'check_in',
+                        'check_out',
+                        'telephone',
+                        'thumbnail',
+                        'city_jpd_code',
+                        'region_jpd_code',
+                        'country_jpd_code',
+                        'updated_at'
+                    ]
+                );
+            }
+        }
+
+        unset($insertData);
+
+        return [
+            'count' => $count,
+            'processed_codes' => $processedCodes,
+            'warning_codes' => $warningCodes,
+        ];
+    }
+
+    /**
+     * Parse local hotel details XML file and save to database
+     */
+    private function parseAndSaveTdsHotelDetailsXml($xmlContent)
+    {
+        $result = $this->processTdsHotelDetailsXml($xmlContent);
+        if (!empty($result['processed_codes'])) {
+            TdsHotelList::whereIn('hotel_jp_code', $result['processed_codes'])->update(['is_hotel_details_dumped' => 1]);
+        }
+        return $result['count'];
+    }
+
+
+    public function UpdatingAgentRoles(){
+
+        $MasterAgent = 9;
+        $TravelAgent = 7;
+
+        $users = User::whereNotNull('agency_id')->get();
+        //dd($users);
+        foreach ($users as $key => $user) {
+            
+                if($user->is_master_agent == 1){
+                    $user->assignRole($MasterAgent);
+                }else{
+                    $user->assignRole($TravelAgent);
+                }
+        }
+    }
+
+    public function updatinghotelCitysWithGts(Request $request = null)
+    {
+        ini_set('max_execution_time', 0);
+        ini_set('memory_limit', '-1');
+
+        if ($request === null) {
+            $request = request();
+        }
+
+        $batchSize = 2000;
+        $maxLimit = $request->has('limit') ? (int) $request->input('limit') : null;
+        $sourceStatus = $request->has('status') ? (int) $request->input('status') : 0;
+
+        $totalGtsProcessed = 0;
+        $totalHotelUpdated = 0;
+        $totalHotelAdded = 0;
+        $totalMigrated = 0;       // status 2
+        $totalUnconnected = 0;    // status 3
+        $totalNotFound = 0;
+        $totalMultipleUnresolved = 0;
+        $totalMultipleResolved = 0;
+        $totalMultipleAddedAsNew = 0;
+        $totalSingleMatched = 0;
+
+        while (true) {
+            $currentLimit = $maxLimit ? min($batchSize, $maxLimit - $totalGtsProcessed) : $batchSize;
+            if ($currentLimit <= 0) {
+                break;
+            }
+
+            // Fetch GTS cities (default is_migrated = 0)
+            $gtsCities = GtsCity::where('is_migrated', $sourceStatus)
+                ->orderBy('id', 'ASC')
+                ->limit($currentLimit)
+                ->get();
+
+            if ($gtsCities->isEmpty()) {
+                break;
+            }
+
+            $pickedIds = $gtsCities->pluck('id')->toArray();
+
+            // Status 1: Mark picked GTS cities as "in processing"
+            \DB::table('gts_cities')->whereIn('id', $pickedIds)->update([
+                'is_migrated' => 1,
+                'updated_at'  => now(),
+            ]);
+
+            // Extract unique city names
+            $names = $gtsCities->pluck('name')->map(function ($name) {
+                return trim($name);
+            })->filter()->unique()->values()->toArray();
+
+            // Fetch hotel cities matching these names
+            $hotelCities = [];
+            foreach (array_chunk($names, 1000) as $chunkNames) {
+                $found = HotelCity::whereIn('name', $chunkNames)->get();
+                foreach ($found as $hc) {
+                    $hotelCities[] = $hc;
+                }
+            }
+
+            // Group hotel cities by lowercase trimmed name
+            $groupedHotelCities = [];
+            foreach ($hotelCities as $hc) {
+                $n = strtolower(trim($hc->name));
+                $groupedHotelCities[$n][] = $hc;
+            }
+
+            $hotelUpdates = [];
+            $newHotelCities = [];
+            $addedNewKeys = [];
+            $migratedGtsIds = [];
+            $unconnectedGtsIds = [];
+
+            foreach ($gtsCities as $gtsCity) {
+                $gtsName = strtolower(trim($gtsCity->name));
+                $candidates = $groupedHotelCities[$gtsName] ?? [];
+
+                $matchedHc = null;
+
+                if (empty($candidates)) {
+                    // Not found in hotel cities -> status 3 (picked and not connected)
+                    $totalNotFound++;
+                    $unconnectedGtsIds[] = $gtsCity->id;
+                } elseif (count($candidates) === 1) {
+                    // Exactly one match by name
+                    $matchedHc = $candidates[0];
+                    $totalSingleMatched++;
+                } else {
+                    // Multiple matches found by name -> check with country
+                    $gcCountryCode = strtoupper(trim($gtsCity->country_code ?? ''));
+                    $gcCountryName = strtolower(trim($gtsCity->country_name ?? ''));
+
+                    $countryMatches = [];
+                    foreach ($candidates as $candidate) {
+                        $hcCountryCode = strtoupper(trim($candidate->country_code ?? ''));
+                        $hcCountryName = strtolower(trim($candidate->country_name ?? ''));
+                        $hcLongName    = strtolower(trim($candidate->long_name ?? ''));
+
+                        $isCountryMatch = false;
+
+                        if (!empty($gcCountryCode) && !empty($hcCountryCode) && $gcCountryCode === $hcCountryCode) {
+                            $isCountryMatch = true;
+                        } elseif (!empty($gcCountryName) && !empty($hcCountryName) && $gcCountryName === $hcCountryName) {
+                            $isCountryMatch = true;
+                        } elseif (!empty($gcCountryName) && !empty($hcLongName) && strpos($hcLongName, $gcCountryName) !== false) {
+                            $isCountryMatch = true;
+                        }
+
+                        if ($isCountryMatch) {
+                            $countryMatches[] = $candidate;
+                        }
+                    }
+
+                    if (count($countryMatches) === 1) {
+                        // Exactly one matched after country check
+                        $matchedHc = $countryMatches[0];
+                        $totalMultipleResolved++;
+                    } elseif (empty($countryMatches)) {
+                        // Country does not exist among candidates -> add as a new record in hotel_cities
+                        $addedKey = $gtsName . '_' . $gcCountryCode;
+                        if (!isset($addedNewKeys[$addedKey])) {
+                            $newHotelCities[] = [
+                                'name'         => $gtsCity->name,
+                                'long_name'    => $gtsCity->full_name,
+                                'country_code' => $gtsCity->country_code,
+                                'country_name' => $gtsCity->country_name,
+                                'is_gts'       => 1,
+                                'gts_code'     => $gtsCity->gts_city_id,
+                                'created_at'   => now(),
+                                'updated_at'   => now(),
+                            ];
+                            $addedNewKeys[$addedKey] = true;
+                            $migratedGtsIds[] = $gtsCity->id;
+                            $totalMultipleAddedAsNew++;
+                        } else {
+                            $totalMultipleUnresolved++;
+                            $unconnectedGtsIds[] = $gtsCity->id;
+                        }
+                    } else {
+                        // Multiple matches still found after country check -> status 3 (not connected)
+                        $totalMultipleUnresolved++;
+                        $unconnectedGtsIds[] = $gtsCity->id;
+                    }
+                }
+
+                if ($matchedHc) {
+                    // Successfully connected to hotel_city -> status 2 (migrated)
+                    if (!isset($hotelUpdates[$matchedHc->id])) {
+                        $hotelUpdates[$matchedHc->id] = $gtsCity->gts_city_id;
+                    }
+                    $migratedGtsIds[] = $gtsCity->id;
+                }
+            }
+
+            // Perform batch database updates inside transaction
+            \DB::beginTransaction();
+            try {
+                // Insert newly added hotel_cities records
+                if (!empty($newHotelCities)) {
+                    \DB::table('hotel_cities')->insert($newHotelCities);
+                    $totalHotelAdded += count($newHotelCities);
+                }
+
+                // Update existing hotel_cities with gts_code and is_gts = 1
+                foreach ($hotelUpdates as $hcId => $gtsCityId) {
+                    \DB::table('hotel_cities')->where('id', $hcId)->update([
+                        'gts_code'   => $gtsCityId,
+                        'is_gts'     => 1,
+                        'updated_at' => now(),
+                    ]);
+                    $totalHotelUpdated++;
+                }
+
+                // Status 2: Successfully migrated / connected
+                if (!empty($migratedGtsIds)) {
+                    \DB::table('gts_cities')->whereIn('id', $migratedGtsIds)->update([
+                        'is_migrated' => 2,
+                        'updated_at'  => now(),
+                    ]);
+                    $totalMigrated += count($migratedGtsIds);
+                }
+
+                // Status 3: Picked but not connected to any hotel city
+                if (!empty($unconnectedGtsIds)) {
+                    \DB::table('gts_cities')->whereIn('id', $unconnectedGtsIds)->update([
+                        'is_migrated' => 3,
+                        'updated_at'  => now(),
+                    ]);
+                    $totalUnconnected += count($unconnectedGtsIds);
+                }
+
+                \DB::commit();
+            } catch (\Exception $e) {
+                \DB::rollBack();
+                throw $e;
+            }
+
+            $totalGtsProcessed += count($pickedIds);
+        }
+
+        $pendingCount     = GtsCity::where('is_migrated', 0)->count();
+        $processingCount  = GtsCity::where('is_migrated', 1)->count();
+        $migratedCount    = GtsCity::where('is_migrated', 2)->count();
+        $unconnectedCount = GtsCity::where('is_migrated', 3)->count();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'GTS cities processed and hotel cities updated successfully.',
+            'batch_gts_processed' => $totalGtsProcessed,
+            'migrated_connected_status_2' => $totalMigrated,
+            'unconnected_status_3' => $totalUnconnected,
+            'total_hotel_cities_updated' => $totalHotelUpdated,
+            'total_hotel_cities_added' => $totalHotelAdded,
+            'single_matched_by_name' => $totalSingleMatched,
+            'multiple_resolved_by_country' => $totalMultipleResolved,
+            'multiple_added_as_new_in_hotel_cities' => $totalMultipleAddedAsNew,
+            'multiple_unresolved_by_country' => $totalMultipleUnresolved,
+            'not_found_in_hotel_cities' => $totalNotFound,
+            'summary' => [
+                'pending_status_0'    => $pendingCount,
+                'processing_status_1' => $processingCount,
+                'migrated_status_2'   => $migratedCount,
+                'unconnected_status_3'=> $unconnectedCount,
+            ],
+        ]);
+    }
 }

@@ -111,6 +111,11 @@ class Controller extends BaseController
     public $RestelAfil;
     public $RestelRequestCompleteUrl;
 
+    //TDS
+    public $TdsUrl;
+    public $TdsUsername;
+    public $TdsPassword;
+    public $TdsXmlns;
 
 
     public function __construct()
@@ -168,8 +173,11 @@ class Controller extends BaseController
         $this->RestelAfil              = env('RESTEL_AFIL');
         $this->RestelRequestCompleteUrl = env('RESTEL_URL').'?codigousu='.$this->RestelCodigousu.'&clausu='.$this->RestelClausu.'&afiliacio='.$this->RestelAfil.'&secacc='.$this->RestelSecacc;
        
-      
-        
+        //TDS
+        $this->TdsUrl               = env('TDS_URL');
+        $this->TdsUsername          = env('TDS_USERNAME');
+        $this->TdsPassword          = env('TDS_PASSWORD');
+        $this->TdsXmlns             = env('TDS_XMLNS');
     }
 
     public function TravelportAirApi($request)
@@ -860,7 +868,200 @@ class Controller extends BaseController
             ];
           }
     }
-    
+
+    public function TdsApiXmlRequestWithoutLog($request)
+    {
+        ini_set('memory_limit', '-1');
+        set_time_limit(300);
+        try {
+            $headers = array(
+                "Content-Type" => "text/xml;charset=UTF-8",
+                "Accept-Encoding" => "gzip, deflate",
+            );
+            $completeUrl = $this->TdsUrl.$request['endPoint'];
+            $client = new Client();
+            $requestData = ['headers' => $headers, 'body' => $request['xml'], 'verify' => false];
+            
+            $clientrsp = $client->request('POST', $completeUrl, $requestData);
+            $response = $clientrsp->getBody()->getContents();
+
+            $responseArray = null;
+            if (empty($request['skip_array'])) {
+                $responseArray = XmlToArray::convert($response, $outputRoot = false);
+            }
+
+            return [
+                'response' => $responseArray,
+                'raw_xml' => $response,
+                'success' => true
+            ];
+        } catch (\Exception $e) {
+            return [
+                'response' => null,
+                'raw_xml' => null,
+                'success' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+    }
+
+    public function TdsAPI(array $request)
+    {
+        ini_set('memory_limit', '-1');
+        set_time_limit(400);
+
+        try {
+            $headers = [
+                "Content-Type"    => "text/xml;charset=UTF-8",
+                "SOAPAction"      => '"http://www.juniper.es/webservice/2007/' . ($request['soap_action'] ?? 'HotelAvail') . '"',
+                "Accept-Encoding" => "gzip, deflate",
+            ];
+            $endpointUrl = $this->TdsUrl.$request['endPoint'];
+
+            //$endpointUrl = $request['url'] ?? env('TDS_AVAIL_URL', env('TDS_HOTEL_URL', $this->TdsUrl));
+
+            $client = new Client();
+            $requestData = [
+                'headers' => $headers,
+                'body'    => $request['xml'] ?? '',
+                'verify'  => false,
+                'timeout' => 60,
+                'connect_timeout' => 10,
+            ];
+
+            $clientResponse = $client->request('POST', $endpointUrl, $requestData);
+            $responseContent = $clientResponse->getBody()->getContents();
+
+            $responseArray = null;
+            if (empty($request['skip_array'])) {
+                try {
+                    $responseArray = XmlToArray::convert($responseContent, $outputRoot = false);
+                } catch (\Throwable $e) {
+                    $xml = @simplexml_load_string($responseContent);
+                    $responseArray = $xml ? json_decode(json_encode($xml), true) : null;
+                }
+            }
+
+            // Log request & response to database
+            $HotelXmlRequest = new HotelXmlRequest();
+            $HotelXmlRequest->request_xml     = $request['xml'] ?? '';
+            $HotelXmlRequest->response_xml    = $responseContent;
+            $HotelXmlRequest->ip_address      = request()->ip() ?? $_SERVER['REMOTE_ADDR'] ?? null;
+            $HotelXmlRequest->request_type    = $request['request_type'] ?? 'search';
+            $HotelXmlRequest->supplier        = 'Tds';
+            $HotelXmlRequest->formate_type    = 'xml';
+            $HotelXmlRequest->hotel_search_id = $request['searchId'] ?? null;
+            $HotelXmlRequest->url             = $endpointUrl;
+            $HotelXmlRequest->save();
+
+            return [
+                'hotelResponse' => $responseArray,
+                'raw_xml'       => $responseContent,
+                'hotelRequest'  => $HotelXmlRequest,
+                'status'        => true,
+            ];
+        } catch (\Throwable $e) {
+            \Log::error('TdsAPI Error: ' . $e->getMessage());
+
+            $errorResponse = null;
+            if (method_exists($e, 'getResponse') && $e->getResponse()) {
+                try {
+                    $errorResponse = (string) $e->getResponse()->getBody()->getContents();
+                } catch (\Throwable $ex) {
+                    $errorResponse = null;
+                }
+            }
+
+            $HotelXmlRequest = new HotelXmlRequest();
+            $HotelXmlRequest->request_xml     = $request['xml'] ?? '';
+            $HotelXmlRequest->response_xml    = $errorResponse ?: $e->getMessage();
+            $HotelXmlRequest->ip_address      = request()->ip() ?? $_SERVER['REMOTE_ADDR'] ?? null;
+            $HotelXmlRequest->request_type    = $request['request_type'] ?? 'search';
+            $HotelXmlRequest->supplier        = 'Tds';
+            $HotelXmlRequest->formate_type    = 'xml';
+            $HotelXmlRequest->hotel_search_id = $request['searchId'] ?? null;
+            $HotelXmlRequest->url             = $endpointUrl ?? null;
+            $HotelXmlRequest->save();
+
+            return [
+                'hotelResponse' => null,
+                'raw_xml'       => $errorResponse,
+                'hotelRequest'  => $HotelXmlRequest,
+                'status'        => false,
+                'message'       => $e->getMessage(),
+            ];
+        }
+    }
+
+    public function TdsApiPool(array $requests)
+    {
+        set_time_limit(400);
+
+        try {
+            $endpointUrl = env('TDS_AVAIL_URL', env('TDS_HOTEL_URL', $this->TdsUrl));
+
+            $headers = [
+                "Content-Type"    => "text/xml;charset=UTF-8",
+                "SOAPAction"      => '"http://www.juniper.es/webservice/2007/HotelAvail"',
+                "Accept-Encoding" => "gzip, deflate",
+            ];
+
+            $responses = Http::pool(function (Pool $pool) use ($requests, $headers, $endpointUrl) {
+                $poolRequests = [];
+                foreach ($requests as $index => $req) {
+                    $targetUrl = $req['url'] ?? $endpointUrl;
+                    $client = $pool->as($index)->withHeaders($headers);
+                    $poolRequests[] = $client
+                        ->timeout(60)
+                        ->withoutVerifying()
+                        ->withBody($req['xml'] ?? '', 'text/xml;charset=UTF-8')
+                        ->post($targetUrl);
+                }
+                return $poolRequests;
+            });
+
+            $result = [];
+            foreach ($responses as $index => $response) {
+                $req = $requests[$index];
+                $responseBody = ($response instanceof \Illuminate\Http\Client\Response) ? $response->body() : (is_string($response) ? $response : '');
+
+                $responseArray = null;
+                if (!empty($responseBody)) {
+                    try {
+                        $responseArray = XmlToArray::convert($responseBody, $outputRoot = false);
+                    } catch (\Throwable $e) {
+                        $xml = @simplexml_load_string($responseBody);
+                        $responseArray = $xml ? json_decode(json_encode($xml), true) : null;
+                    }
+                }
+
+                $HotelXmlRequest = new HotelXmlRequest();
+                $HotelXmlRequest->request_xml     = $req['xml'] ?? '';
+                $HotelXmlRequest->response_xml    = $responseBody;
+                $HotelXmlRequest->ip_address      = request()->ip() ?? $_SERVER['REMOTE_ADDR'] ?? null;
+                $HotelXmlRequest->request_type    = $req['request_type'] ?? 'search';
+                $HotelXmlRequest->supplier        = 'Tds';
+                $HotelXmlRequest->formate_type    = 'xml';
+                $HotelXmlRequest->hotel_search_id = $req['searchId'] ?? null;
+                $HotelXmlRequest->url             = $req['url'] ?? $endpointUrl;
+                $HotelXmlRequest->save();
+
+                $isSuccess = ($response instanceof \Illuminate\Http\Client\Response) ? $response->successful() : !empty($responseArray);
+
+                $result[] = [
+                    'status'        => $isSuccess,
+                    'hotelResponse' => $responseArray,
+                    'raw_xml'       => $responseBody,
+                    'hotelRequest'  => $HotelXmlRequest,
+                ];
+            }
+
+            return $result;
+        } catch (\Throwable $e) {
+            \Log::error('TdsApiPool Error: ' . $e->getMessage());
+            return [];
+        }
+    }
 
     // public function WebbedsApi($request)
     // {

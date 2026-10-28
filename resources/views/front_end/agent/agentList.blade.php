@@ -46,10 +46,11 @@
               {{ Session::get('error') }}
             </div>
             @endif
+            @can('agent-add')
             <div style="float: right;padding: 10px">
-             
                 <a href="{{route('add-sub-agent')}}" class="btn btn-primary btn-sm">Add Agent</a>
             </div>
+            @endcan
           
          
             
@@ -61,8 +62,12 @@
                       <th>First name </th>
                       <th>Last Name</th>
                       <th>Email</th>
+                      <th>Role</th>
                       <th class="text-center">Status</th>
                       <th class="text-center">Created On</th>
+                      @can('agent-edit')
+                      <th class="text-center">Action</th>
+                      @endcan
                     </tr>
                   </thead>
                   <tbody>
@@ -73,14 +78,21 @@
                           <td class="align-middle">{{$agent->first_name}}</td>
                           <td class="align-middle">{{$agent->last_name}}</td>
                           <td class="align-middle">{{$agent->email}}</td>
-                          <td class="align-middle">{{$agent->status}}</td>
-                          <td class="align-middle"> {{$agent->created_at->format('d/m/Y')}}</td>
-                      
+                          <td class="align-middle"><span class="badge bg-info text-dark">{{$agent->hisRole() ?? 'Agent'}}</span></td>
+                          <td class="align-middle text-center">{{$agent->status}}</td>
+                          <td class="align-middle text-center"> {{$agent->created_at->format('d/m/Y')}}</td>
+                          @can('agent-edit')
+                          <td class="align-middle text-center">
+                            <a href="{{route('edit-sub-agent', $agent->id)}}" class="text-primary" data-bs-toggle="tooltip" title="Edit Agent">
+                              <i class="fas fa-edit"></i>
+                            </a>
+                          </td>
+                          @endcan
                         </tr>
                         @endforeach
                     @else
                         <tr align="center" class="alert alert-danger">
-                            <td colspan="5">{{__('lang.no_records')}}</td>
+                            <td colspan="{{ auth()->user()->can('agent-edit') ? 7 : 6 }}">{{__('lang.no_records')}}</td>
                         </tr>
                     @endif
                    

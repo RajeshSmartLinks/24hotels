@@ -222,7 +222,7 @@
                                                     <th>Hotel Name</th>
                                                     {{-- <th>Hotel City</th> --}}
                                                     <th>Customer</th>
-                                                    <th>Phone No</th>
+                                                    <!-- <th>Phone No</th> -->
                                                     <th>Total Price</th>
                                                     <th>Confirmation Number</th>
                                                     <th>Status</th>
@@ -238,11 +238,66 @@
                                                             
                                                             <td>{{$loop->iteration}} </td>
                                                             <td>{{$booking->booking_ref_id}} </td>
-                                                            <td>{{$booking->hotel_name}} </td>
+                                                            <!-- <td>{{$booking->hotel_name}} </td> -->
+                                                            <td>
+                                                                <span class="font-weight-bold">{{$booking->hotel_name}}</span>
+                                                                @if(!empty($booking->check_in) || !empty($booking->check_out))
+                                                                    <br>
+                                                                    <small class="text-muted">
+                                                                        @if(!empty($booking->check_in))
+                                                                            <strong>Check In:</strong> {{ strtotime($booking->check_in) ? date('d/m/Y', strtotime($booking->check_in)) : $booking->check_in }}
+                                                                        @endif
+                                                                        @if(!empty($booking->check_in) && !empty($booking->check_out))
+                                                                            &nbsp;|&nbsp;
+                                                                        @endif
+                                                                        @if(!empty($booking->check_out))
+                                                                            <strong>Check Out:</strong> {{ strtotime($booking->check_out) ? date('d/m/Y', strtotime($booking->check_out)) : $booking->check_out }}
+                                                                        @endif
+                                                                    </small>
+                                                                @endif
+                                                            </td>
+                                                            <td>
+                                                                @if(!empty($booking->User) && !empty($booking->User->agency))
+                                                                    <span class="font-weight-bold">{{ $booking->User->agency->name }}</span>
+                                                                    @php
+                                                                        $agentName = trim(($booking->User->first_name ?? '') . ' ' . ($booking->User->last_name ?? ''));
+                                                                        if (empty($agentName)) {
+                                                                            $agentName = $booking->User->name ?? '';
+                                                                        }
+                                                                    @endphp
+                                                                    @if(!empty($agentName))
+                                                                        <br>
+                                                                        <small class="text-muted"><strong>Agent:</strong> {{ $agentName }}</small>
+                                                                    @endif
+                                                                @elseif(!empty($booking->User))
+                                                                    @php
+                                                                        $agentName = trim(($booking->User->first_name ?? '') . ' ' . ($booking->User->last_name ?? ''));
+                                                                        if (empty($agentName)) {
+                                                                            $agentName = $booking->User->name ?? '';
+                                                                        }
+                                                                    @endphp
+                                                                    @if(!empty($agentName))
+                                                                        <small class="text-muted"><strong>Agent:</strong> {{ $agentName }}</small>
+                                                                    @else
+                                                                        <span class="text-muted">-</span>
+                                                                    @endif
+                                                                @else
+                                                                    <span class="text-muted">-</span>
+                                                                @endif
+                                                            </td>
 
 
-                                                            <td>{{$booking->TravelersInfo[0]->first_name ?? '' }}&nbsp;{{$booking->TravelersInfo[0]->last_name ?? '' }} </td>
-                                                            <td>{{$booking->Customercountry->phone_code ?? ''}}{{$booking->mobile}} </td>
+                                                            <td>
+                                                                {{$booking->TravelersInfo[0]->first_name ?? '' }}&nbsp;{{$booking->TravelersInfo[0]->last_name ?? '' }} 
+                                                                @if(!empty($booking->mobile))
+                                                                    <br>
+                                                                    <small class="text-muted">{{$booking->Customercountry->phone_code ?? ''}}{{$booking->mobile}}</small>
+                                                                @endif
+                                                            </td>
+
+
+                                                            <!-- <td>{{$booking->TravelersInfo[0]->first_name ?? '' }}&nbsp;{{$booking->TravelersInfo[0]->last_name ?? '' }} </td>
+                                                            <td>{{$booking->Customercountry->phone_code ?? ''}}{{$booking->mobile}} </td> -->
                                                           
                                                             <td>{{$booking->currency_code}}&nbsp; {{$booking->total_amount}} </td>
                                                             <td>{{$booking->confirmation_number}} </td>

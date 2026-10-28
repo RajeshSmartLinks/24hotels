@@ -234,7 +234,24 @@
                       @foreach($hotelbookings as $hoteldetails)
                       <tr>
                         <td class="align-middle">{{$loop->iteration}}</td>
-                        <td class="align-middle">{{$hoteldetails->hotel_name}}</td>
+                        {{-- <td class="align-middle">{{$hoteldetails->hotel_name}}</td> --}}
+
+                        <td class="align-middle" style="min-width: 250px;">
+                        <div class="fw-500 text-dark">{{$hoteldetails->hotel_name}}</div>
+                          @if(!empty($hoteldetails->check_in) || !empty($hoteldetails->check_out))
+                              <div class="small text-muted d-flex flex-wrap align-items-center mt-1" style="column-gap: 8px; row-gap: 2px;">
+                                  @if(!empty($hoteldetails->check_in))
+                                      <span class="text-nowrap"><strong>Check In:</strong> {{ strtotime($hoteldetails->check_in) ? date('d/m/Y', strtotime($hoteldetails->check_in)) : $hoteldetails->check_in }}</span>
+                                  @endif
+                                  @if(!empty($hoteldetails->check_in) && !empty($hoteldetails->check_out))
+                                      <span class="text-muted d-none d-md-inline">|</span>
+                                  @endif
+                                  @if(!empty($hoteldetails->check_out))
+                                      <span class="text-nowrap"><strong>Check Out:</strong> {{ strtotime($hoteldetails->check_out) ? date('d/m/Y', strtotime($hoteldetails->check_out)) : $hoteldetails->check_out }}</span>
+                                  @endif
+                              </div>
+                          @endif
+                        </td>
                         <td class="align-middle">{{$hoteldetails->TravelersInfo[0]->first_name ?? '' }}&nbsp;{{$hoteldetails->TravelersInfo[0]->last_name ?? '' }} </td>
                         <td class="align-middle">{{$hoteldetails->Customercountry->phone_code ?? ''}} &nbsp;{{$hoteldetails->mobile}} </td>
                         {{-- <td class="align-middle">{{$hoteldetails->email }} </td> --}}

@@ -289,6 +289,12 @@
             </div>
             <p class="text-info">{{__('lang.passenger_details_english_only')}} </p>
         
+            @php
+              $isTds = (isset($result['type']) && $result['type'] == 'tds') || (isset($result['roomDetails']['type']) && $result['roomDetails']['type'] == 'tds');
+              $roomsRequestData = is_array($result['searchRequest']['rooms_request'] ?? null)
+                ? $result['searchRequest']['rooms_request']
+                : (json_decode($result['searchRequest']['rooms_request'] ?? '[]', true) ?? []);
+            @endphp
             @for( $i= 1 ;$i <= ($result['searchRequest']['no_of_rooms']) ; $i++)
 
             {{-- @foreach($result['searchRequest']['rooms_request'] as $i => $roomreq) --}}
@@ -319,16 +325,24 @@
                       </select>
                      
                     </div>
+                    @if($isTds)
+                    <div class="col-sm-4">
+                      <input class="form-control roomAdultFirstName" data-bv-field="number" required placeholder="{{__('lang.enter_first_name')}}" type="text"  name = 'room[{{$i-1}}][adult][{{$j-1}}][firstName]' value="">
+                    </div>
+                    <div class="col-sm-4">
+                      <input class="form-control roomAdultLastName" data-bv-field="number" required placeholder="{{__('lang.enter_last_name')}}" type="text" name = 'room[{{$i-1}}][adult][{{$j-1}}][lastName]' value="">
+                    </div>
+                    <div class="col-sm-2">
+                      <input class="form-control roomAdultAge" required placeholder="{{__('lang.age')}}" type="number" min="18" max="120" name = 'room[{{$i-1}}][adult][{{$j-1}}][age]' value="">
+                    </div>
+                    @else
                     <div class="col-sm-5">
                       <input class="form-control roomAdultFirstName" data-bv-field="number" required placeholder="{{__('lang.enter_first_name')}}" type="text"  name = 'room[{{$i-1}}][adult][{{$j-1}}][firstName]' value="">
-                     
-    
                     </div>
                     <div class="col-sm-5">
                       <input class="form-control roomAdultLastName" data-bv-field="number" required placeholder="{{__('lang.enter_last_name')}}" type="text" name = 'room[{{$i-1}}][adult][{{$j-1}}][lastName]' value="">
-                     
-                
                     </div>
+                    @endif
                   </div>
                   {{-- @endif --}}
                 @endfor
@@ -364,6 +378,20 @@
                       
                       {{-- <div id ="childTitle-{{$i}}-error" style="color: red"></div> --}}
                     </div>
+                    @if($isTds)
+                    <div class="col-sm-4">
+                      <input class="form-control roomChildFirstName"  required placeholder="{{__('lang.enter_first_name')}}" type="text" name = 'room[{{$i-1}}][child][{{$k-1}}][firstName]' value="">
+                    </div>
+                    <div class="col-sm-4">
+                      <input class="form-control roomChildLastName" data-bv-field="number"  required placeholder="{{__('lang.enter_last_name')}}" type="text" name = 'room[{{$i-1}}][child][{{$k-1}}][lastName]' value="">
+                    </div>
+                    <div class="col-sm-2">
+                      @php
+                        $childAgeVal = $result['searchRequest']['rooms_request'][$i-1]['ChildrenAges'][$k-1] ?? ($roomsRequestData[$i-1]['ChildrenAges'][$k-1] ?? '');
+                      @endphp
+                      <input class="form-control roomChildAge" readonly placeholder="{{__('lang.age')}}" type="number" name = 'room[{{$i-1}}][child][{{$k-1}}][age]' value="{{ $childAgeVal }}">
+                    </div>
+                    @else
                     <div class="col-sm-5">
                       <input class="form-control roomChildFirstName"  required placeholder="{{__('lang.enter_first_name')}}" type="text" name = 'room[{{$i-1}}][child][{{$k-1}}][firstName]' value="">
                       
@@ -374,6 +402,7 @@
                     
                       {{-- <div id ="adultLastName-{{$i}}-error" style="color: red"></div> --}}
                     </div>
+                    @endif
                   </div>
 
                 @endfor
@@ -687,6 +716,10 @@ console.log(field.name + " : " + field.value + " ");
       $(".roomAdultLastName").each((i,e)=>{
         $(e).rules('add',{required:true, minlength: 3,  alphanumeric: true ,messages: {required: "Please enter Last name",
               minlength: "Last name should be greater than three letter" ,  alphanumeric: "Last name should not contain special characters"}});
+      });
+      $(".roomAdultAge").each((i,e)=>{
+        $(e).rules('add',{required:true, digits: true, min: 18, max: 120, messages: {required: "Please enter Age",
+              digits: "Please enter valid Age", min: "Please enter valid Age", max: "Please enter valid Age"}});
       });
       $(".roomChildTitle ").each((i,e)=>{
         $(e).rules('add',{required:true ,messages: {required: "Please select child title"}});

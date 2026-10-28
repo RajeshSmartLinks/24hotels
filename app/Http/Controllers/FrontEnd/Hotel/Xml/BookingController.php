@@ -892,4 +892,254 @@ class BookingController extends Controller
         return $this->GTSApi($data);
     }
 
+    public function TDSPrebooking(array $data)
+    {
+        $bookingCode = is_string($data['booking_code']) ? decrypt($data['booking_code']) : $data['booking_code'];
+        $hotelCode   = $data['hotel_code'];
+        $searchId    = $data['search_id'];
+
+        $searchRequest = WebbedsHotelSearch::find($searchId);
+        $checkIn  = $searchRequest->check_in ?? '';
+        $checkOut = $searchRequest->check_out ?? '';
+        $ratePlanCode = $bookingCode['RatePlanCode'] ?? $bookingCode['RatePlanID'] ?? '';
+
+        $xml = <<<EOM
+                <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://www.juniper.es/webservice/2007/" Context="VALUATION">
+                    <soapenv:Header/>
+                    <soapenv:Body>
+                        <HotelBookingRules>
+                            <HotelBookingRulesRQ Version="1.1" Language="en">
+                                <Login Password="{$this->TdsPassword}" Email="{$this->TdsUsername}"/>
+                                <HotelBookingRulesRequest>
+                                    <HotelOption RatePlanCode="{$ratePlanCode}"/>
+                                    <SearchSegmentsHotels>
+                                        <SearchSegmentHotels Start="{$checkIn}" End="{$checkOut}"/>
+                                        <HotelCodes>
+                                            <HotelCode>{$hotelCode}</HotelCode>
+                                        </HotelCodes>
+                                    </SearchSegmentsHotels>
+                                </HotelBookingRulesRequest>
+                                <AdvancedOptions>
+                                    <ShowBreakdownPrice>true</ShowBreakdownPrice>
+                                </AdvancedOptions>
+                            </HotelBookingRulesRQ>
+                        </HotelBookingRules>
+                    </soapenv:Body>
+                </soapenv:Envelope>
+                EOM;
+
+        $requestData = [
+            'xml'          => $xml,
+            'endPoint'     => 'checktransactions.asmx',
+            'soap_action'  => 'HotelBookingRules',
+            'searchId'     => $searchId,
+            'request_type' => 'prebooking',
+        ];
+
+        return $this->TdsAPI($requestData);
+    }
+
+    public function TDSBooking($data)
+    {
+        
+        $bookingId = $data['booking_id'];
+        $hotelBookingDetails = HotelBooking::with('Customercountry')->find($bookingId);
+        $travelersInfo = HotelBookingTravelsInfo::where("hotel_booking_id", $bookingId)->get();
+
+        
+
+        $bookingCode = json_decode($hotelBookingDetails->booking_code, true);
+        if (is_string($bookingCode)) {
+            $bookingCode = json_decode($bookingCode, true);
+        }
+        $hotelCode = $hotelBookingDetails->hotel_code;
+        $searchId  = $hotelBookingDetails->search_id;
+        
+        $searchRequest   = WebbedsHotelSearch::find($searchId);
+        $nationality = WebbedsCountry::where('code', $searchRequest->nationality)->first()->alpha_code ?? 'IN';
+
+        $mainGuest = $travelersInfo->first();
+        $groupedTravelers = $travelersInfo->groupBy('room_no');
+
+        $paxesXml = '';
+        $paxIndex = 1;
+        $paxIdMap = [];
+
+        foreach ($groupedTravelers as $roomNo => $travellers) {
+            $paxIdMap[$roomNo] = [];
+            foreach ($travellers as $traveler) {
+                $currentPaxId = $paxIndex++;
+                $paxIdMap[$roomNo][] = $currentPaxId;
+                $isAdult = strtoupper($traveler->traveler_type) === 'ADT';
+                $age = !empty($traveler->age) ? (int)$traveler->age : ($isAdult ? 30 : 10);
+
+                $paxesXml .= "<Pax IdPax=\"{$currentPaxId}\">";
+                $paxesXml .= "<Name>" . htmlspecialchars($traveler->first_name ?? '') . "</Name>";
+                $paxesXml .= "<Surname>" . htmlspecialchars($traveler->last_name ?? '') . "</Surname>";
+                $paxesXml .= "<Age>{$age}</Age>";
+                // if($traveler->traveler_type != 'ADT'){
+                //     $paxesXml .= "<Age>{$age}</Age>";
+                // }
+                if ($currentPaxId == 1) {
+                    if (!empty($hotelBookingDetails->mobile)) {
+                        $paxesXml .= "<PhoneNumbers><PhoneNumber>" . htmlspecialchars($hotelBookingDetails->mobile) . "</PhoneNumber></PhoneNumbers>";
+                    }
+                    if (!empty($hotelBookingDetails->email)) {
+                        $paxesXml .= "<Email>" . htmlspecialchars($hotelBookingDetails->email) . "</Email>";
+                    }
+                    $paxesXml .= "<Nationality>IN</Nationality>";
+                }
+                $paxesXml .= "</Pax>";
+            }
+        }
+
+        $relPaxesDistXml = '';
+        foreach ($paxIdMap as $roomNo => $paxIds) {
+            $relPaxesDistXml .= "<RelPaxDist><RelPaxes>";
+            foreach ($paxIds as $pId) {
+                $relPaxesDistXml .= "<RelPax IdPax=\"{$pId}\"/>";
+            }
+            $relPaxesDistXml .= "</RelPaxes></RelPaxDist>";
+        }
+
+        $dynamicBookingCode = $bookingCode['bookingCode'] ?? $bookingCode['RatePlanCode'] ?? '';
+        $currency = $bookingCode['currency'] ?? 'EUR';
+        $totalPrice = $bookingCode['totalPrice'] ?? $hotelBookingDetails->total_amount;
+        $checkIn  = $hotelBookingDetails->check_in;
+        $checkOut = $hotelBookingDetails->check_out;
+        $refId    = $hotelBookingDetails->booking_ref_id;
+        $minimum  = round($totalPrice*0.25,2);
+
+        $xml = <<<EOM
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://www.juniper.es/webservice/2007/" Context="BOOKING">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <HotelBooking>
+                <HotelBookingRQ Version="1.1" Language="en">
+                    <Login Password="{$this->TdsPassword}" Email="{$this->TdsUsername}"/>
+                    <Paxes>
+                    {$paxesXml}
+                    </Paxes>
+                    <Holder>
+                    <RelPax IdPax="1"/>
+                    </Holder>
+                    <ExternalBookingReference>{$refId}</ExternalBookingReference>
+                    <Comments>
+                    <Comment Type="RES">Hotel Booking</Comment>
+                    </Comments>
+                    <Elements>
+                    <HotelElement>
+                        <BookingCode>{$dynamicBookingCode}</BookingCode>
+                        <RelPaxesDist>
+                        {$relPaxesDistXml}
+                        </RelPaxesDist>
+                        <HotelBookingInfo Start="{$checkIn}" End="{$checkOut}">
+                        <Price>
+                            <PriceRange Minimum="{$minimum}" Maximum="{$totalPrice}" Currency="{$currency}"/>
+                        </Price>
+                        <HotelCode>{$hotelCode}</HotelCode>
+                        </HotelBookingInfo>
+                    </HotelElement>
+                    </Elements>
+                    <AdvancedOptions>
+                    <ShowBreakdownPrice>true</ShowBreakdownPrice>
+                    </AdvancedOptions>
+                </HotelBookingRQ>
+                </HotelBooking>
+            </soapenv:Body>
+            </soapenv:Envelope>
+            EOM;
+            //dd($xml);
+
+        $requestData = [
+            'xml'          => $xml,
+            'endPoint'     => 'BookTransactions.asmx',
+            'soap_action'  => 'HotelBooking',
+            'searchId'     => $searchId,
+            'request_type' => 'confirmBooking',
+        ];
+
+        return $this->TdsAPI($requestData);
+    }
+
+    public function TDSBookingSearch(array $data)
+    {
+        $locator =  $data['locator'] ?? '';
+        $searchId = $data['search_id'] ?? null;
+
+        $xml = <<<EOM
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://www.juniper.es/webservice/2007/" >
+            <soapenv:Header/>
+            <soapenv:Body>
+                <ReadBooking>
+                    <ReadRQ Version="1.1" Language="en">
+                        <Login Email="{$this->TdsUsername}" Password="{$this->TdsPassword}"/>
+                        <ReadRequest ReservationLocator="{$locator}"/>
+                    </ReadRQ>
+                </ReadBooking>
+            </soapenv:Body>
+            </soapenv:Envelope>
+            EOM;
+
+        $requestData = [
+            'xml'          => $xml,
+            'endPoint'     => 'BookTransactions.asmx',
+            'soap_action'  => 'ReadBooking',
+            'searchId'     => $searchId,
+            'request_type' => 'BookingSearch',
+        ];
+
+        return $this->TdsAPI($requestData);
+    }
+
+    public function TDSReadBooking(array $data)
+    {
+        return $this->TDSBookingSearch($data);
+    }
+
+    public function TDSCancelBooking(array $data)
+    {
+        $tds_booking_id =  $data['tds_booking_id'] ?? '';
+        $searchId = $data['search_id'] ?? null;
+
+        $xml = <<<EOM
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="http://www.juniper.es/webservice/2007/" Context="CANCEL">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <CancelBooking>
+                    <CancelRQ Version = "1.1" Language = "en">
+                        <Login Email="{$this->TdsUsername}" Password="{$this->TdsPassword}"/>
+        EOM;
+        if($data['confirmCancellation'] == 'yes'){
+            $xml .= "<CancelRequest ReservationLocator = \"{$tds_booking_id}\" />";
+        }else{
+            $xml .= "<CancelRequest ReservationLocator = \"{$tds_booking_id}\" OnlyCancellationFees = \"true\"/>";
+        }
+        $xml .= <<<EOM
+                    </CancelRQ>
+                </CancelBooking>
+            </soapenv:Body>
+            </soapenv:Envelope>
+            EOM;
+
+        if($data['confirmCancellation'] == 'yes'){
+            $request_type = 'CancelBookingYes';
+        }else{
+            $request_type = 'cancelbookingNo';
+        }
+        
+        $requestData = [
+            'xml'          => $xml,
+            'endPoint'     => 'BookTransactions.asmx',
+            'soap_action'  => 'CancelBooking',
+            'searchId'     => $searchId,
+            'request_type' => $request_type,
+        ];
+
+        return $this->TdsAPI($requestData);
+        
+    }
+
 }
+
+

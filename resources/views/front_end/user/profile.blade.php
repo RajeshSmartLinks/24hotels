@@ -29,63 +29,67 @@
             <div class="bg-white shadow-md rounded p-4"> 
               <!-- Personal Information
             ============================================= -->
-              <h4 class="mb-4">Agency Information </h4>
+              <h4 class="mb-4"> Information </h4>
               <hr class="mx-n4 mb-4">
 
               
               <div class="row">
                 <div class="col-lg-8">
-                  @if(session()->has('success'))
-                      <div class="alert alert-success">
-                          {{ session()->get('success') }}
+                  @can('agency-view')
+                    <h5 class="mb-4"> Agency Information </h5>
+                    <hr class="mb-4">
+                    @if(session()->has('success'))
+                        <div class="alert alert-success">
+                            {{ session()->get('success') }}
+                        </div>
+                    @endif
+                  
+                    <div class="row">
+                      
+                      <div class="col-12">
+                        <div class="mb-3">
+                          <label class="form-label" for="agency_name">Agency Name</label>
+                          <input type="text" value="{{Auth::user()->agency->name ?? ''}}" class="form-control" data-bv-field="agency_name" id="agency_name" required placeholder="First Name" name="agency_name" readonly >
+                        </div>
                       </div>
-                  @endif
-                 
-                  <div class="row">
-                    
-                    <div class="col-12">
-                      <div class="mb-3">
-                        <label class="form-label" for="agency_name">Agency Name</label>
-                        <input type="text" value="{{Auth::user()->agency->name ?? ''}}" class="form-control" data-bv-field="agency_name" id="agency_name" required placeholder="First Name" name="agency_name" readonly >
+                      <div class="col-12">
+                        <div class="mb-3">
+                          <label class="form-label">Address</label>
+                          <textarea   class="form-control" data-bv-field="address" id="address" readonly placeholder="Address" name="address" readonly rows="4">{{Auth::user()->agency->address ?? ''}}</textarea>
+                        </div>
+                      </div>
+                      
+                    </div>
+                    <div class="row">
+                      <div class="col-2">
+                        <div class="mb-3">
+                          <label class="form-label" for="fullName">Country</label>
+                          <select class="form-select "  name= "country_id" id="country" style="min-height: 46% !important" title="select Country" > 
+                            <option value="">Select country Code</option>
+                            @php
+                            $agencyCountryId = Auth::user()->agency->country_id ?? '';
+                                
+                            @endphp
+                            @foreach($countries as $country)
+                              <option value = "{{$country->id}}" {{ ($agencyCountryId == $country->id)? 'selected':'' }}>{{$country->phone_code}} ( {{$country->phone_code}} )</option>
+                            @endforeach
+                          </select>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="mb-3">
+                          <label class="form-label" for="mobileNumber">Phone Number</label>
+                          <input type="text" value="{{Auth::user()->agency->phone_number ?? ''}}" class="form-control" data-bv-field="phone_number" id="phone_number"  placeholder="Phone Number" name="phone_number">
+                          
+                        </div>
+                      </div>
+                      <div class="product-img col-4">
+                        <img src="{{!empty(Auth::user()->agency->logo) ?  asset('uploads/agency/'.Auth::user()->agency->logo) : $noImage}} " width="100"/>
                       </div>
                     </div>
-                    <div class="col-12">
-                      <div class="mb-3">
-                        <label class="form-label">Address</label>
-                        <textarea   class="form-control" data-bv-field="address" id="address" readonly placeholder="Address" name="address" readonly rows="4">{{Auth::user()->agency->address ?? ''}}</textarea>
-                      </div>
-                    </div>
-                    
-                  </div>
-                  <div class="row">
-                    <div class="col-2">
-                      <div class="mb-3">
-                        <label class="form-label" for="fullName">Country</label>
-                        <select class="form-select "  name= "country_id" id="country" style="min-height: 46% !important" title="select Country" > 
-                          <option value="">Select country Code</option>
-                          @php
-                          $agencyCountryId = Auth::user()->agency->country_id ?? '';
-                              
-                          @endphp
-                          @foreach($countries as $country)
-                            <option value = "{{$country->id}}" {{ ($agencyCountryId == $country->id)? 'selected':'' }}>{{$country->phone_code}} ( {{$country->phone_code}} )</option>
-                          @endforeach
-                        </select>
-                      </div>
-                    </div>
-                    <div class="col-6">
-                      <div class="mb-3">
-                        <label class="form-label" for="mobileNumber">Phone Number</label>
-                        <input type="text" value="{{Auth::user()->agency->phone_number ?? ''}}" class="form-control" data-bv-field="phone_number" id="phone_number"  placeholder="Phone Number" name="phone_number">
-                        
-                      </div>
-                    </div>
-                    <div class="product-img col-4">
-                      <img src="{{!empty(Auth::user()->agency->logo) ?  asset('uploads/agency/'.Auth::user()->agency->logo) : $noImage}} " width="100"/>
-                    </div>
-                  </div>
-                   <h4 class="mb-4">Agent Information </h4>
-                  <hr class="mx-n4 mb-4">
+                  @endcan
+                  <h5 class="mb-4">Agent Information </h5>
+                  <hr class="mb-4">
 
                   <form id="personalInformation" method="post" action = "{{route('update-user-profile',['id'=>encrypt(Auth::user()->id)])}}" enctype="multipart/form-data">
                     @csrf
@@ -225,6 +229,7 @@
                       <span ></span>
                       Update Now</button>
                   </form>
+
                 </div>
                 <div class="col-lg-4 mt-4 mt-lg-0 "> 
                   <!-- Privacy Information

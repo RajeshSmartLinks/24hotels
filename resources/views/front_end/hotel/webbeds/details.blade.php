@@ -363,11 +363,14 @@
                       <th>#</th>
                       <th>Room Type</th>
                       <th>Board Basis</th>
+                      @if(isset($roomDetails['type']) && $roomDetails['type'] != 'tds')
                       <th></th>
+                      @endif
                       <th>Per Room/Night</th>
                       @if($result['hotelDeatils']['type'] == 'webbeds')
                       <th>Tariff</th>
                       @endif
+                      <th>Refund Status</th>
                       <th>Total Price</th>
                     </tr>
                   </thead>
@@ -516,6 +519,7 @@
                             @endif
                           </td>
                           <td>{{$roomDetails['boardbasis']}}</td>
+                          @if(isset($roomDetails['type']) && $roomDetails['type'] != 'tds')
                           <td>
                             <a href="#" data-bs-toggle="modal" data-bs-target="#cancellation-policy{{$r}}">{{__('lang.cancellation_policy')}}</a>
                             <div id="cancellation-policy{{$r}}" class="modal fade" role="dialog" aria-hidden="true">
@@ -567,6 +571,7 @@
                               </div>
                             </div>
                           </td>
+                          @endif
                           <td>{{$roomDetails['markups']['totalPrice']['currency_code']}} {{number_format($roomDetails['markups']['totalPrice']['value']/($result['searchRequest']->no_of_rooms*$result['searchRequest']->no_of_nights))}}</td>
                           @if($roomDetails['type'] == 'webbeds')
                           <td>
@@ -610,6 +615,40 @@
                           </td>
                           @endif
                           
+                          <td>
+                            @if(isset($roomDetails['refundStatus']))
+                                @if(is_array($roomDetails['refundStatus']))
+                                    @foreach($roomDetails['refundStatus'] as $status)
+                                        @php
+                                            $badgeClass = 'bg-success';
+                                            $displayText = $status;
+                                            if (stripos($status, 'NonRefundable') !== false) {
+                                                $badgeClass = 'bg-danger';
+                                            } elseif (stripos($status, 'checkCancellationPolicy') !== false) {
+                                                $badgeClass = 'bg-warning text-dark';
+                                                $displayText = 'Check Cancellation Policy';
+                                            }
+                                        @endphp
+                                        <span class="badge {{ $badgeClass }}">{{ $displayText }}</span><br>
+                                    @endforeach
+                                @else
+                                    @php
+                                        $status = $roomDetails['refundStatus'];
+                                        $badgeClass = 'bg-success';
+                                        $displayText = $status;
+                                        if (stripos($status, 'NonRefundable') !== false) {
+                                            $badgeClass = 'bg-danger';
+                                        } elseif (stripos($status, 'checkCancellationPolicy') !== false) {
+                                            $badgeClass = 'bg-warning text-dark';
+                                            $displayText = 'Check Cancellation Policy';
+                                        }
+                                    @endphp
+                                    <span class="badge {{ $badgeClass }}">{{ $displayText }}</span>
+                                @endif
+                            @else
+                                -
+                            @endif
+                          </td>
                           
                           <td style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">{{$roomDetails['markups']['totalPrice']['currency_code'] }}&nbsp; {{$roomDetails['markups']['totalPrice']['value'] }} 
                             <span><a href="#" data-bs-toggle="modal" data-bs-target="#roomInfo{{$r}}"><i class="fa fa-info-circle"></i></a></span> 

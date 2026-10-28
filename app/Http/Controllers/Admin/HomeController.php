@@ -44,7 +44,7 @@ class HomeController extends Controller
         //     $bookings = FlightBooking::with('TravelersInfo','Customercountry','searchRequest')->whereDate('created_at', '=', date('Y-m-d'))->orderBy('id','DESC')->get();
         // }
 
-        $hotelBookings = HotelBooking::with('Customercountry','TravelersInfo')->whereDate('created_at', '=', date('Y-m-d'))->orderBy('hotel_bookings.id','DESC')->get();
+        $hotelBookings = HotelBooking::with('Customercountry','TravelersInfo','User.agency')->whereDate('created_at', '=', date('Y-m-d'))->orderBy('hotel_bookings.id','DESC')->get();
 
         $totalBookings = HotelBooking::whereIn('booking_status',['booking_completed','payment_successful'])->count();
 

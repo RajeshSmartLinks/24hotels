@@ -85,7 +85,12 @@
                 <tr>
                   <td colspan="4" valign="top" style="font-size:14px; line-height:20px; padding-bottom:25px;"><span style="color:#909090; font-size:13px;">Hotel Details:</span><br />
                     <span style="color:#000000;display:inline-block">{{$result['hotel_details']->hotel_name}}</span><br>
-                    <span style="font-size:13px; color:#909090;">{{$result['hotel_details']->address}}</span></td>
+                    <span style="font-size:13px; color:#909090;">{{$result['hotel_details']->address}}</span><br>
+                    @if(isset($result['hotel_details']->hotel_rating))
+                     <span style="font-size:13px; color:#909090;">{{$result['hotel_details']->hotel_rating}}</span>
+                    @endif
+                  </td>
+                    
                 </tr>
                 <tr>
                   <td valign="top" width="22%" style="font-size:14px; line-height:20px;"><span style="color:#909090; font-size:13px;">Check In:</span><br />
@@ -196,6 +201,24 @@
                     <td style="font-size:13px; padding:5px 7px;">{{ $excludedFee['display_text'] }}</td>
                   </tr>
                 @endforeach
+                </tbody>
+            </table>
+          </td>
+        @endif
+
+        @if(!empty($result['note']))
+          <tr>
+            <td style="padding:10px 20px;"><h3 style="margin:0; font-weight:normal; color:#444444;">Note</h3></td>
+          </tr>
+          <td class="tablepadding" style="padding:0px 20px 15px;">
+            <table style="border-collapse:collapse;width:100%;">
+              <tbody>
+                <?php $result['note'] = html_entity_decode($result['note'], ENT_QUOTES | ENT_HTML5, 'UTF-8');?>
+                
+                  <tr>
+                    <td style="font-size:19px; padding:5px 7px;">{!! $result['note'] !!}</td>
+                  </tr>
+             
                 </tbody>
             </table>
           </td>

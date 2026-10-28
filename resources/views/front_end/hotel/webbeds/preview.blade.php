@@ -247,6 +247,9 @@
               </ul>
      
             <h2 class="text-6 mb-3 mt-1">{{__('lang.traveller_details')}} </h2>
+            @php
+              $isTds = (isset($result['bookingDetails']->supplier) && strtolower($result['bookingDetails']->supplier) == 'tds') || (isset($result['roomDetails']['type']) && strtolower($result['roomDetails']['type']) == 'tds') || (isset($result['type']) && strtolower($result['type']) == 'tds');
+            @endphp
             <div class="tab-pane fade show active" id="third" role="tabpanel" aria-labelledby="third-tab">
                 <div class="table-responsive">
                   <table class="table table-striped table-bordered">
@@ -255,10 +258,10 @@
                         <th>{{__('lang.title')}}</th>
                         <th>{{__('lang.first_name')}}</th>
                         <th>{{__('lang.last_name')}}</th>
+                        @if($isTds)
+                        <th>{{__('lang.age')}}</th>
+                        @endif
                         <th>{{__('lang.room')}}</th>
-                        
-                       
-                      
                       </tr>
                     </thead>
                     <tbody>
@@ -268,12 +271,15 @@
                           <td class="align-middle">{{$passengerDetails->title}}</td>
                           <td class="align-middle">{{$passengerDetails->first_name}}</td>
                           <td class="align-middle">{{$passengerDetails->last_name}}</td>
+                          @if($isTds)
+                          <td class="align-middle">{{$passengerDetails->age ?? '-'}}</td>
+                          @endif
                           <td class="align-middle">{{$passengerDetails->room_no}}</td>                        
                           </tr>
                           @endforeach
                       @else
                           <tr align="center" class="alert alert-danger">
-                              <td colspan="4">{{__('lang.no_records')}}</td>
+                              <td colspan="{{ $isTds ? 5 : 4 }}">{{__('lang.no_records')}}</td>
                           </tr>
                       @endif
                      

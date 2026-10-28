@@ -12,6 +12,8 @@ use App\Models\WebbedsHotelSearch;
 use App\Models\GtsHotel;
 use App\Models\GtsCityHotel;
 use App\Models\RestelHotelCode;
+use App\Models\TdsHotel;
+use App\Models\TdsHotelList;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\FrontEnd\Hotel\StaticController;
@@ -85,6 +87,99 @@ class SearchController extends Controller
             'xml' => $xml
         );
         $data = $this->XmlRequestWithoutLog($data);
+        return $data;
+    }
+
+    public function tdsCityDatafetch()
+    {
+        $xml = <<<EOM
+        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="{$this->TdsXmlns}">
+            <soapenv:Header/>
+            <soapenv:Body>
+                <CityList>
+                    <CityListRQ Version="1.1" Language="en">
+                        <Login Password="{$this->TdsPassword}" Email="{$this->TdsUsername}"/>
+                    </CityListRQ>
+                </CityList>
+            </soapenv:Body>
+        </soapenv:Envelope>
+        EOM;
+        $data = array(
+            'xml' => $xml,
+            'endPoint' => "staticdatatransactions.asmx"
+        );
+        $data = $this->TdsApiXmlRequestWithoutLog($data);
+        return $data;
+    }
+
+    public function tdsHotelListDatafetch($nextToken = null, $recordsPerPage = 2)
+    {
+        $nextTokenAttr = !empty($nextToken) ? ' Token="' . htmlspecialchars($nextToken, ENT_XML1, 'UTF-8') . '"' : '';
+        $recordsPerPageAttr = !empty($recordsPerPage) ? ' RecordsPerPage="' . $recordsPerPage . '"' : ' RecordsPerPage="2"';
+
+        $xml = <<<EOM
+                    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="{$this->TdsXmlns}">
+                    <soapenv:Header/>
+                    <soapenv:Body>
+                        <HotelPortfolio>
+                        <HotelPortfolioRQ Version="1.1" Language="en"{$recordsPerPageAttr}{$nextTokenAttr}>
+                            <Login Password="{$this->TdsPassword}" Email="{$this->TdsUsername}"/>
+                        </HotelPortfolioRQ>
+                        </HotelPortfolio>
+                    </soapenv:Body>
+                    </soapenv:Envelope>
+                EOM;
+        $data = array(
+            'xml' => $xml,
+            'endPoint' => "staticdatatransactions.asmx"
+        );
+        $data = $this->TdsApiXmlRequestWithoutLog($data);
+        return $data;
+    }
+
+    public function tdsHotelDetailDatafetch($hotelCodes = [], $request = null)
+    {
+        if (is_string($hotelCodes)) {
+            $hotelCodes = [$hotelCodes];
+        }
+
+        $hotelTags = '';
+        foreach ($hotelCodes as $code) {
+            $code = trim($code);
+            if (!empty($code)) {
+                $hotelTags .= '<Hotel Code="' . htmlspecialchars($code, ENT_XML1, 'UTF-8') . '"/>' . "\n";
+            }
+        }
+
+        if(isset($request['RatePlanCode'])){
+            $hotelTags = '';
+            $hotelTags .= '<Hotel RatePlanCode="'.$request['RatePlanCode'].'"/>' . "\n";
+        }
+
+        $xml = <<<EOM
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="{$this->TdsXmlns}">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <HotelContent>
+      <HotelContentRQ Version="1.1" Language="en">
+        <Login Password="{$this->TdsPassword}" Email="{$this->TdsUsername}"/>
+        <HotelContentList>
+          {$hotelTags}
+        </HotelContentList>
+      </HotelContentRQ>
+    </HotelContent>
+  </soapenv:Body>
+</soapenv:Envelope>
+EOM;
+
+
+        $data = array(
+            'xml' => $xml,
+            'skip_array' => true,
+            'endPoint' => "staticdatatransactions.asmx"
+
+        );
+        $data = $this->TdsApiXmlRequestWithoutLog($data);
         return $data;
     }
 
@@ -754,10 +849,11 @@ class SearchController extends Controller
         $currency = 'USD';
 
         if(env('APP_ENV') == 'local'){
-            $GtsHotels = GtsHotel::limit(100)->pluck('hotel_id')->toArray();
+            $GtsHotels = GtsHotel::orderBy('id', 'desc')->limit(100)->pluck('hotel_id')->toArray();
         }else{
             $GtsHotels = GtsCityHotel::where('city_code',$serachInfo->gts_code)->pluck('hotel_id')->toArray();
         }
+        $GtsHotels = ["40011644"];
         $hotelIds = $GtsHotels;
 
         $rooms = json_decode($serachInfo->rooms_request, true) ?? [];
@@ -1001,5 +1097,221 @@ class SearchController extends Controller
         $data = $this->RestelAPI($data);
         $data['searchId'] = $serachInfo['id'];
         return $data;
+    }
+
+    public function tdsSearch(Request $request)
+    {
+        $searchId = $request->input('search_request_id');
+
+        $serachInfo = WebbedsHotelSearch::select(
+            'id',
+            'nationality',
+            'residency',
+            'check_in',
+            'check_out',
+            'no_of_rooms',
+            'rooms_request',
+            'tds_code',
+            'city_code'
+        )->find($searchId);
+
+        if (!$serachInfo) {
+            return [
+                'status'   => false,
+                'response' => [],
+                'message'  => 'Search record not found'
+            ];
+        }
+
+        $nationality = WebbedsCountry::where(
+            'code',
+            $serachInfo->nationality
+        )->value('alpha_code') ?? 'ES';
+
+        $checkIn = Carbon::parse($serachInfo->check_in)->format('Y-m-d');
+        $checkOut = Carbon::parse($serachInfo->check_out)->format('Y-m-d');
+        $noOfRooms = (int) ($serachInfo->no_of_rooms ?: 1);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Hotel Codes
+        |--------------------------------------------------------------------------
+        */
+        if ($request->filled('hotel_code')) {
+            $hotelCodes = [$request->input('hotel_code')];
+        } else {
+            $hotelCodes = TdsHotel::where('city_jpd_code', $serachInfo->tds_code)
+                ->pluck('hotel_jp_code')
+                ->filter()
+                ->values()
+                ->toArray();
+            //$hotelCodes = ["JP046300", "JP077424", "JP046391", "JP046183"];
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Prepare Paxes & RelPaxesDist from rooms_request
+        |--------------------------------------------------------------------------
+        */
+        $rooms = json_decode($serachInfo->rooms_request, true) ?? [];
+        if (empty($rooms)) {
+            $rooms = [
+                ['Adults' => 1, 'Children' => 0, 'ChildrenAges' => []]
+            ];
+        }
+
+        $paxXml = '';
+        $relPaxesDistXml = '';
+        $currentPaxId = 1;
+
+        foreach ($rooms as $roomIndex => $room) {
+            $adults = (int) ($room['Adults'] ?? 1);
+            $children = (int) ($room['Children'] ?? 0);
+            $childrenAges = $room['ChildrenAges'] ?? [];
+
+            $roomPaxIds = [];
+
+            // Adults
+            for ($a = 0; $a < $adults; $a++) {
+                $paxXml .= "          <Pax IdPax=\"{$currentPaxId}\"/>\n";
+                $roomPaxIds[] = $currentPaxId;
+                $currentPaxId++;
+            }
+
+            // Children
+            for ($c = 0; $c < $children; $c++) {
+                $childAge = isset($childrenAges[$c]) && is_numeric($childrenAges[$c]) ? (int) $childrenAges[$c] : 8;
+                $paxXml .= "          <Pax IdPax=\"{$currentPaxId}\">\n            <Age>{$childAge}</Age>\n          </Pax>\n";
+                $roomPaxIds[] = $currentPaxId;
+                $currentPaxId++;
+            }
+
+            $relPaxesDistXml .= "            <RelPaxDist>\n              <RelPaxes>\n";
+            foreach ($roomPaxIds as $pId) {
+                $relPaxesDistXml .= "                <RelPax IdPax=\"{$pId}\"/>\n";
+            }
+            $relPaxesDistXml .= "              </RelPaxes>\n            </RelPaxDist>\n";
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Chunk Hotel Codes and Build Requests
+        |--------------------------------------------------------------------------
+        */
+        $hotelChunks = array_chunk($hotelCodes, 250);
+        $requests = [];
+
+        foreach ($hotelChunks as $chunk) {
+            $hotelCodesXml = '';
+            foreach ($chunk as $hCode) {
+                $hCode = htmlspecialchars(trim($hCode), ENT_XML1, 'UTF-8');
+                if (!empty($hCode)) {
+                    $hotelCodesXml .= "              <HotelCode>{$hCode}</HotelCode>\n";
+                }
+            }
+
+            $xml = <<<EOM
+                <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns="{$this->TdsXmlns}" Context="FULLAVAIL">
+                <soapenv:Header/>
+                <soapenv:Body>
+                    <HotelAvail>
+                    <HotelAvailRQ Version="1.1" Language="en">
+                        <Login Email="{$this->TdsUsername}" Password="{$this->TdsPassword}"/>
+                        <Paxes>
+                {$paxXml}        </Paxes>
+                        <HotelRequest>
+                        <SearchSegmentsHotels>
+                            <SearchSegmentHotels Start="{$checkIn}" End="{$checkOut}"/>
+                            <CountryOfResidence>{$nationality}</CountryOfResidence>
+                            <HotelCodes>
+                {$hotelCodesXml}            </HotelCodes>
+                        </SearchSegmentsHotels>
+                        <RelPaxesDist>
+                {$relPaxesDistXml}          </RelPaxesDist>
+                        </HotelRequest>
+                        <AdvancedOptions>
+                        <ShowHotelInfo>false</ShowHotelInfo>
+                        <ShowOnlyBestPriceCombination>true</ShowOnlyBestPriceCombination>
+                        <TimeOut>8000</TimeOut>
+                        </AdvancedOptions>
+                    </HotelAvailRQ>
+                    </HotelAvail>
+                </soapenv:Body>
+                </soapenv:Envelope>
+                EOM;
+
+            $requests[] = [
+                'xml'          => $xml,
+                'searchId'     => $searchId,
+                'request_type' => 'search',
+                'soap_action'  => 'HotelAvail',
+                'endPoint' => "availtransactions.asmx"
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Execute Requests and Collect Results
+        |--------------------------------------------------------------------------
+        */
+        $respList = [];
+
+        if (count($requests) === 1) {
+            $apiResult = $this->TdsAPI($requests[0]);
+            $parsedHotels = $this->extractTdsHotelResults($apiResult['hotelResponse'] ?? null);
+            if (!empty($parsedHotels)) {
+                $respList = $parsedHotels;
+            }
+        } else {
+            $requestGroups = array_chunk($requests, 5);
+            foreach ($requestGroups as $group) {
+                $responses = $this->TdsApiPool($group);
+                foreach ($responses as $apiResult) {
+                    $parsedHotels = $this->extractTdsHotelResults($apiResult['hotelResponse'] ?? null);
+                    if (!empty($parsedHotels)) {
+                        $respList = array_merge($respList, $parsedHotels);
+                    }
+                }
+            }
+        }
+
+        return [
+            'status'       => true,
+            'response'     => $respList,
+            'total_hotels' => count($respList)
+        ];
+    }
+
+    public function extractTdsHotelResults($responseArray)
+    {
+        if (empty($responseArray) || !is_array($responseArray)) {
+            return [];
+        }
+
+        $availRS = $responseArray['soap:Body']['HotelAvailResponse']['AvailabilityRS']
+            ?? $responseArray['HotelAvailResponse']['AvailabilityRS']
+            ?? $responseArray['AvailabilityRS']
+            ?? $responseArray;
+
+        $results = $availRS['Results']['HotelResult'] ?? null;
+        if (empty($results)) {
+            return [];
+        }
+
+        // If single hotel result
+        if (isset($results['@attributes']) || isset($results['Code']) || isset($results['JPCode']) || isset($results['HotelOptions'])) {
+            $results = [$results];
+        }
+
+        $hotels = [];
+        foreach ($results as $hotel) {
+            if (!is_array($hotel)) {
+                continue;
+            }
+            $hotels[] = $hotel;
+        }
+
+        return $hotels;
     }
 }

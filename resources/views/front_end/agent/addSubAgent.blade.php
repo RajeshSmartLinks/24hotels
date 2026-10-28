@@ -69,7 +69,7 @@
                         <div class="mb-3">
                           <label class="form-label" for="first_name">First Name</label>
                           <input type="text" value="{{old('first_name')}}" class="form-control @error('first_name') is-invalid @enderror" data-bv-field="first_name" id="first_name" required placeholder="First Name" name="first_name" >
-                          @error('name')
+                          @error('first_name')
                               <span class="invalid-feedback" role="alert">
                                   <strong>{{ $message }}</strong>
                               </span>
@@ -80,7 +80,7 @@
                         <div class="mb-3">
                           <label class="form-label" for="last_name">Last Name </label>
                           <input type="text" value="{{old('last_name')}}" class="form-control @error('last_name') is-invalid @enderror" data-bv-field="last_name" id="last_name" required placeholder="Last Name" name="last_name" >
-                          @error('name')
+                          @error('last_name')
                               <span class="invalid-feedback" role="alert">
                                   <strong>{{ $message }}</strong>
                               </span>
@@ -98,31 +98,57 @@
                               <option value = "{{$country->id}}" {{ (old('country_id') == $country->id)? 'selected':'' }}>{{$country->name}} ( {{$country->phone_code}} )</option>
                             @endforeach
                           </select>
-                       
+                          @error('country_id')
+                              <span class="invalid-feedback" role="alert">
+                                  <strong>{{ $message }}</strong>
+                              </span>
+                          @enderror
                         </div>
                       </div>
                       <div class="col-8">
                         <div class="mb-3">
                           <label class="form-label" for="mobileNumber">Mobile Number</label>
                           <input type="text" value="{{old('mobile')}}" class="form-control @error('mobile') is-invalid @enderror" data-bv-field="mobile" id="mobile"  placeholder="Mobile Number" name="mobile">
-                          {{-- @error('mobile')
+                          @error('mobile')
                               <span class="invalid-feedback" role="alert">
                                   <strong>{{ $message }}</strong>
                               </span>
-                          @enderror --}}
+                          @enderror
                         </div>
                       </div>
                     </div>
                     
                     
-                    <div class="mb-3">
-                      <label class="form-label" for="emailID">Email ID</label>
-                      <input type="text" value="{{old('email')}}" class="form-control @error('email') is-invalid @enderror" data-bv-field="emailid" id="emailID" required placeholder="Email ID" name="email">
-                      @error('email')
+                    <div class="row">
+                      <div class="col-6">
+                        <div class="mb-3">
+                          <label class="form-label" for="emailID">Email ID</label>
+                          <input type="email" value="{{old('email')}}" class="form-control @error('email') is-invalid @enderror" data-bv-field="emailid" id="emailID" required placeholder="Email ID" name="email">
+                          @error('email')
                               <span class="invalid-feedback" role="alert">
                                   <strong>{{ $message }}</strong>
                               </span>
                           @enderror
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="mb-3">
+                          <label class="form-label" for="role_id">Role</label>
+                          <select class="form-select @error('role_id') is-invalid @enderror" name="role_id" id="role_id" required style="min-height: 46% !important" title="Select Role">
+                            <option value="">Select Role</option>
+                            @if(isset($roles) && count($roles) > 0)
+                              @foreach($roles as $role)
+                                <option value="{{$role->id}}" {{ (old('role_id') == $role->id)? 'selected':'' }}>{{$role->name}}</option>
+                              @endforeach
+                            @endif
+                          </select>
+                          @error('role_id')
+                              <span class="invalid-feedback" role="alert">
+                                  <strong>{{ $message }}</strong>
+                              </span>
+                          @enderror
+                        </div>
+                      </div>
                     </div>
 
                     <div class ="row">

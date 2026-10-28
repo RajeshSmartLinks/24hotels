@@ -13,12 +13,12 @@
 
         <li class="nav-item"><a class="nav-link {{Request::segment(1) == 'profile' ? 'active' : '' }}" href="{{route('profile')}}"><span class="me-2"><i class="fas fa-user-tie"></i></span>{{__('lang.agent_information')}} </a></li>
 
-        @if(Auth::user()->is_master_agent == 1)
-
+        <!-- @if(Auth::user()->is_master_agent == 1) -->
+        @can('agent-view')
         {{-- <li class="nav-item"><a class="nav-link {{Request::segment(1) == 'add-sub-agent' ? 'active' : '' }}" href="{{route('add-sub-agent')}}"><span class="me-2"><i class="fas fa-user"></i></span>Add Sub Agent</a></li> --}}
          <li class="nav-item"><a class="nav-link {{Request::segment(1) == 'agent-list' ? 'active' : '' }}" href="{{route('agent-list')}}"><span class="me-2"><i class="fas fa-user"></i></span>Agent</a></li>
-
-        @endif
+        @endcan
+        <!-- @endif -->
 
         
       @else
