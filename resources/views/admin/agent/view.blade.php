@@ -35,6 +35,10 @@
                                         <div class="col-12 col-sm-9 col-md-6 col-lg-5">
                                             <table>
                                                 <tr>
+                                                    <td class="font-weight-bold">Agent Code</td>
+                                                    <td>{{$agent->agent_code ?? '-'}}</td>
+                                                </tr>
+                                                <tr>
                                                     <td class="font-weight-bold">Name</td>
                                                     <td>{{$agent->first_name }} {{$agent->last_name}}</td>
                                                 </tr>

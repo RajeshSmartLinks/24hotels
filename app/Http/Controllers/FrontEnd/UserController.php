@@ -655,7 +655,7 @@ class UserController extends Controller
 
         $countries = Country::select('id','country_code','name','phone_code')->orderBy('name','ASC')->get();
         $noImage = asset(Config::get('constants.NO_IMG_ADMIN'));
-        $roles = Role::whereIn('slug' , ['agent-travel-agent', 'agent-manager', 'agent-accountant'])->select('id','name')->get();
+        $roles = Role::whereIn('slug' , ['agent-travel-agent', 'agent-manager', 'agency-accountant'])->select('id','name')->get();
         return view('front_end.agent.addSubAgent',compact('titles' , 'countries','noImage','roles'));
     }
 
@@ -692,6 +692,10 @@ class UserController extends Controller
         $user->country_id = $request->country_id;
         $user->mobile = $request->mobile;
         $user->agency_id =  Auth::user()->agency_id ;
+        $user->created_by = Auth::user()->id;
+        $user->save();
+
+        $user->agent_code = Agency::generateAgentCode(Auth::user()->agency_id, $user->id);
         $user->save();
 
         if ($request->role_id) {
@@ -748,13 +752,18 @@ class UserController extends Controller
             return view('errors.404');
         }
 
+        if (empty($agent->agent_code) && !empty($agent->agency_id)) {
+            $agent->agent_code = Agency::generateAgentCode($agent->agency_id, $agent->id);
+            $agent->save();
+        }
+
         $titles = [
             'title' => "Edit Sub Agent",
         ];
 
         $countries = Country::select('id','country_code','name','phone_code')->orderBy('name','ASC')->get();
         $noImage = asset(Config::get('constants.NO_IMG_ADMIN'));
-        $roles = Role::whereIn('slug' , ['agent-travel-agent', 'agent-manager', 'agent-accountant'])->select('id','name')->get();
+        $roles = Role::whereIn('slug' , ['agent-travel-agent', 'agent-manager', 'agency-accountant'])->select('id','name')->get();
 
         return view('front_end.agent.editSubAgent', compact('titles', 'countries', 'noImage', 'roles', 'agent'));
     }

@@ -26,8 +26,9 @@
                                     <div class="card-body card-dashboard">
                                         <div class="table-responsive">
                                             <table class="table zero-configuration">
-                                                <thead>
+                                                 <thead>
                                                 <tr>
+                                                    <th>Agent Code</th>
                                                     <th>Name</th>
                                                     {{-- <th>Wallet</th> --}}
                                                     <th>Agency</th>
@@ -41,6 +42,7 @@
                                                 @if(count($agents) > 0)
                                                     @foreach($agents as $agent)
                                                         <tr>
+                                                            <td>{{$agent->agent_code ?? '-'}}</td>
                                                             <td>{{$agent->first_name}} {{$agent->last_name}} </td>
                                                             <td>{{$agent->agency->name ?? ''}}</td>
                                                             <td>
@@ -89,7 +91,7 @@
                                                     @endforeach
                                                 @else
                                                     <tr align="center" class="alert alert-danger">
-                                                        <td colspan="4">No Record(s)</td>
+                                                        <td colspan="6">No Record(s)</td>
                                                     </tr>
                                                 @endif
 

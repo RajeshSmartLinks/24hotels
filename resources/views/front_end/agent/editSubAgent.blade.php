@@ -111,7 +111,7 @@
                           @enderror
                         </div>
                       </div>
-                      <div class="col-8">
+                      <div class="col-4">
                         <div class="mb-3">
                           <label class="form-label" for="mobileNumber">Mobile Number</label>
                           <input type="text" value="{{old('mobile', $agent->mobile)}}" class="form-control @error('mobile') is-invalid @enderror" data-bv-field="mobile" id="mobile" placeholder="Mobile Number" name="mobile">
@@ -120,6 +120,12 @@
                                   <strong>{{ $message }}</strong>
                               </span>
                           @enderror
+                        </div>
+                      </div>
+                      <div class="col-4">
+                        <div class="mb-3">
+                          <label class="form-label" for="agent_code">Agent Code</label>
+                          <input type="text" value="{{old('agent_code', $agent->agent_code)}}" class="form-control" id="agent_code" name="agent_code" readonly>
                         </div>
                       </div>
                     </div>

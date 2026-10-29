@@ -44,7 +44,7 @@
                                             @method('PUT')
                                             <div class="form-body">
                                                 <div class="row">
-                                                    <div class="col-12">
+                                                    <div class="col-md-6 col-12">
                                                         <div class="form-group">
                                                             <label for="name">Agency Name</label>
                                                             <input type="text" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="Agency Name" name="name" value="{{old('name', $editAgency->name)}}" autocomplete="off" required>
@@ -55,51 +55,23 @@
                                                             @enderror
                                                         </div>
                                                     </div>
-
-                                                  
-                                                </div>
-                                                <div class="row">
-                                                     <div class="col-md-6 col-12">
-                                                        <label for="first-name-column">Status</label>
-                                                        <div class="form-label-group">
-                                                        <select name="status" class="form-control @error('status') is-invalid @enderror" required>
-                                                            <option value = "" >Select Status</option>
-                                                            <option value="Active" {{old('status', $editAgency->status) == 'Active' ? 'selected' : ''}}>{{ucfirst('Active')}}</option>
-                                                            <option value="InActive" {{old('status', $editAgency->status) == 'InActive' ? 'selected' : ''}}>{{ucfirst('InActive')}}</option>
-                                                            
-                                                        </select>
-                                                        @error('status')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                  
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div class= "col-md-6 col-12">
-                                                        <div class="col-md-6 col-12">
-                                                            <label for="first-name-column">Logo</label>
-                                                            <div class="form-label-group">
-                                                                
-                                                                <input type="file" id="logo" class="form-control @error('logo') is-invalid @enderror" placeholder="Brand logo" name="logo">
-                                                                @error('logo')
-                                                                    <span class="invalid-feedback" role="alert">
-                                                                        <strong>{{ $message }}</strong>
-                                                                    </span>
-                                                                @enderror
-                                                                
-                                                            </div>
+                                                    <div class="col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="agency_code">Agency Code</label>
+                                                            <input type="text" id="agency_code" class="form-control @error('agency_code') is-invalid @enderror" placeholder="Agency Code" name="agency_code" value="{{old('agency_code', $editAgency->agency_code)}}" autocomplete="off" readonly required>
+                                                            @error('agency_code') 
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
                                                         </div>
                                                     </div>
                                                 </div>
-
-
                                                 <div class="row">
                                                      <div class="col-md-6 col-12">
-                                                        <label for="first-name-column">Country</label>
+                                                        <label for="country_id">Country</label>
                                                         <div class="form-label-group">
-                                                        <select name="country_id" class="form-control @error('country_id') is-invalid @enderror" required>
+                                                        <select name="country_id" id="country_id" class="form-control @error('country_id') is-invalid @enderror" required>
                                                             <option value = "" >Select country</option>
                                                             @foreach($countries as $country)
                                                             <option value = "{{$country->id}}" {{$country->id == old('country_id', $editAgency->country_id) ? 'selected' : ''}}>{{$country->name}}</option>
@@ -114,8 +86,8 @@
                                                     </div>
                                                     <div class="col-md-6 col-12">
                                                         <div class="form-group">
-                                                            <label for="phone">Phone Number</label>
-                                                            <input type="text" id="phone_number" class="form-control @error('phone_number') is-invalid @enderror" placeholder="phone Number" name="phone_number" value="{{old('phone_number', $editAgency->phone_number)}}" autocomplete="off"required>
+                                                            <label for="phone_number">Phone Number</label>
+                                                            <input type="text" id="phone_number" class="form-control @error('phone_number') is-invalid @enderror" placeholder="Phone Number" name="phone_number" value="{{old('phone_number', $editAgency->phone_number)}}" autocomplete="off" required>
                                                             @error('phone_number')
                                                                 <span class="invalid-feedback" role="alert">
                                                                     <strong>{{ $message }}</strong>
@@ -125,7 +97,39 @@
                                                     </div>
                                                 </div>
                                                 <div class="row">
-
+                                                    <div class="col-md-6 col-12">
+                                                        <label for="status">Status</label>
+                                                        <div class="form-label-group">
+                                                        <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
+                                                            <option value = "" >Select Status</option>
+                                                            <option value="Active" {{old('status', $editAgency->status) == 'Active' ? 'selected' : ''}}>{{ucfirst('Active')}}</option>
+                                                            <option value="InActive" {{old('status', $editAgency->status) == 'InActive' ? 'selected' : ''}}>{{ucfirst('InActive')}}</option>
+                                                        </select>
+                                                        @error('status')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 col-12">
+                                                        <label for="logo">Logo</label>
+                                                        <div class="form-label-group">
+                                                            <input type="file" id="logo" class="form-control @error('logo') is-invalid @enderror" placeholder="Agency logo" name="logo">
+                                                            @error('logo')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                        @if($editAgency->logo)
+                                                            <div class="mt-1">
+                                                                <img src="{{ asset('uploads/agency/' . $editAgency->logo) }}" alt="Logo" width="60" class="img-thumbnail">
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                                <div class="row">
                                                     <div class="col-12">
                                                         <div class="form-group">
                                                             <label for="address">Address</label>

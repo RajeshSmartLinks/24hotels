@@ -40,7 +40,7 @@ class AgencyController extends Controller
         //     return view('admin.abort', compact('titles'));
         // }
 
-        $agencies = Agency::with('country', 'masterAgent.agencyMasterAgentHotelmarkups')->orderBy('id','desc')->get();
+        $agencies = Agency::with('country', 'creator', 'masterAgent.agencyMasterAgentHotelmarkups')->orderBy('id','desc')->get();
         
 
         return view('admin.agency.index', compact('titles', 'agencies', 'deleteRouteName' ,'noImage','addingFunds','agencyMarkUpRoute'));
@@ -63,7 +63,7 @@ class AgencyController extends Controller
             return view('admin.abort', compact('titles'));
         }
 
-        $countries = Country::orderBy('id','desc')->get();
+        $countries = Country::orderBy('name', 'asc')->get();
 
         return view('admin.agency.create', compact('titles','countries'));
         
@@ -136,9 +136,11 @@ class AgencyController extends Controller
         $data['name'] = $request->name;
         $data['status'] = $request->status;
         $data['wallet_balance'] = $request->wallet_balance;
+        $data['created_by'] = auth()->user()->id;
     
         $agencyInfo = Agency::create($data);
-
+        $agencyInfo->agency_code = Agency::generateAgencyCode($agencyInfo->id);
+        $agencyInfo->save();
 
         $user = new User();
 
@@ -151,6 +153,10 @@ class AgencyController extends Controller
         $user->is_master_agent = 1 ;
         $user->mobile = $request->mobile;
         $user->agency_id = $agencyInfo->id;
+        $user->created_by =auth()->user()->id;
+        $user->save();
+
+        $user->agent_code = Agency::generateAgentCode($agencyInfo->id, $user->id);
         $user->save();
 
         //adding in adding wallet balance in wallet logger
@@ -211,7 +217,11 @@ class AgencyController extends Controller
         // }
 
         $editAgency = Agency::find($id);
-        $countries = Country::orderBy('id','desc')->get();
+        if (empty($editAgency->agency_code)) {
+            $editAgency->agency_code = Agency::generateAgencyCode($editAgency->id);
+            $editAgency->save();
+        }
+        $countries = Country::orderBy('name', 'asc')->get();
 
         return view('admin.agency.edit', compact('titles', 'editAgency','countries'));
     }
@@ -234,6 +244,7 @@ class AgencyController extends Controller
 
          $this->validate($request, [
             'name' => 'required',
+            'agency_code' => 'required|string|max:191|unique:agencies,agency_code,' . $id,
             'address' => 'required',
             'logo' => 'image|mimes:jpeg,png,jpg,svg,gif|max:2048',
             'status' => 'required',
@@ -274,6 +285,7 @@ class AgencyController extends Controller
         }
 
         $agency->name = $request->name;
+        $agency->agency_code = $request->agency_code;
         $agency->country_id = $request->country_id;
         $agency->phone_number = $request->phone_number;
         $agency->address = $request->address;
@@ -460,5 +472,61 @@ class AgencyController extends Controller
             }
         }
         return redirect()->route('agency.index')->with('success', 'MarkUp Updated Successfully');
+    }
+
+    /**
+     * Dump / backfill codes for existing agencies directly
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
+    public function dumpAgencyCodes(Request $request)
+    {
+        $results = [];
+        $agencies = Agency::all();
+        foreach ($agencies as $agency) {
+            $expectedCode = Agency::generateAgencyCode($agency->id);
+            $oldCode = $agency->agency_code;
+            $updated = false;
+            if ($agency->agency_code !== $expectedCode) {
+                $agency->agency_code = $expectedCode;
+                $agency->save();
+                $updated = true;
+            }
+            $results[] = [
+                'id' => $agency->id,
+                'name' => $agency->name,
+                'old_code' => $oldCode,
+                'new_code' => $expectedCode,
+                'status' => $updated ? 'updated' : 'unchanged',
+            ];
+        }
+
+        if ($request->wantsJson() || $request->ajax() || $request->has('json')) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Agency codes dumped successfully',
+                'agencies' => $results,
+            ]);
+        }
+
+        return redirect()->route('agency.index')->with('success', 'Agency codes dumped successfully.');
+    }
+
+    /**
+     * Dump / backfill codes for existing agencies and agents
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
+    public function dumpExistingCodes(Request $request)
+    {
+        $result = Agency::dumpExistingCodes();
+
+        if ($request->wantsJson() || $request->ajax() || $request->has('json')) {
+            return response()->json($result);
+        }
+
+        return redirect()->route('agency.index')->with('success', 'Agency and Agent codes dumped successfully.');
     }
 }

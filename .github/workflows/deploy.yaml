@@ -1,0 +1,164 @@
+name: Deploy Laravel to SiteGround
+
+on:
+  push:
+    branches:
+      - staging
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: siteground-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to SiteGround
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate deployment configuration
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          PUBLIC_PATH: ${{ secrets.PUBLIC_PATH }}
+        run: |
+          set -euo pipefail
+
+          for name in \
+            SSH_HOST \
+            SSH_USERNAME \
+            SSH_PORT \
+            SSH_PRIVATE_KEY \
+            DEPLOY_PATH \
+            PUBLIC_PATH
+          do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Missing required GitHub secret: $name"
+              exit 1
+            fi
+          done
+
+          if [[ ! "$SSH_PORT" =~ ^[0-9]+$ ]] ||
+             (( SSH_PORT < 1 || SSH_PORT > 65535 )); then
+            echo "::error::SSH_PORT must be a valid port number."
+            exit 1
+          fi
+
+          for path in "$DEPLOY_PATH" "$PUBLIC_PATH"; do
+            if [[ "$path" != /* ||
+                  "$path" == "/" ||
+                  "$path" == *".."* ]]; then
+              echo "::error::Deployment paths must be safe absolute paths."
+              exit 1
+            fi
+          done
+
+      - name: Prepare deployment directories
+        uses: appleboy/ssh-action@v1
+        env:
+          APP_PATH: ${{ secrets.DEPLOY_PATH }}
+          PUBLIC_PATH: ${{ secrets.PUBLIC_PATH }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: APP_PATH,PUBLIC_PATH
+          script: |
+            set -eu
+
+            mkdir -p "$APP_PATH" "$PUBLIC_PATH"
+
+            echo "Deployment directories are ready."
+
+      - name: Upload Laravel application
+        uses: easingthemes/ssh-deploy@v5.1.0
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.SSH_HOST }}
+          REMOTE_USER: ${{ secrets.SSH_USERNAME }}
+          REMOTE_PORT: ${{ secrets.SSH_PORT }}
+          SOURCE: "./"
+          TARGET: ${{ secrets.DEPLOY_PATH }}/
+          ARGS: "-rlzv"
+          EXCLUDE: >
+            /.git/,
+            /.github/,
+            /.env,
+            /vendor/,
+            /node_modules/,
+            /storage/,
+            /public/php_errorlog
+
+      - name: Upload public assets
+        uses: easingthemes/ssh-deploy@v5.1.0
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.SSH_HOST }}
+          REMOTE_USER: ${{ secrets.SSH_USERNAME }}
+          REMOTE_PORT: ${{ secrets.SSH_PORT }}
+          SOURCE: "./public/"
+          TARGET: ${{ secrets.PUBLIC_PATH }}/
+          ARGS: "-rlzv"
+          EXCLUDE: >
+            /index.php,
+            /php_errorlog
+
+      - name: Install dependencies and optimize Laravel
+        uses: appleboy/ssh-action@v1
+        env:
+          APP_PATH: ${{ secrets.DEPLOY_PATH }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          port: ${{ secrets.SSH_PORT }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: APP_PATH
+          script: |
+            set -eu
+
+            cd "$APP_PATH"
+
+            if [ ! -f artisan ] ||
+               [ ! -f composer.json ] ||
+               [ ! -f .env ]; then
+              echo "ERROR: artisan, composer.json, or production .env is missing."
+              exit 1
+            fi
+
+            if ! command -v php >/dev/null 2>&1 ||
+               ! command -v composer >/dev/null 2>&1; then
+              echo "ERROR: PHP or Composer is unavailable."
+              exit 1
+            fi
+
+            mkdir -p \
+              storage/framework/cache \
+              storage/framework/sessions \
+              storage/framework/views \
+              storage/logs \
+              bootstrap/cache
+
+            composer install \
+              --no-dev \
+              --prefer-dist \
+              --optimize-autoloader \
+              --no-interaction \
+              --no-progress
+
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan view:cache
+
+            echo "Laravel deployment completed successfully."

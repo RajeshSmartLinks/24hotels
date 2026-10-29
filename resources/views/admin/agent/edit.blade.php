@@ -159,6 +159,12 @@
                                                             @enderror
                                                         </div>
                                                     </div>
+                                                    <div class="col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="agent_code">Agent Code</label>
+                                                            <input type="text" id="agent_code" class="form-control" name="agent_code" value="{{ old('agent_code', $editagent->agent_code) }}" readonly>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div>&nbsp;</div>
                                                 <div>&nbsp;</div>

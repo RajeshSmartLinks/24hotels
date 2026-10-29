@@ -44,6 +44,7 @@ Route::group([
     Route::post('agents/updatePassword/{id}', [\App\Http\Controllers\Admin\AgentController::class, 'updatePassword'])->name('updateAgentPassword');
 
     Route::post('agents/addWalletBalance/{id}', [\App\Http\Controllers\Admin\AgentController::class, 'addWalletBalance'])->name('addWalletBalance');
+    Route::get('agents/get-next-code/{agencyId}', [\App\Http\Controllers\Admin\AgentController::class, 'getNextAgentCode'])->name('agents.getNextCode');
     Route::get('agents/view/{id}', [\App\Http\Controllers\Admin\AgentController::class, 'view'])->name('agents.view');
     Route::post('agents/markup/{id}', [\App\Http\Controllers\Admin\AgentController::class, 'updateMarkUp'])->name('agentsUpdateMarkUp');
    
@@ -55,6 +56,9 @@ Route::group([
     Route::get('/user', [App\Http\Controllers\Admin\UserController::class, 'UserList'])->name('admin.userList');
     Route::get('/bookings', [App\Http\Controllers\Admin\BookingController::class, 'bookingsList'])->name('admin.bookingsList');
     Route::get('/hotelBookings', [App\Http\Controllers\Admin\BookingController::class, 'hotelBookingsList'])->name('admin.hotelbookingsList');
+    Route::get('/salesReport', [App\Http\Controllers\Admin\SalesReportController::class, 'index'])->name('admin.salesReport');
+    Route::get('/salesReport/print', [App\Http\Controllers\Admin\SalesReportController::class, 'printReport'])->name('admin.salesReport.print');
+    Route::get('/salesReport/detailed-print', [App\Http\Controllers\Admin\SalesReportController::class, 'detailedPrint'])->name('admin.salesReport.detailedPrint');
 
     Route::get('/edit', [App\Http\Controllers\Admin\UserController::class, 'editUser'])->name('admin.editUser');
     Route::post('/updateUser/{id}', [App\Http\Controllers\Admin\UserController::class, 'updateUser'])->name('admin.updateUser');
@@ -88,10 +92,13 @@ Route::group([
 
     Route::post('agency/addAgencyWalletBalance/{id}', [\App\Http\Controllers\Admin\AgencyController::class, 'addAgencyWalletBalance'])->name('addAgencyWalletBalance');
     Route::post('agency/markup/{id}', [\App\Http\Controllers\Admin\AgencyController::class, 'updateMarkUp'])->name('agencyUpdateMarkUp');
+    Route::get('agency/dump-codes', [\App\Http\Controllers\Admin\AgencyController::class, 'dumpAgencyCodes'])->name('agency.dumpCodes');
+    Route::get('agents/dump-codes', [\App\Http\Controllers\Admin\AgentController::class, 'dumpAgentCodes'])->name('agents.dumpCodes');
     Route::get('currencyConverter', [\App\Http\Controllers\Admin\CurrencyController::class, 'currencyConverter'])->name('currencyConverter');
 
 });
 
+Route::get('dumpAgencyAndAgentCodes', [App\Http\Controllers\Admin\AgentController::class, 'dumpExistingCodes'])->name('dumpAgencyAndAgentCodes');
 Route::get('updateCurrencyByCron', [App\Http\Controllers\Admin\CurrencyController::class, 'updateCurrencyByCron']); // cron currency update
 Route::post('admin/logout', [App\Http\Controllers\Auth\AdminLoginController::class, 'logout'])->name('admin.logout');
 ?>

@@ -59,6 +59,7 @@
                 <table class="table table-hover border">
                   <thead>
                     <tr>
+                      <th>Agent Code</th>
                       <th>First name </th>
                       <th>Last Name</th>
                       <th>Email</th>
@@ -74,7 +75,7 @@
                     @if(count($agents) > 0)
                         @foreach($agents as $agent)
                         <tr>
-                         
+                          <td class="align-middle"><strong>{{$agent->agent_code ?? '-'}}</strong></td>
                           <td class="align-middle">{{$agent->first_name}}</td>
                           <td class="align-middle">{{$agent->last_name}}</td>
                           <td class="align-middle">{{$agent->email}}</td>
@@ -92,7 +93,7 @@
                         @endforeach
                     @else
                         <tr align="center" class="alert alert-danger">
-                            <td colspan="{{ auth()->user()->can('agent-edit') ? 7 : 6 }}">{{__('lang.no_records')}}</td>
+                            <td colspan="{{ auth()->user()->can('agent-edit') ? 8 : 7 }}">{{__('lang.no_records')}}</td>
                         </tr>
                     @endif
                    

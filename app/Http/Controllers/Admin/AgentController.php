@@ -56,7 +56,7 @@ class AgentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
         
         $titles = [
@@ -68,10 +68,24 @@ class AgentController extends Controller
             return view('admin.abort', compact('titles'));
         }
         $agencies = Agency::where('status', 'Active')->get();
-        $roles = Role::whereIn('slug', ['agent-travel-agent', 'agent-manager', 'agent-accountant'])->get();
+        $roles = Role::whereIn('slug', ['agent-travel-agent', 'agent-manager', 'agency-accountant'])->get();
 
         return view('admin.agent.create', compact('titles', 'agencies', 'roles'));
         
+    }
+
+    /**
+     * Get next agent code for selected agency (AJAX)
+     *
+     * @param int|string $agencyId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getNextAgentCode($agencyId)
+    {
+        return response()->json([
+            'status' => true,
+            'agent_code' => Agency::generateAgentCode($agencyId)
+        ]);
     }
 
     /**
@@ -105,9 +119,12 @@ class AgentController extends Controller
         $user->password = Hash::make($request->password);
         $user->status = $request->status;
         $user->is_agent = 1 ;
-        // $user->wallet_balance = $request->wallet_balance;
         $user->mobile = $request->mobile;
         $user->agency_id = $request->agency_id;
+        $user->created_by =auth()->user()->id;
+        $user->save();
+
+        $user->agent_code = Agency::generateAgentCode($request->agency_id, $user->id);
         $user->save();
 
         if ($request->role_id) {
@@ -162,10 +179,14 @@ class AgentController extends Controller
         }
 
         $editagent = User::with('roles')->find($id);
+        if (empty($editagent->agent_code) && !empty($editagent->agency_id)) {
+            $editagent->agent_code = Agency::generateAgentCode($editagent->agency_id, $editagent->id);
+            $editagent->save();
+        }
 
         $editmarkup = MarkUp::where('user_id', $id)->first();
         $agencies = Agency::where('status', 'Active')->get();
-        $roles = Role::whereIn('slug', ['agent-travel-agent', 'agent-manager', 'agent-accountant'])->get();
+        $roles = Role::whereIn('slug', ['agent-travel-agent', 'agent-manager', 'agency-accountant'])->get();
 
         return view('admin.agent.edit', compact('titles', 'editagent' ,'editmarkup','agencies', 'roles'));
     }
@@ -345,5 +366,64 @@ class AgentController extends Controller
         Cache::forget($cachename);
 
         return redirect()->route('agents.index')->with('success', 'MarkUp Updated Successfully');
+    }
+
+    /**
+     * Dump / backfill codes for existing agents directly
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
+    public function dumpAgentCodes(Request $request)
+    {
+        $results = [];
+        $agents = User::where('is_agent', 1)->get();
+        foreach ($agents as $agent) {
+            if ($agent->agency_id) {
+                $expectedCode = Agency::generateAgentCode($agent->agency_id, $agent->id);
+                $oldCode = $agent->agent_code;
+                $updated = false;
+                if ($agent->agent_code !== $expectedCode) {
+                    $agent->agent_code = $expectedCode;
+                    $agent->save();
+                    $updated = true;
+                }
+                $results[] = [
+                    'id' => $agent->id,
+                    'name' => trim($agent->first_name . ' ' . $agent->last_name),
+                    'agency_id' => $agent->agency_id,
+                    'old_code' => $oldCode,
+                    'new_code' => $expectedCode,
+                    'status' => $updated ? 'updated' : 'unchanged',
+                ];
+            }
+        }
+
+        if ($request->wantsJson() || $request->ajax() || $request->has('json')) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Agent codes dumped successfully',
+                'agents' => $results,
+            ]);
+        }
+
+        return redirect()->route('agents.index')->with('success', 'Agent codes dumped successfully.');
+    }
+
+    /**
+     * Dump / backfill codes for existing agents and agencies
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
+    public function dumpExistingCodes(Request $request)
+    {
+        $result = Agency::dumpExistingCodes();
+
+        if ($request->wantsJson() || $request->ajax() || $request->has('json')) {
+            return response()->json($result);
+        }
+
+        return redirect()->route('agents.index')->with('success', 'Agency and Agent codes dumped successfully.');
     }
 }

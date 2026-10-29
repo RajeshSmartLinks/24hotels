@@ -28,12 +28,14 @@
                                             <table class="table zero-configuration">
                                                 <thead>
                                                 <tr>
+                                                    <th>Code</th>
                                                     <th>Name</th>
                                                     <th>Logo</th>
+                                                    <th>Country</th>
                                                     <th>Phone Number</th>
+                                                    <th>Account Manager</th>
                                                     <th>Wallet Balance</th>
-                                                  
-                                                    <th>status</th>
+                                                    <th>Status</th>
                                                     <th>Action</th>
                                                 </tr>
                                                 </thead>
@@ -42,12 +44,18 @@
                                                 @if(count($agencies) > 0)
                                                     @foreach($agencies as $agency)
                                                         <tr>
-                                                            <td>{{$agency->name}} </td>
+                                                            <td>{{$agency->agency_code ?? '-'}}</td>
+                                                            <td>{{$agency->name}}</td>
                                                              <td class="product-img"><img
                                                                     src="{{$agency->logo ?  asset('uploads/agency/'.$agency->logo) : $noImage}} "
                                                                     width="50"/>
                                                             </td>
-                                                            <td>{{$agency->country->phone_code}} &nbsp; {{$agency->phone_number}} </td>
+                                                            <td>{{$agency->country->name ?? '-'}}</td>
+                                                            <td>{{$agency->country->phone_code ?? ''}} &nbsp; {{$agency->phone_number}}</td>
+                                                            <td>
+                                                                <div><strong>{{ !empty($agency->creator) ? (trim($agency->creator->first_name . ' ' . $agency->creator->last_name) ?: $agency->creator->email) : ($agency->created_by ? 'User #' . $agency->created_by : '-') }}</strong></div>
+                                                                <small class="text-muted">{{ !empty($agency->created_at) ? \Carbon\Carbon::parse($agency->created_at)->format('d-m-Y h:i A') : '-' }}</small>
+                                                            </td>
                                                             <td>KWD {{number_format($agency->wallet_balance, 3)}} </td>
                                                             
                                                             <td>{{$agency->status}} </td>
@@ -91,7 +99,7 @@
                                                     @endforeach
                                                 @else
                                                     <tr align="center" class="alert alert-danger">
-                                                        <td colspan="5">No Record(s)</td>
+                                                        <td colspan="9">No Record(s)</td>
                                                     </tr>
                                                 @endif
 

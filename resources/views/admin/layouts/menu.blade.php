@@ -25,6 +25,8 @@
             @can('hotel-booking-view')
             <li class=" nav-item {{Request::segment(2) == 'hotelBookings' ? 'active' : '' }}"><a href="{{route('admin.hotelbookingsList')}}"><i class="feather icon-message-square"></i><span class="menu-title" data-i18n="Booking">Hotel Booking</span></a>
             </li>
+            <li class=" nav-item {{Request::segment(2) == 'salesReport' ? 'active' : '' }}"><a href="{{route('admin.salesReport')}}"><i class="feather icon-bar-chart-2"></i><span class="menu-title" data-i18n="Sales Report">Sales Report</span></a>
+            </li>
             @endcan
             
             @can('customer-view')

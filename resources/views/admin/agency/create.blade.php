@@ -53,10 +53,10 @@
                                               enctype="multipart/form-data" >
                                             @csrf
                                             <div class="form-body">
-                                                <div class="row">
-                                                    <div class="col-12">
+                                                 <div class="row">
+                                                    <div class="col-md-6 col-12">
                                                         <div class="form-group">
-                                                            <label for="name"> Agency Name</label>
+                                                            <label for="name">Agency Name</label>
                                                             <input type="text" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="Agency Name" name="name" value="{{old('name')}}" autocomplete="off" required>
                                                             @error('name')
                                                                 <span class="invalid-feedback" role="alert">
@@ -65,47 +65,10 @@
                                                             @enderror
                                                         </div>
                                                     </div>
-
-                                                    
-                                                </div>
-                                                <div class="row">
                                                     <div class="col-md-6 col-12">
-                                                        <label for="first-name-column">Status</label>
+                                                        <label for="country_id">Country</label>
                                                         <div class="form-label-group">
-                                                        <select name="status" class="form-control @error('status') is-invalid @enderror" required>
-                                                            <option value = "" >Select Status</option>
-                                                            <option value = "Active" {{old('status') == 'Active' ? 'selected' : ''}}>Active</option>
-                                                            <option value = "InActive"{{old('status') == 'InActive' ? 'selected' : ''}} >InActive</option>
-                                                        </select>
-                                                        @error('status')
-                                                            <span class="invalid-feedback" role="alert">
-                                                                <strong>{{ $message }}</strong>
-                                                            </span>
-                                                        @enderror
-                                                  
-                                                        </div>
-                                                    </div>
-                                                    <div class= "col-md-6 col-12">
-                                                        
-                                                            <label for="first-name-column">Logo</label>
-                                                            <div class="form-label-group">
-                                                                
-                                                                <input type="file" id="logo" class="form-control @error('logo') is-invalid @enderror" placeholder="Agency logo" name="logo" required>
-                                                                @error('logo')
-                                                                    <span class="invalid-feedback" role="alert">
-                                                                        <strong>{{ $message }}</strong>
-                                                                    </span>
-                                                                @enderror
-                                                                
-                                                            </div>
-                                                  
-                                                    </div>
-                                                </div>
-                                                <div class="row">
-                                                     <div class="col-md-6 col-12">
-                                                        <label for="first-name-column">Country</label>
-                                                        <div class="form-label-group">
-                                                        <select name="country_id" class="form-control @error('country_id') is-invalid @enderror" required>
+                                                        <select name="country_id" id="country_id" class="form-control @error('country_id') is-invalid @enderror" required>
                                                             <option value = "" >Select country</option>
                                                             @foreach($countries as $country)
                                                             <option value = "{{$country->id}}" {{old('country_id') == $country->id ? 'selected' : ''}}>{{$country->name}}</option>
@@ -118,11 +81,52 @@
                                                         @enderror
                                                         </div>
                                                     </div>
+                                                </div>
+                                                <div class="row">
                                                     <div class="col-md-6 col-12">
                                                         <div class="form-group">
-                                                            <label for="phone">Phone Number</label>
-                                                            <input type="text" id="phone_number" class="form-control @error('phone_number') is-invalid @enderror" placeholder="phone Number" name="phone_number" value="{{old('phone_number')}}" autocomplete="off" required>
+                                                            <label for="phone_number">Phone Number</label>
+                                                            <input type="text" id="phone_number" class="form-control @error('phone_number') is-invalid @enderror" placeholder="Phone Number" name="phone_number" value="{{old('phone_number')}}" autocomplete="off" required>
                                                             @error('phone_number')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6 col-12">
+                                                        <label for="status">Status</label>
+                                                        <div class="form-label-group">
+                                                        <select name="status" id="status" class="form-control @error('status') is-invalid @enderror" required>
+                                                            <option value = "" >Select Status</option>
+                                                            <option value = "Active" {{old('status', 'Active') == 'Active' ? 'selected' : ''}}>Active</option>
+                                                            <option value = "InActive"{{old('status') == 'InActive' ? 'selected' : ''}} >InActive</option>
+                                                        </select>
+                                                        @error('status')
+                                                            <span class="invalid-feedback" role="alert">
+                                                                <strong>{{ $message }}</strong>
+                                                            </span>
+                                                        @enderror
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 col-12">
+                                                        <div class="form-group">
+                                                            <label for="wallet_balance">Wallet Amount</label>
+                                                            <input type="number" step="any" id="wallet_balance" class="form-control @error('wallet_balance') is-invalid @enderror" placeholder="Wallet Balance" name="wallet_balance" value="{{old('wallet_balance')}}" required>
+                                                            @error('wallet_balance')
+                                                                <span class="invalid-feedback" role="alert">
+                                                                    <strong>{{ $message }}</strong>
+                                                                </span>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
+                                                    <div class= "col-md-6 col-12">
+                                                        <label for="logo">Logo</label>
+                                                        <div class="form-label-group">
+                                                            <input type="file" id="logo" class="form-control @error('logo') is-invalid @enderror" placeholder="Agency logo" name="logo" required>
+                                                            @error('logo')
                                                                 <span class="invalid-feedback" role="alert">
                                                                     <strong>{{ $message }}</strong>
                                                                 </span>
@@ -131,20 +135,6 @@
                                                     </div>
                                                 </div>
                                                 <div class="row">
-                                                    <div class="col-md-6 col-12">
-                                                       
-                                                        <div class="form-group">
-                                                            <label for="wallet_balance">Wallet Amount</label>
-                                                
-                                                            <input type="number"   class="form-control @error('wallet_balance') is-invalid @enderror" placeholder="Wallet Balance" name="wallet_balance" value="{{old('wallet_balance')}}" required>
-                                                            @error('wallet_balance')
-                                                                <span class="invalid-feedback" role="alert">
-                                                                    <strong>{{ $message }}</strong>
-                                                                </span>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-
                                                     <div class="col-12">
                                                         <div class="form-group">
                                                             <label for="address">Address</label>
